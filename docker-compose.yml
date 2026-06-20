@@ -37,7 +37,7 @@ services:
       retries: 10
 
   migrate:
-    build: .
+    build: ./apps/api
     command: ["migrate"]
     environment:
       <<: *app-env
@@ -49,7 +49,7 @@ services:
         condition: service_healthy
 
   api:
-    build: .
+    build: ./apps/api
     command: ["api"]
     environment:
       <<: *app-env

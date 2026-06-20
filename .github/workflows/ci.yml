@@ -10,8 +10,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality:
+  backend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
     services:
       postgres:
         image: postgres:18-alpine
@@ -40,9 +43,25 @@ jobs:
         with:
           python-version: "3.14"
           enable-cache: true
+          working-directory: apps/api
       - run: uv sync --all-extras --frozen
       - run: uv run ruff check src tests
       - run: uv run ruff format --check src tests
       - run: uv run mypy src
       - run: uv run alembic upgrade head
       - run: uv run pytest --cov --cov-report=term-missing
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun run build

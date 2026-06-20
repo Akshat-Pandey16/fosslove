@@ -22,3 +22,12 @@ sqlcommand.sql
 .vscode/
 *.swp
 .DS_Store
+
+node_modules/
+.next/
+out/
+.turbo/
+next-env.d.ts
+*.tsbuildinfo
+.pnpm-store/
+.vercel
