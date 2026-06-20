@@ -1,0 +1,91 @@
+name: fosslove
+
+x-app-env: &app-env
+  FOSSLOVE_POSTGRES_HOST: postgres
+  FOSSLOVE_POSTGRES_PORT: "5432"
+  FOSSLOVE_POSTGRES_USER: fosslove
+  FOSSLOVE_POSTGRES_PASSWORD: fosslove
+  FOSSLOVE_POSTGRES_DB: fosslove
+  FOSSLOVE_REDIS_URL: redis://redis:6379/0
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: fosslove
+      POSTGRES_PASSWORD: fosslove
+      POSTGRES_DB: fosslove
+    ports:
+      - "5544:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fosslove"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6390:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    build: .
+    command: ["migrate"]
+    environment:
+      <<: *app-env
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build: .
+    command: ["api"]
+    environment:
+      <<: *app-env
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)\""]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    build: .
+    command: ["worker"]
+    environment:
+      <<: *app-env
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:

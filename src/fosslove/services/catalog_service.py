@@ -12,21 +12,6 @@ from fosslove.schemas.catalog import AppCreate, AppUpdate, CategoryCreate, Categ
 from fosslove.utils import make_slug
 
 
-def _count_column(platform: Platform) -> ColumnElement[int]:
-    if platform is Platform.WINDOWS:
-        return Category.windows_app_count
-    return Category.linux_app_count
-
-
-async def _adjust_count(
-    session: AsyncSession, category_id: int, platform: Platform, delta: int
-) -> None:
-    column = _count_column(platform)
-    await session.execute(
-        update(Category).where(Category.id == category_id).values({column: column + delta})
-    )
-
-
 async def _unique_category_slug(session: AsyncSession, base: str, exclude_id: int | None) -> str:
     candidate = base
     suffix = 2
@@ -130,9 +115,7 @@ async def list_apps(
         pattern = f"%{query.strip()}%"
         conditions.append(or_(App.name.ilike(pattern), App.summary.ilike(pattern)))
 
-    total = (
-        await session.scalar(select(func.count()).select_from(App).where(*conditions))
-    ) or 0
+    total = (await session.scalar(select(func.count()).select_from(App).where(*conditions))) or 0
     rows = await session.scalars(
         select(App)
         .where(*conditions)
@@ -207,7 +190,6 @@ async def create_app(session: AsyncSession, data: AppCreate) -> App:
     ]
     _ensure_unique_managers(app.package_refs)
     session.add(app)
-    await _adjust_count(session, data.category_id, data.platform, 1)
     await session.commit()
     return await get_app(session, app.id)
 
@@ -219,9 +201,12 @@ async def update_app(session: AsyncSession, app_id: int, data: AppUpdate) -> App
     new_category_id = updates.get("category_id", app.category_id)
     new_name = updates.get("name", app.name)
 
-    if "category_id" in updates and new_category_id != original_category_id:
-        if await session.get(Category, new_category_id) is None:
-            raise NotFoundError("Category not found.")
+    if (
+        "category_id" in updates
+        and new_category_id != original_category_id
+        and await session.get(Category, new_category_id) is None
+    ):
+        raise NotFoundError("Category not found.")
 
     if new_name != app.name or new_category_id != original_category_id:
         duplicate = await session.scalar(
@@ -241,9 +226,6 @@ async def update_app(session: AsyncSession, app_id: int, data: AppUpdate) -> App
         app.slug = await _unique_app_slug(
             session, app.platform, make_slug(new_name), exclude_id=app.id
         )
-    if new_category_id != original_category_id:
-        await _adjust_count(session, original_category_id, app.platform, -1)
-        await _adjust_count(session, new_category_id, app.platform, 1)
 
     await session.commit()
     return await get_app(session, app.id)
@@ -251,9 +233,7 @@ async def update_app(session: AsyncSession, app_id: int, data: AppUpdate) -> App
 
 async def delete_app(session: AsyncSession, app_id: int) -> None:
     app = await get_app(session, app_id)
-    category_id, platform = app.category_id, app.platform
     await session.delete(app)
-    await _adjust_count(session, category_id, platform, -1)
     await session.commit()
 
 
@@ -268,7 +248,5 @@ async def recompute_counts(session: AsyncSession) -> None:
         .where(App.category_id == Category.id, App.platform == Platform.LINUX)
         .scalar_subquery()
     )
-    await session.execute(
-        update(Category).values(windows_app_count=windows, linux_app_count=linux)
-    )
+    await session.execute(update(Category).values(windows_app_count=windows, linux_app_count=linux))
     await session.commit()

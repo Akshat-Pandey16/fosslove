@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: fosslove
+          POSTGRES_PASSWORD: fosslove
+          POSTGRES_DB: fosslove
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U fosslove"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      FOSSLOVE_ENV: local
+      FOSSLOVE_POSTGRES_HOST: localhost
+      FOSSLOVE_POSTGRES_PORT: "5432"
+      FOSSLOVE_POSTGRES_USER: fosslove
+      FOSSLOVE_POSTGRES_PASSWORD: fosslove
+      FOSSLOVE_POSTGRES_DB: fosslove
+      FOSSLOVE_SECRET_KEY: ci-only-secret-not-for-production-use-1234567890
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+          enable-cache: true
+      - run: uv sync --all-extras --frozen
+      - run: uv run ruff check src tests
+      - run: uv run ruff format --check src tests
+      - run: uv run mypy src
+      - run: uv run alembic upgrade head
+      - run: uv run pytest --cov --cov-report=term-missing

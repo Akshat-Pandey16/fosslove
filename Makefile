@@ -46,11 +46,11 @@ env:
 
 .PHONY: run
 run:
-	$(UV) run uvicorn fosslove.main:app --host 0.0.0.0 --port 8000
+	$(UV) run uvicorn fosslove.main:app --host 0.0.0.0 --port 8001
 
 .PHONY: dev
 dev:
-	$(UV) run uvicorn fosslove.main:app --host 0.0.0.0 --port 8000 --reload
+	$(UV) run uvicorn fosslove.main:app --host 0.0.0.0 --port 8001 --reload
 
 .PHONY: worker
 worker:

@@ -4,6 +4,7 @@ import time
 import uuid
 
 import structlog
+from limits import parse
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -54,21 +55,24 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self,
         app: object,
         *,
-        limiter: RateLimiter,
         default_spec: str,
         exempt_prefixes: tuple[str, ...] = (),
     ) -> None:
         super().__init__(app)  # type: ignore[arg-type]
-        self._limiter = limiter
-        self._item = limiter.parse_spec(default_spec)
+        self._item = parse(default_spec)
         self._exempt = exempt_prefixes
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         path = request.url.path
-        if request.method == "OPTIONS" or any(path.startswith(p) for p in self._exempt):
+        limiter: RateLimiter | None = getattr(request.app.state, "rate_limiter", None)
+        if (
+            limiter is None
+            or request.method == "OPTIONS"
+            or any(path.startswith(p) for p in self._exempt)
+        ):
             return await call_next(request)
 
-        result = await self._limiter.hit(f"global:{get_client_ip(request)}", self._item)
+        result = await limiter.hit(f"global:{get_client_ip(request)}", self._item)
         headers = {
             "x-ratelimit-limit": str(result.limit),
             "x-ratelimit-remaining": str(result.remaining),
