@@ -64,7 +64,9 @@ direct_install() {
 
 installed=0
 failed=0
+idx=0
 failed_names=''
+script_start=$(date +%s)
 
 try_candidate() {
     manager="${1%%:*}"
@@ -80,24 +82,26 @@ try_candidate() {
 
 install_app() {
     name="$1"; shift
-    log "Installing $name..." "$c_cyan"
+    idx=$((idx + 1))
+    log "[$idx/$TOTAL] Installing $name..." "$c_cyan"
+    start=$(date +%s)
     for cand in "$@"; do
         if try_candidate "$cand"; then
             installed=$((installed + 1))
-            log "  Installed $name" "$c_green"
+            log "  OK  $name ($(( $(date +%s) - start ))s)" "$c_green"
             return 0
         fi
     done
     failed=$((failed + 1))
     failed_names="$failed_names $name"
-    log "  Failed $name" "$c_red"
+    log "  FAIL $name" "$c_red"
     return 0
 }
 """
 
 _SUMMARY = r"""
 echo ''
-log "Done. Installed: $installed, Failed: $failed" "$c_magenta"
+log "Done in $(( $(date +%s) - script_start ))s. Installed: $installed, Failed: $failed" "$c_magenta"
 if [ "$failed" -gt 0 ]; then
     log "Failed apps:$failed_names" "$c_yellow"
 fi
@@ -105,7 +109,7 @@ fi
 
 
 def _emit_calls(plans: list[AppPlan]) -> str:
-    lines: list[str] = []
+    lines = [f"TOTAL={len(plans)}"]
     for plan in plans:
         parts = [sh_quote(plan.name)]
         parts.extend(

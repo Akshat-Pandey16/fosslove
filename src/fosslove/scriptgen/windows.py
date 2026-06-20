@@ -5,6 +5,7 @@ from fosslove.scriptgen.common import AppPlan, ps_quote
 _PRELUDE = r"""#requires -Version 5.1
 $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
+$swTotal = [System.Diagnostics.Stopwatch]::StartNew()
 
 $Banner = @'
   ___  ___  ___ ___   _    _____   _____
@@ -18,8 +19,20 @@ function Write-Log {
     Write-Host $Message -ForegroundColor $Color
 }
 
+try {
+    $logPath = Join-Path $env:TEMP ("fosslove_install_{0}.log" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+    Start-Transcript -Path $logPath -Append | Out-Null
+} catch { $logPath = $null }
+
 Write-Host $Banner -ForegroundColor Magenta
 Write-Log 'Welcome to FOSSLove - installing your selected apps.' 'Cyan'
+
+$IsAdmin = ([Security.Principal.WindowsPrincipal] `
+    [Security.Principal.WindowsIdentity]::GetCurrent()
+).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $IsAdmin) {
+    Write-Log 'Note: not elevated; some installers may prompt for or require Administrator.' 'Yellow'
+}
 
 function Test-Command {
     param([string]$Name)
@@ -51,7 +64,7 @@ function Invoke-Winget {
         $cmd += $ExtraArgs.Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)
     }
     & winget @cmd | Out-Null
-    return ($LASTEXITCODE -eq 0)
+    return ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq -1978335189)
 }
 
 function Invoke-Direct {
@@ -70,39 +83,59 @@ function Invoke-Direct {
         return $false
     }
 }
+
+function Install-App {
+    param([pscustomobject]$App, [bool]$WingetReady)
+    foreach ($c in $App.Candidates) {
+        $ok = $false
+        switch ($c.Manager) {
+            'winget'  { if ($WingetReady) { $ok = Invoke-Winget -Id $c.Id -Source '' -ExtraArgs $c.Args } }
+            'msstore' { if ($WingetReady) { $ok = Invoke-Winget -Id $c.Id -Source 'msstore' -ExtraArgs $c.Args } }
+            'direct'  { $ok = Invoke-Direct -Url $c.Id -ExtraArgs $c.Args }
+        }
+        if ($ok) { return $true }
+    }
+    return $false
+}
 """
 
 _MAIN = r"""$wingetReady = Initialize-Winget
 $installed = 0
 $failed = 0
 $failedNames = @()
+$total = @($Apps).Count
+$index = 0
 
 foreach ($app in $Apps) {
-    Write-Log ("Installing {0}..." -f $app.Name) 'Cyan'
-    $ok = $false
-    foreach ($c in $app.Candidates) {
-        switch ($c.Manager) {
-            'winget'  { if ($wingetReady) { $ok = Invoke-Winget -Id $c.Id -Source '' -ExtraArgs $c.Args } }
-            'msstore' { if ($wingetReady) { $ok = Invoke-Winget -Id $c.Id -Source 'msstore' -ExtraArgs $c.Args } }
-            'direct'  { $ok = Invoke-Direct -Url $c.Id -ExtraArgs $c.Args }
-        }
-        if ($ok) { break }
-    }
+    $index++
+    Write-Progress -Activity 'FOSSLove installer' -Status $app.Name `
+        -PercentComplete (($index / [Math]::Max($total, 1)) * 100)
+    Write-Log ("[{0}/{1}] Installing {2}..." -f $index, $total, $app.Name) 'Cyan'
+
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    $ok = Install-App -App $app -WingetReady $wingetReady
+    $sw.Stop()
+
     if ($ok) {
         $installed++
-        Write-Log ("  Installed {0}" -f $app.Name) 'Green'
+        Write-Log ("  OK  {0} ({1:n1}s)" -f $app.Name, $sw.Elapsed.TotalSeconds) 'Green'
     } else {
         $failed++
         $failedNames += $app.Name
-        Write-Log ("  Failed {0}" -f $app.Name) 'Red'
+        Write-Log ("  FAIL {0}" -f $app.Name) 'Red'
     }
 }
 
+Write-Progress -Activity 'FOSSLove installer' -Completed
+$swTotal.Stop()
 Write-Host ''
-Write-Log ("Done. Installed: {0}, Failed: {1}" -f $installed, $failed) 'Magenta'
+Write-Log ("Done in {0:n1}s. Installed: {1}, Failed: {2}" -f `
+    $swTotal.Elapsed.TotalSeconds, $installed, $failed) 'Magenta'
 if ($failed -gt 0) {
     Write-Log ("Failed apps: {0}" -f ($failedNames -join ', ')) 'Yellow'
 }
+if ($logPath) { Write-Log ("Log: {0}" -f $logPath) 'DarkGray' }
+try { Stop-Transcript | Out-Null } catch { }
 """
 
 
