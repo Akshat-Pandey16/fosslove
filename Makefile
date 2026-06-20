@@ -20,6 +20,8 @@ help:
 	@echo "  migrate     Apply all migrations"
 	@echo "  downgrade   Roll back the last migration"
 	@echo "  revision    Autogenerate a migration: make revision m=\"message\""
+	@echo "  reset-db    DESTRUCTIVE: drop schema, re-apply migrations, reset identities"
+	@echo "  reseed      DESTRUCTIVE: reset-db then load sample catalog data"
 	@echo "  seed        Seed sample catalog data"
 	@echo "  up          Start the full docker stack"
 	@echo "  down        Stop the docker stack"
@@ -86,6 +88,14 @@ downgrade:
 .PHONY: revision
 revision:
 	$(UV) run alembic revision --autogenerate -m "$(m)"
+
+.PHONY: reset-db
+reset-db:
+	$(UV) run python -m fosslove.db.reset
+	$(UV) run alembic upgrade head
+
+.PHONY: reseed
+reseed: reset-db seed
 
 .PHONY: seed
 seed:
