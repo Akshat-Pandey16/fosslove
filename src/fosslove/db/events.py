@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import ColumnElement, event, inspect, update
-from sqlalchemy.orm import Session
+from sqlalchemy import event, inspect, update
+from sqlalchemy.orm import InstrumentedAttribute, Session
 
 from fosslove.db.models.catalog import App, Category
 from fosslove.db.models.enums import Platform
 
 
-def _count_column(platform: Platform) -> ColumnElement[int]:
+def _count_column(platform: Platform) -> InstrumentedAttribute[int]:
     if platform is Platform.WINDOWS:
         return Category.windows_app_count
     return Category.linux_app_count

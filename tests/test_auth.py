@@ -11,7 +11,7 @@ async def test_register_and_login(client: AsyncClient) -> None:
     assert register.status_code == 201
     body = register.json()
     assert body["email"] == "a@b.io"
-    assert body["is_verified"] is False
+    assert body["is_verified"] is True
 
     login = await client.post(
         "/api/v1/auth/login", json={"email": "a@b.io", "password": "Passw0rd"}

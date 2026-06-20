@@ -13,7 +13,7 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 from sqlalchemy import URL
 
 _PLACEHOLDER_SECRET = "change-me-to-a-long-random-secret-value-please"
@@ -25,7 +25,7 @@ class Environment(StrEnum):
     PRODUCTION = "production"
 
 
-CommaList = Annotated[list[str], Field(default_factory=list)]
+CommaList = Annotated[list[str], NoDecode]
 
 
 class Settings(BaseSettings):
@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_DEFAULT: str = "200/minute"
     RATE_LIMIT_AUTH: str = "10/minute"
 
+    EMAIL_ENABLED: bool = False
     EMAIL_BACKEND: Literal["console", "smtp"] = "console"
     EMAIL_FROM: EmailStr = "no-reply@fosslove.dev"
     SMTP_HOST: str = ""
@@ -106,7 +107,7 @@ class Settings(BaseSettings):
                 raise ValueError("FOSSLOVE_DEBUG must be false in production")
             if "*" in self.ALLOWED_HOSTS:
                 raise ValueError("FOSSLOVE_ALLOWED_HOSTS must not be '*' in production")
-            if self.EMAIL_BACKEND == "smtp" and not self.SMTP_HOST:
+            if self.EMAIL_ENABLED and self.EMAIL_BACKEND == "smtp" and not self.SMTP_HOST:
                 raise ValueError("FOSSLOVE_SMTP_HOST is required when EMAIL_BACKEND=smtp")
         if self.REFRESH_TOKEN_TTL_SECONDS <= self.ACCESS_TOKEN_TTL_SECONDS:
             raise ValueError("REFRESH_TOKEN_TTL_SECONDS must exceed ACCESS_TOKEN_TTL_SECONDS")

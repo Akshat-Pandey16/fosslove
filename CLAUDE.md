@@ -71,6 +71,9 @@ SQLAdmin without adopting Django.
 - **Admin** role: catalog management (categories, apps, package refs) + the SQLAdmin UI.
 - Email verification on signup; password reset; refresh-token rotation with server-side
   revocation (a `jti` per refresh token is persisted).
+- **Email is gated by `FOSSLOVE_EMAIL_ENABLED` (default off).** While off: the EmailSender
+  no-ops, new users are auto-verified on registration, and resend/reset short-circuit. Turn
+  it on (with SMTP creds) to activate the full verify/reset flow.
 
 ## Data model (high level)
 

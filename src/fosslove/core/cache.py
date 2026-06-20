@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from typing import cast
 
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
@@ -42,8 +43,7 @@ class Cache:
     async def get(self, key: str) -> str | None:
         if self._redis is not None:
             try:
-                value: str | None = await self._redis.get(key)
-                return value
+                return cast("str | None", await self._redis.get(key))
             except RedisError as exc:
                 logger.warning("cache_get_failed", key=key, error=str(exc))
                 return None

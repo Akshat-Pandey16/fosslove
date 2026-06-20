@@ -15,6 +15,9 @@ class EmailSender:
         self._settings = settings
 
     async def send(self, *, to: str, subject: str, body: str) -> None:
+        if not self._settings.EMAIL_ENABLED:
+            logger.info("email_disabled", to=to, subject=subject)
+            return
         if self._settings.EMAIL_BACKEND == "smtp" and self._settings.SMTP_HOST:
             await self._send_smtp(to=to, subject=subject, body=body)
         else:

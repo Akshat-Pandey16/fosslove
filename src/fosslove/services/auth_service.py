@@ -29,7 +29,10 @@ def _now() -> datetime:
 
 
 async def get_user_by_email(session: AsyncSession, email: str) -> User | None:
-    return await session.scalar(select(User).where(User.email == email.strip().lower()))
+    result: User | None = await session.scalar(
+        select(User).where(User.email == email.strip().lower())
+    )
+    return result
 
 
 async def _create_verification_token(
@@ -71,18 +74,24 @@ async def _revoke_all_refresh_tokens(session: AsyncSession, user_id: uuid.UUID) 
     )
 
 
-async def register(session: AsyncSession, data: RegisterRequest) -> tuple[User, str]:
+async def register(session: AsyncSession, data: RegisterRequest) -> tuple[User, str | None]:
     if await get_user_by_email(session, data.email) is not None:
         raise ConflictError("An account with this email already exists.", code="email_taken")
+    email_enabled = get_settings().EMAIL_ENABLED
     user = User(
         email=data.email,
         hashed_password=hash_password(data.password),
         full_name=data.full_name,
         role=UserRole.USER,
+        is_verified=not email_enabled,
     )
     session.add(user)
     await session.flush()
-    raw_token = await _create_verification_token(session, user, TokenPurpose.EMAIL_VERIFY)
+    raw_token = (
+        await _create_verification_token(session, user, TokenPurpose.EMAIL_VERIFY)
+        if email_enabled
+        else None
+    )
     await session.commit()
     return user, raw_token
 
@@ -157,6 +166,8 @@ async def verify_email(session: AsyncSession, raw_token: str) -> None:
 
 
 async def resend_verification(session: AsyncSession, email: str) -> str | None:
+    if not get_settings().EMAIL_ENABLED:
+        return None
     user = await get_user_by_email(session, email)
     if user is None or user.is_verified:
         return None
@@ -166,6 +177,8 @@ async def resend_verification(session: AsyncSession, email: str) -> str | None:
 
 
 async def request_password_reset(session: AsyncSession, email: str) -> str | None:
+    if not get_settings().EMAIL_ENABLED:
+        return None
     user = await get_user_by_email(session, email)
     if user is None or not user.is_active:
         return None

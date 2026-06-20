@@ -33,7 +33,8 @@ async def register(
     email: EmailDep,
 ) -> UserRead:
     user, raw_token = await auth_service.register(session, data)
-    background.add_task(email.send_verification, to=user.email, raw_token=raw_token)
+    if raw_token is not None:
+        background.add_task(email.send_verification, to=user.email, raw_token=raw_token)
     return to_user_read(user)
 
 

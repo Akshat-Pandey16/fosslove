@@ -41,11 +41,13 @@ async def _unique_slug(
 
 
 async def _load_detail(session: AsyncSession, collection_id: int) -> Collection | None:
-    return await session.scalar(
+    result: Collection | None = await session.scalar(
         select(Collection)
         .where(Collection.id == collection_id)
         .options(selectinload(Collection.items).selectinload(CollectionApp.app))
+        .execution_options(populate_existing=True)
     )
+    return result
 
 
 async def _require_detail(session: AsyncSession, collection_id: int) -> Collection:
