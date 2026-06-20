@@ -40,9 +40,7 @@ class Category(Base, TimestampMixin):
     windows_app_count: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
     linux_app_count: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
 
-    apps: Mapped[list[App]] = relationship(
-        back_populates="category", cascade="all, delete-orphan"
-    )
+    apps: Mapped[list[App]] = relationship(back_populates="category", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"Category(id={self.id!r}, name={self.name!r})"

@@ -118,9 +118,7 @@ async def login(session: AsyncSession, data: LoginRequest) -> TokenPair:
 
 async def refresh(session: AsyncSession, refresh_token: str) -> TokenPair:
     payload = decode_token(refresh_token, expected_type=TokenType.REFRESH)
-    stored = await session.scalar(
-        select(RefreshToken).where(RefreshToken.jti == payload["jti"])
-    )
+    stored = await session.scalar(select(RefreshToken).where(RefreshToken.jti == payload["jti"]))
     if stored is None:
         raise AuthenticationError("Refresh token is invalid.", code="invalid_token")
     if stored.revoked_at is not None:
@@ -143,9 +141,7 @@ async def logout(session: AsyncSession, refresh_token: str) -> None:
         payload = decode_token(refresh_token, expected_type=TokenType.REFRESH)
     except AuthenticationError:
         return
-    stored = await session.scalar(
-        select(RefreshToken).where(RefreshToken.jti == payload["jti"])
-    )
+    stored = await session.scalar(select(RefreshToken).where(RefreshToken.jti == payload["jti"]))
     if stored is not None and stored.revoked_at is None:
         stored.revoked_at = _now()
         await session.commit()

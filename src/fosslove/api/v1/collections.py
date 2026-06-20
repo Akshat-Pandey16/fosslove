@@ -69,9 +69,7 @@ async def set_collection_apps(
 
 
 @router.delete("/{collection_id}", response_model=Message)
-async def delete_collection(
-    collection_id: int, user: CurrentUser, session: SessionDep
-) -> Message:
+async def delete_collection(collection_id: int, user: CurrentUser, session: SessionDep) -> Message:
     collection = await collection_service.get_owned_collection(session, collection_id, user.id)
     await collection_service.delete_collection(session, collection)
     return Message(message="Collection deleted.")

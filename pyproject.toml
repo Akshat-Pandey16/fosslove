@@ -68,8 +68,14 @@ select = [
 ignore = ["PLR0913", "PLR2004", "B008"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S105", "S106", "PLR2004", "PLR0913"]
-"src/fosslove/scriptgen/**" = ["S608"]
+"tests/**" = ["S101", "S105", "S106", "PLR2004", "PLR0913", "PLC0415"]
+"src/fosslove/scriptgen/**" = ["S608", "E501"]
+"src/fosslove/admin/views.py" = ["RUF012"]
+"src/fosslove/db/session.py" = ["PLW0603"]
+"src/fosslove/core/config.py" = ["S105"]
+"src/fosslove/db/models/enums.py" = ["S105"]
+"src/fosslove/schemas/auth.py" = ["S105"]
+"src/fosslove/__main__.py" = ["S104"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["fosslove"]

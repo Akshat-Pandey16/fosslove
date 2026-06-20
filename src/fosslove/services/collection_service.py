@@ -17,9 +17,7 @@ from fosslove.utils import make_slug
 async def _validate_app_ids(session: AsyncSession, app_ids: list[int]) -> None:
     if not app_ids:
         return
-    found = set(
-        (await session.scalars(select(App.id).where(App.id.in_(app_ids)))).all()
-    )
+    found = set((await session.scalars(select(App.id).where(App.id.in_(app_ids)))).all())
     missing = [app_id for app_id in app_ids if app_id not in found]
     if missing:
         raise BadRequestError(f"Unknown app IDs: {missing}", code="unknown_apps")
@@ -119,9 +117,7 @@ async def create_collection(
     session: AsyncSession, user_id: uuid.UUID, data: CollectionCreate
 ) -> Collection:
     duplicate = await session.scalar(
-        select(Collection.id).where(
-            Collection.user_id == user_id, Collection.name == data.name
-        )
+        select(Collection.id).where(Collection.user_id == user_id, Collection.name == data.name)
     )
     if duplicate is not None:
         raise ConflictError("You already have a collection with this name.", code="name_taken")
@@ -135,8 +131,7 @@ async def create_collection(
         is_public=data.is_public,
     )
     collection.items = [
-        CollectionApp(app_id=app_id, position=index)
-        for index, app_id in enumerate(data.app_ids)
+        CollectionApp(app_id=app_id, position=index) for index, app_id in enumerate(data.app_ids)
     ]
     session.add(collection)
     await session.commit()
@@ -167,13 +162,9 @@ async def update_collection(
     return await _require_detail(session, collection.id)
 
 
-async def set_apps(
-    session: AsyncSession, collection: Collection, app_ids: list[int]
-) -> Collection:
+async def set_apps(session: AsyncSession, collection: Collection, app_ids: list[int]) -> Collection:
     await _validate_app_ids(session, app_ids)
-    await session.execute(
-        delete(CollectionApp).where(CollectionApp.collection_id == collection.id)
-    )
+    await session.execute(delete(CollectionApp).where(CollectionApp.collection_id == collection.id))
     await session.flush()
     session.add_all(
         [

@@ -4,9 +4,7 @@ import os
 
 os.environ["FOSSLOVE_POSTGRES_DB"] = "fosslove_test"
 os.environ.setdefault("FOSSLOVE_POSTGRES_PORT", "5544")
-os.environ.setdefault(
-    "FOSSLOVE_SECRET_KEY", "test-secret-key-for-ci-and-local-use-only-0123456789"
-)
+os.environ.setdefault("FOSSLOVE_SECRET_KEY", "test-secret-key-for-ci-and-local-use-only-0123456789")
 os.environ.setdefault("FOSSLOVE_RATE_LIMIT_ENABLED", "false")
 os.environ.setdefault("FOSSLOVE_EMAIL_BACKEND", "console")
 os.environ.pop("FOSSLOVE_REDIS_URL", None)

@@ -16,9 +16,7 @@ def _count_column(platform: Platform) -> ColumnElement[int]:
 
 
 @event.listens_for(Session, "before_flush")
-def _maintain_category_counts(
-    session: Session, flush_context: Any, instances: Any
-) -> None:
+def _maintain_category_counts(session: Session, flush_context: Any, instances: Any) -> None:
     deltas: dict[tuple[int, Platform], int] = {}
 
     def bump(category_id: int, platform: Platform, amount: int) -> None:

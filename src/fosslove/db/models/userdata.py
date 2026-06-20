@@ -68,13 +68,9 @@ class CollectionApp(Base):
     collection_id: Mapped[int] = mapped_column(
         ForeignKey("collections.id", ondelete="CASCADE"), primary_key=True
     )
-    app_id: Mapped[int] = mapped_column(
-        ForeignKey("apps.id", ondelete="CASCADE"), primary_key=True
-    )
+    app_id: Mapped[int] = mapped_column(ForeignKey("apps.id", ondelete="CASCADE"), primary_key=True)
     position: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
-    added_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), server_default=func.now()
-    )
+    added_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
 
     collection: Mapped[Collection] = relationship(back_populates="items")
     app: Mapped[App] = relationship(back_populates="collection_links", lazy="selectin")
@@ -87,9 +83,7 @@ class Favorite(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
-    app_id: Mapped[int] = mapped_column(
-        ForeignKey("apps.id", ondelete="CASCADE"), primary_key=True
-    )
+    app_id: Mapped[int] = mapped_column(ForeignKey("apps.id", ondelete="CASCADE"), primary_key=True)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now()
     )
@@ -106,9 +100,7 @@ class ScriptRun(Base):
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    user_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL")
-    )
+    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     platform: Mapped[Platform] = mapped_column(enum_column(Platform))
     app_ids: Mapped[list[int]] = mapped_column(JSONB)
     app_count: Mapped[int] = mapped_column(Integer)

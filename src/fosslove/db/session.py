@@ -50,7 +50,7 @@ async def dispose_engine() -> None:
     _sessionmaker = None
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_session() -> AsyncGenerator[AsyncSession]:
     factory = get_sessionmaker()
     async with factory() as session:
         try:
