@@ -80,7 +80,7 @@ def _add_middleware(app: FastAPI, settings: Settings) -> None:
         allow_credentials=True,
         allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["*"],
-        expose_headers=["x-request-id"],
+        expose_headers=["x-request-id", "content-disposition"],
         max_age=600,
     )
     app.add_middleware(RequestContextMiddleware)

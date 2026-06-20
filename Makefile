@@ -3,37 +3,35 @@ SHELL := /bin/bash
 
 .PHONY: help
 help:
-	@echo "FOSSLove — root targets (orchestrates apps/api + apps/web):"
-	@echo "  install        Install backend + frontend dependencies"
-	@echo "  dev            Run backend (:8001) and frontend (:3000) together"
-	@echo "  check          Backend checks (ruff+mypy+pytest) + frontend checks (lint+typecheck)"
-	@echo "  build          Build the frontend for production"
-	@echo "  up / down      Start / stop the full docker stack (api + web + postgres + redis)"
-	@echo "  logs           Tail docker logs for all services"
+	@echo "FOSSLove — monorepo (apps/api + apps/web)"
 	@echo ""
-	@echo "  be-<target>    Run an apps/api Makefile target  (e.g. make be-migrate, make be-reseed)"
-	@echo "  fe-<target>    Run an apps/web Makefile target  (e.g. make fe-build, make fe-lint)"
+	@echo "Docker infra (shared by the docker stack AND local dev servers):"
+	@echo "  infra          Start ONLY postgres + redis (detached) for local dev"
+	@echo "  infra-down     Stop postgres + redis"
+	@echo "  infra-logs     Tail postgres + redis logs"
+	@echo "  up             Start the FULL docker stack (api + web + postgres + redis)"
+	@echo "  down           Stop the full docker stack"
+	@echo "  logs           Tail all docker logs"
+	@echo ""
+	@echo "Backend  (delegates to apps/api/Makefile):"
+	@echo "  api-<target>   e.g. api-install api-dev api-migrate api-seed api-check api-reset-db"
+	@echo ""
+	@echo "Frontend (delegates to apps/web/Makefile):"
+	@echo "  web-<target>   e.g. web-install web-dev web-build web-lint web-check"
+	@echo ""
+	@echo "Run 'make api-help' or 'make web-help' to list each app's own targets."
 
-.PHONY: install
-install:
-	$(MAKE) -C apps/api install
-	$(MAKE) -C apps/web install
+.PHONY: infra
+infra:
+	docker compose up -d postgres redis
 
-.PHONY: dev
-dev:
-	@trap 'kill 0' EXIT INT TERM; \
-	$(MAKE) -C apps/api dev & \
-	$(MAKE) -C apps/web dev & \
-	wait
+.PHONY: infra-down
+infra-down:
+	docker compose stop postgres redis
 
-.PHONY: check
-check:
-	$(MAKE) -C apps/api check
-	$(MAKE) -C apps/web check
-
-.PHONY: build
-build:
-	$(MAKE) -C apps/web build
+.PHONY: infra-logs
+infra-logs:
+	docker compose logs -f postgres redis
 
 .PHONY: up
 up:
@@ -47,8 +45,8 @@ down:
 logs:
 	docker compose logs -f
 
-be-%:
+api-%:
 	$(MAKE) -C apps/api $*
 
-fe-%:
+web-%:
 	$(MAKE) -C apps/web $*
