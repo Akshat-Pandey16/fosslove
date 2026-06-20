@@ -107,8 +107,15 @@ class Settings(BaseSettings):
                 raise ValueError("FOSSLOVE_DEBUG must be false in production")
             if "*" in self.ALLOWED_HOSTS:
                 raise ValueError("FOSSLOVE_ALLOWED_HOSTS must not be '*' in production")
-            if self.EMAIL_ENABLED and self.EMAIL_BACKEND == "smtp" and not self.SMTP_HOST:
-                raise ValueError("FOSSLOVE_SMTP_HOST is required when EMAIL_BACKEND=smtp")
+            if self.EMAIL_ENABLED:
+                if self.EMAIL_BACKEND != "smtp":
+                    raise ValueError("FOSSLOVE_EMAIL_BACKEND must be 'smtp' in production")
+                if not self.SMTP_HOST:
+                    raise ValueError("FOSSLOVE_SMTP_HOST is required when EMAIL_BACKEND=smtp")
+                if not self.SMTP_USE_TLS:
+                    raise ValueError("FOSSLOVE_SMTP_USE_TLS must be true in production")
+                if not self.FRONTEND_BASE_URL.startswith("https://"):
+                    raise ValueError("FOSSLOVE_FRONTEND_BASE_URL must use https:// in production")
         if self.REFRESH_TOKEN_TTL_SECONDS <= self.ACCESS_TOKEN_TTL_SECONDS:
             raise ValueError("REFRESH_TOKEN_TTL_SECONDS must exceed ACCESS_TOKEN_TTL_SECONDS")
         return self

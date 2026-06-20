@@ -20,8 +20,10 @@ class EmailSender:
             return
         if self._settings.EMAIL_BACKEND == "smtp" and self._settings.SMTP_HOST:
             await self._send_smtp(to=to, subject=subject, body=body)
-        else:
+        elif self._settings.DEBUG:
             logger.info("email_console", to=to, subject=subject, body=body)
+        else:
+            logger.info("email_console", to=to, subject=subject)
 
     async def _send_smtp(self, *, to: str, subject: str, body: str) -> None:
         message = EmailMessage()

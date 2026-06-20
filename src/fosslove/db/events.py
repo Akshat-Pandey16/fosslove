@@ -36,8 +36,9 @@ def _maintain_category_counts(session: Session, flush_context: Any, instances: A
                 bump(history.deleted[0], obj.platform, -1)
                 bump(history.added[0], obj.platform, 1)
 
+    deleted_category_ids = {obj.id for obj in session.deleted if isinstance(obj, Category)}
     for (category_id, platform), delta in deltas.items():
-        if delta:
+        if delta and category_id not in deleted_category_ids:
             column = _count_column(platform)
             session.execute(
                 update(Category).where(Category.id == category_id).values({column: column + delta})

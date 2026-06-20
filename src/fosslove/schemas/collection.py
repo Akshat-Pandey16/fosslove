@@ -47,6 +47,11 @@ class CollectionUpdate(StrictModel):
     description: str | None = Field(default=None, max_length=2000)
     is_public: bool | None = None
 
+    @field_validator("name")
+    @classmethod
+    def _strip(cls, value: str | None) -> str | None:
+        return value.strip() if value else None
+
 
 class CollectionSetApps(StrictModel):
     app_ids: list[int]

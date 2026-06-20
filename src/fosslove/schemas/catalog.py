@@ -47,6 +47,11 @@ class CategoryUpdate(StrictModel):
     description: str | None = Field(default=None, max_length=2000)
     icon_url: str | None = Field(default=None, max_length=500)
 
+    @field_validator("name")
+    @classmethod
+    def _strip_name(cls, value: str | None) -> str | None:
+        return value.strip() if value else None
+
 
 class CategoryRead(APIModel):
     id: int
@@ -83,6 +88,11 @@ class AppUpdate(StrictModel):
     homepage_url: str | None = Field(default=None, max_length=500)
     license: str | None = Field(default=None, max_length=100)
     is_active: bool | None = None
+
+    @field_validator("name")
+    @classmethod
+    def _strip_name(cls, value: str | None) -> str | None:
+        return value.strip() if value else None
 
 
 class AppListItem(APIModel):
