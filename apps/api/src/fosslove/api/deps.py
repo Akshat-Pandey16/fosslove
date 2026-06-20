@@ -12,6 +12,7 @@ from fosslove.core.exceptions import AuthenticationError, PermissionDeniedError,
 from fosslove.core.middleware import get_client_ip
 from fosslove.core.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, Pagination, build_pagination
 from fosslove.core.ratelimit import RateLimiter
+from fosslove.core.runtime_settings import RuntimeSettings
 from fosslove.core.security import TokenType, decode_token
 from fosslove.db.models.enums import UserRole
 from fosslove.db.models.user import User
@@ -31,6 +32,14 @@ def get_email_sender(request: Request) -> EmailSender:
 
 
 EmailDep = Annotated[EmailSender, Depends(get_email_sender)]
+
+
+def get_runtime_settings(request: Request) -> RuntimeSettings:
+    runtime: RuntimeSettings = request.app.state.runtime_settings
+    return runtime
+
+
+RuntimeSettingsDep = Annotated[RuntimeSettings, Depends(get_runtime_settings)]
 
 
 def pagination_params(
@@ -81,9 +90,13 @@ AdminUser = Annotated[User, Depends(require_admin)]
 
 async def enforce_auth_rate_limit(request: Request) -> None:
     limiter: RateLimiter | None = getattr(request.app.state, "rate_limiter", None)
-    if limiter is None:
+    runtime: RuntimeSettings | None = getattr(request.app.state, "runtime_settings", None)
+    if limiter is None or runtime is None:
         return
-    item = limiter.parse_spec(get_settings().RATE_LIMIT_AUTH)
+    await runtime.ensure_fresh()
+    if not runtime.rate_limit_enabled:
+        return
+    item = limiter.parse_spec(runtime.rate_limit_auth)
     result = await limiter.hit(f"auth:{get_client_ip(request)}", item)
     if not result.allowed:
         raise RateLimitError(

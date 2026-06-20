@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+.turbo
+.git
+Dockerfile
+.dockerignore
+.env.local
+.env.*.local
+*.log
+.DS_Store

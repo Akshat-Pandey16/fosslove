@@ -36,7 +36,10 @@ export async function generateMetadata({
   const { id } = await params
   try {
     const collection = await api.collections.get(Number(id))
-    return { title: collection.name, description: collection.description ?? `${collection.name} collection.` }
+    return {
+      title: collection.name,
+      description: collection.description ?? `${collection.name} collection.`,
+    }
   } catch {
     return { title: "Collection" }
   }

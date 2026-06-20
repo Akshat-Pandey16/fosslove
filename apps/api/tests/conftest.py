@@ -21,6 +21,7 @@ import fosslove.db.models  # noqa: F401
 from fosslove.core.cache import Cache
 from fosslove.core.config import get_settings
 from fosslove.core.ratelimit import RateLimiter
+from fosslove.core.runtime_settings import RuntimeSettings
 from fosslove.db.base import Base
 from fosslove.db.session import dispose_engine, get_sessionmaker, init_engine
 from fosslove.services import auth_service
@@ -76,7 +77,10 @@ async def client(_engine: AsyncEngine) -> AsyncIterator[AsyncClient]:
     app.state.redis = None
     app.state.cache = Cache(None)
     app.state.rate_limiter = RateLimiter(None, enabled=False)
-    app.state.email_sender = EmailSender(get_settings())
+    runtime = RuntimeSettings(get_settings())
+    await runtime.load()
+    app.state.runtime_settings = runtime
+    app.state.email_sender = EmailSender(runtime)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as http_client:
         yield http_client

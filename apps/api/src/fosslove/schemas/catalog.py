@@ -88,6 +88,7 @@ class AppUpdate(StrictModel):
     homepage_url: str | None = Field(default=None, max_length=500)
     license: str | None = Field(default=None, max_length=100)
     is_active: bool | None = None
+    package_refs: list[PackageReferenceCreate] | None = None
 
     @field_validator("name")
     @classmethod

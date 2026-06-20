@@ -197,6 +197,8 @@ async def create_app(session: AsyncSession, data: AppCreate) -> App:
 async def update_app(session: AsyncSession, app_id: int, data: AppUpdate) -> App:
     app = await get_app(session, app_id)
     updates = data.model_dump(exclude_unset=True)
+    refs_provided = "package_refs" in updates
+    updates.pop("package_refs", None)
     original_category_id = app.category_id
     new_category_id = updates.get("category_id", app.category_id)
     new_name = updates.get("name", app.name)
@@ -226,6 +228,19 @@ async def update_app(session: AsyncSession, app_id: int, data: AppUpdate) -> App
         app.slug = await _unique_app_slug(
             session, app.platform, make_slug(new_name), exclude_id=app.id
         )
+
+    if refs_provided and data.package_refs is not None:
+        app.package_refs = [
+            PackageReference(
+                manager=ref.manager,
+                identifier=ref.identifier,
+                install_args=ref.install_args,
+                priority=ref.priority,
+                extra=ref.extra,
+            )
+            for ref in data.package_refs
+        ]
+        _ensure_unique_managers(app.package_refs)
 
     await session.commit()
     return await get_app(session, app.id)

@@ -18,6 +18,17 @@ export const MANAGER_LABELS: Record<PackageManager, string> = {
 
 export const PLATFORMS: Platform[] = ["windows", "linux"]
 
+export const PACKAGE_MANAGERS: PackageManager[] = [
+  "winget",
+  "msstore",
+  "apt",
+  "dnf",
+  "pacman",
+  "flatpak",
+  "snap",
+  "direct",
+]
+
 export const PAGE_SIZE = 24
 
 export function formatDate(iso: string): string {

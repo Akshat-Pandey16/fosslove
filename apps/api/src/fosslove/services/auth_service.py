@@ -7,7 +7,13 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fosslove.core.config import get_settings
-from fosslove.core.exceptions import AuthenticationError, BadRequestError, ConflictError
+from fosslove.core.exceptions import (
+    AuthenticationError,
+    BadRequestError,
+    ConflictError,
+    PermissionDeniedError,
+)
+from fosslove.core.runtime_settings import RuntimeSettings
 from fosslove.core.security import (
     TokenType,
     create_access_token,
@@ -74,10 +80,17 @@ async def _revoke_all_refresh_tokens(session: AsyncSession, user_id: uuid.UUID) 
     )
 
 
-async def register(session: AsyncSession, data: RegisterRequest) -> tuple[User, str | None]:
+async def register(
+    session: AsyncSession, data: RegisterRequest, *, runtime: RuntimeSettings
+) -> tuple[User, str | None]:
+    await runtime.ensure_fresh()
+    if not runtime.registration_enabled:
+        raise PermissionDeniedError(
+            "New account registration is currently disabled.", code="registration_disabled"
+        )
     if await get_user_by_email(session, data.email) is not None:
         raise ConflictError("An account with this email already exists.", code="email_taken")
-    email_enabled = get_settings().EMAIL_ENABLED
+    email_enabled = runtime.email_enabled
     user = User(
         email=data.email,
         hashed_password=hash_password(data.password),
@@ -165,8 +178,11 @@ async def verify_email(session: AsyncSession, raw_token: str) -> None:
     await session.commit()
 
 
-async def resend_verification(session: AsyncSession, email: str) -> str | None:
-    if not get_settings().EMAIL_ENABLED:
+async def resend_verification(
+    session: AsyncSession, email: str, *, runtime: RuntimeSettings
+) -> str | None:
+    await runtime.ensure_fresh()
+    if not runtime.email_enabled:
         return None
     user = await get_user_by_email(session, email)
     if user is None or user.is_verified:
@@ -176,8 +192,11 @@ async def resend_verification(session: AsyncSession, email: str) -> str | None:
     return raw_token
 
 
-async def request_password_reset(session: AsyncSession, email: str) -> str | None:
-    if not get_settings().EMAIL_ENABLED:
+async def request_password_reset(
+    session: AsyncSession, email: str, *, runtime: RuntimeSettings
+) -> str | None:
+    await runtime.ensure_fresh()
+    if not runtime.email_enabled:
         return None
     user = await get_user_by_email(session, email)
     if user is None or not user.is_active:

@@ -70,6 +70,8 @@ class Settings(BaseSettings):
     RATE_LIMIT_DEFAULT: str = "200/minute"
     RATE_LIMIT_AUTH: str = "10/minute"
 
+    REGISTRATION_ENABLED: bool = True
+
     EMAIL_ENABLED: bool = False
     EMAIL_BACKEND: Literal["console", "smtp"] = "console"
     EMAIL_FROM: EmailStr = "no-reply@fosslove.dev"

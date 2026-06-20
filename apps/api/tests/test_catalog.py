@@ -70,6 +70,40 @@ async def test_app_search(client: AsyncClient, admin_headers: dict[str, str]) ->
     assert "GIMP" not in names
 
 
+async def test_update_app_package_refs(
+    client: AsyncClient, admin_headers: dict[str, str]
+) -> None:
+    category = await client.post(
+        "/api/v1/admin/categories", headers=admin_headers, json={"name": "Editors"}
+    )
+    app = await client.post(
+        "/api/v1/admin/apps",
+        headers=admin_headers,
+        json={
+            "category_id": category.json()["id"],
+            "platform": "linux",
+            "name": "Editor",
+            "package_refs": [{"manager": "flatpak", "identifier": "org.editor"}],
+        },
+    )
+    app_id = app.json()["id"]
+    updated = await client.patch(
+        f"/api/v1/admin/apps/{app_id}",
+        headers=admin_headers,
+        json={
+            "package_refs": [
+                {"manager": "apt", "identifier": "editor"},
+                {"manager": "snap", "identifier": "editor"},
+            ]
+        },
+    )
+    assert updated.status_code == 200
+    assert sorted(ref["manager"] for ref in updated.json()["package_refs"]) == ["apt", "snap"]
+
+    detail = await client.get(f"/api/v1/apps/{app_id}")
+    assert sorted(ref["manager"] for ref in detail.json()["package_refs"]) == ["apt", "snap"]
+
+
 async def test_duplicate_app_conflict(client: AsyncClient, admin_headers: dict[str, str]) -> None:
     category = await client.post(
         "/api/v1/admin/categories", headers=admin_headers, json={"name": "Cat"}

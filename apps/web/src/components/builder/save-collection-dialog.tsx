@@ -83,7 +83,9 @@ export function SaveCollectionDialog({ appIds }: { appIds: number[] }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Save as collection</DialogTitle>
-          <DialogDescription>Save these {appIds.length} apps as a reusable bundle.</DialogDescription>
+          <DialogDescription>
+            Save these {appIds.length} apps as a reusable bundle.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">

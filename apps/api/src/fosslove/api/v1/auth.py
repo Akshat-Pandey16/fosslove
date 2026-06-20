@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 
-from fosslove.api.deps import EmailDep, SessionDep, enforce_auth_rate_limit
+from fosslove.api.deps import EmailDep, RuntimeSettingsDep, SessionDep, enforce_auth_rate_limit
 from fosslove.schemas.auth import (
     EmailRequest,
     LoginRequest,
@@ -31,8 +31,9 @@ async def register(
     background: BackgroundTasks,
     session: SessionDep,
     email: EmailDep,
+    runtime: RuntimeSettingsDep,
 ) -> UserRead:
-    user, raw_token = await auth_service.register(session, data)
+    user, raw_token = await auth_service.register(session, data, runtime=runtime)
     if raw_token is not None:
         background.add_task(email.send_verification, to=user.email, raw_token=raw_token)
     return to_user_read(user)
@@ -66,8 +67,9 @@ async def resend_verification(
     background: BackgroundTasks,
     session: SessionDep,
     email: EmailDep,
+    runtime: RuntimeSettingsDep,
 ) -> Message:
-    raw_token = await auth_service.resend_verification(session, data.email)
+    raw_token = await auth_service.resend_verification(session, data.email, runtime=runtime)
     if raw_token is not None:
         background.add_task(email.send_verification, to=data.email, raw_token=raw_token)
     return Message(message="If the account exists and is unverified, an email has been sent.")
@@ -79,8 +81,9 @@ async def request_password_reset(
     background: BackgroundTasks,
     session: SessionDep,
     email: EmailDep,
+    runtime: RuntimeSettingsDep,
 ) -> Message:
-    raw_token = await auth_service.request_password_reset(session, data.email)
+    raw_token = await auth_service.request_password_reset(session, data.email, runtime=runtime)
     if raw_token is not None:
         background.add_task(email.send_password_reset, to=data.email, raw_token=raw_token)
     return Message(message="If the account exists, a reset email has been sent.")

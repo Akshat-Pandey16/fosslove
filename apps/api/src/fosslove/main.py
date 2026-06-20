@@ -20,6 +20,7 @@ from fosslove.core.exceptions import register_exception_handlers
 from fosslove.core.logging import configure_logging, get_logger
 from fosslove.core.middleware import RateLimitMiddleware, RequestContextMiddleware
 from fosslove.core.ratelimit import RateLimiter
+from fosslove.core.runtime_settings import RuntimeSettings
 from fosslove.db.session import dispose_engine, get_sessionmaker, init_engine
 from fosslove.services import auth_service
 from fosslove.services.email import EmailSender
@@ -33,8 +34,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     redis = await build_redis(settings)
     app.state.redis = redis
     app.state.cache = Cache(redis)
-    app.state.rate_limiter = RateLimiter(redis, enabled=settings.RATE_LIMIT_ENABLED)
-    app.state.email_sender = EmailSender(settings)
+    app.state.rate_limiter = RateLimiter(redis, enabled=True)
+    runtime = RuntimeSettings(settings)
+    await runtime.load()
+    app.state.runtime_settings = runtime
+    app.state.email_sender = EmailSender(runtime)
 
     if settings.FIRST_ADMIN_EMAIL and settings.FIRST_ADMIN_PASSWORD:
         factory = get_sessionmaker()
@@ -64,7 +68,6 @@ def _add_middleware(app: FastAPI, settings: Settings) -> None:
     prefix = settings.API_V1_PREFIX
     app.add_middleware(
         RateLimitMiddleware,
-        default_spec=settings.RATE_LIMIT_DEFAULT,
         exempt_prefixes=(
             "/health",
             "/admin",

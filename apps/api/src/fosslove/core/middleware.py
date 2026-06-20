@@ -11,6 +11,7 @@ from starlette.responses import JSONResponse, Response
 
 from fosslove.core.logging import get_logger
 from fosslove.core.ratelimit import RateLimiter
+from fosslove.core.runtime_settings import RuntimeSettings
 
 logger = get_logger(__name__)
 
@@ -55,24 +56,29 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self,
         app: object,
         *,
-        default_spec: str,
         exempt_prefixes: tuple[str, ...] = (),
     ) -> None:
         super().__init__(app)  # type: ignore[arg-type]
-        self._item = parse(default_spec)
         self._exempt = exempt_prefixes
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         path = request.url.path
         limiter: RateLimiter | None = getattr(request.app.state, "rate_limiter", None)
+        runtime: RuntimeSettings | None = getattr(request.app.state, "runtime_settings", None)
         if (
             limiter is None
+            or runtime is None
             or request.method == "OPTIONS"
             or any(path.startswith(p) for p in self._exempt)
         ):
             return await call_next(request)
 
-        result = await limiter.hit(f"global:{get_client_ip(request)}", self._item)
+        await runtime.ensure_fresh()
+        if not runtime.rate_limit_enabled:
+            return await call_next(request)
+
+        item = parse(runtime.rate_limit_default)
+        result = await limiter.hit(f"global:{get_client_ip(request)}", item)
         headers = {
             "x-ratelimit-limit": str(result.limit),
             "x-ratelimit-remaining": str(result.remaining),

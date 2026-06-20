@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Platform } from "@/lib/api/types"
 import { PLATFORM_LABELS, PLATFORMS } from "@/lib/constants"
-import { SaveCollectionDialog } from "./save-collection-dialog"
 import { useBuilder } from "@/lib/stores/builder"
+import { SaveCollectionDialog } from "./save-collection-dialog"
 
 export function BuilderClient() {
   const items = useBuilder((state) => state.items)

@@ -71,5 +71,30 @@ services:
       migrate:
         condition: service_completed_successfully
 
+  web:
+    build:
+      context: ./apps/web
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
+        NEXT_PUBLIC_APP_NAME: FOSSLove
+    environment:
+      API_INTERNAL_URL: http://api:8000/api/v1
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
+      NEXT_PUBLIC_APP_NAME: FOSSLove
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('http').get('http://localhost:3000',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   pgdata:

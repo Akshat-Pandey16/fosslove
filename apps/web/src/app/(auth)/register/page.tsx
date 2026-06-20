@@ -86,7 +86,12 @@ export default function RegisterPage() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" autoComplete="email" placeholder="you@example.com" {...field} />
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -101,7 +106,9 @@ export default function RegisterPage() {
                 <FormControl>
                   <Input type="password" autoComplete="new-password" {...field} />
                 </FormControl>
-                <FormDescription>At least 8 characters, with a letter and a number.</FormDescription>
+                <FormDescription>
+                  At least 8 characters, with a letter and a number.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

@@ -22,7 +22,12 @@ export default function AccountOverviewPage() {
   })
 
   const cards = [
-    { href: "/account/favorites", label: "Favorites", icon: Heart, value: favorites.data?.meta.total },
+    {
+      href: "/account/favorites",
+      label: "Favorites",
+      icon: Heart,
+      value: favorites.data?.meta.total,
+    },
     {
       href: "/account/collections",
       label: "Collections",

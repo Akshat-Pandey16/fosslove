@@ -39,7 +39,11 @@ export default function ForgotPasswordPage() {
           <p className="text-sm text-muted-foreground">
             If an account exists for that email, we've sent a link to reset your password.
           </p>
-          <Button variant="outline" className="w-full" render={<Link href="/login">Back to sign in</Link>} />
+          <Button
+            variant="outline"
+            className="w-full"
+            render={<Link href="/login">Back to sign in</Link>}
+          />
         </div>
       ) : (
         <>
@@ -58,7 +62,12 @@ export default function ForgotPasswordPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" autoComplete="email" placeholder="you@example.com" {...field} />
+                      <Input
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -7,11 +7,13 @@ from fosslove.db.models.enums import (
     TokenPurpose,
     UserRole,
 )
+from fosslove.db.models.setting import AppSetting
 from fosslove.db.models.user import RefreshToken, User, VerificationToken
 from fosslove.db.models.userdata import Collection, CollectionApp, Favorite, ScriptRun
 
 __all__ = [
     "App",
+    "AppSetting",
     "Base",
     "Category",
     "Collection",

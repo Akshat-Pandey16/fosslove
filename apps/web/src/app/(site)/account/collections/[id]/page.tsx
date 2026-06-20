@@ -56,7 +56,10 @@ export default function CollectionDetailPage() {
     return (
       <div className="space-y-4 rounded-xl border border-dashed p-12 text-center">
         <p className="text-sm text-muted-foreground">This collection could not be loaded.</p>
-        <Button variant="outline" render={<Link href="/account/collections">Back to collections</Link>} />
+        <Button
+          variant="outline"
+          render={<Link href="/account/collections">Back to collections</Link>}
+        />
       </div>
     )
   }

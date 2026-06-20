@@ -4,7 +4,8 @@ import { Container } from "@/components/layout/container"
 
 export const metadata: Metadata = {
   title: "Script builder",
-  description: "Review your selected apps and download one ready-to-run install script per platform.",
+  description:
+    "Review your selected apps and download one ready-to-run install script per platform.",
 }
 
 export default function BuilderPage() {

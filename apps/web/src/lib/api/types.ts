@@ -173,6 +173,7 @@ export interface AppUpdatePayload {
   homepage_url?: string | null
   license?: string | null
   is_active?: boolean | null
+  package_refs?: PackageReferencePayload[]
 }
 
 export interface CollectionCreatePayload {
@@ -192,6 +193,40 @@ export interface ScriptGeneratePayload {
   platform: Platform
   app_ids?: number[]
   collection_id?: number | null
+}
+
+export interface RuntimeSettings {
+  registration_enabled: boolean
+  email_enabled: boolean
+  rate_limit_enabled: boolean
+  rate_limit_default: string
+  rate_limit_auth: string
+  email_backend: "console" | "smtp"
+  email_from: string
+  smtp_host: string
+  smtp_port: number
+  smtp_user: string
+  smtp_password_set: boolean
+  smtp_use_tls: boolean
+  project_name: string
+  frontend_base_url: string
+}
+
+export interface RuntimeSettingsUpdate {
+  registration_enabled?: boolean
+  email_enabled?: boolean
+  rate_limit_enabled?: boolean
+  rate_limit_default?: string
+  rate_limit_auth?: string
+  email_backend?: "console" | "smtp"
+  email_from?: string
+  smtp_host?: string
+  smtp_port?: number
+  smtp_user?: string
+  smtp_password?: string
+  smtp_use_tls?: boolean
+  project_name?: string
+  frontend_base_url?: string
 }
 
 export interface AppListParams {

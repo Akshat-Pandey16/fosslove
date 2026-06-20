@@ -1,106 +1,70 @@
 # FOSSLove
 
-A production-grade backend for a catalog of free & open-source apps (Windows + Linux).
-Browse the catalog, pick apps, and get a ready-to-run **install script** that installs
-everything through the right package manager (winget / MS Store on Windows;
-flatpak / apt / dnf / pacman / snap on Linux).
+A catalog of free and open-source apps for **Windows and Linux**. Browse the catalog, pick
+the apps you want, and download a single **ready-to-run install script** that uses the right
+package manager for each one (winget, Microsoft Store, APT, DNF, pacman, Flatpak, Snap, or
+direct download).
+
+This is a two-app monorepo:
+
+| App | Path | Stack |
+| --- | --- | --- |
+| **API** | [`apps/api`](apps/api) | Python 3.14 · FastAPI · Pydantic v2 · SQLAlchemy 2 (async) · PostgreSQL 18 · Redis · `uv` |
+| **Web** | [`apps/web`](apps/web) | Next.js 16 · React 19 · TypeScript · Tailwind v4 · shadcn/ui · TanStack Query · Bun |
+
+See [CLAUDE.md](CLAUDE.md) for the full engineering guide and conventions.
 
 ## Features
 
-- **Catalog**: categories + apps with per-manager package identifiers and a direct-download
-  fallback. Fast, typo-tolerant search (Postgres `pg_trgm`).
-- **Install-script generation**: `install_apps.ps1` (PowerShell) and `install_apps.sh`
-  (POSIX shell) with per-app manager fallback, progress, timing and a summary.
-- **Accounts**: register / verify email / login (JWT access + rotating, revocable refresh
-  tokens) / password reset. Anonymous users can browse and generate scripts; signed-up
-  users also get **collections**, **favorites**, and script **history**.
-- **Admin**: role-gated JSON API plus a point-and-click **admin UI** at `/admin` (SQLAdmin)
-  to manage the catalog without touching code.
-- **Production concerns**: structured JSON logging, request IDs, rate limiting (Redis or
-  in-memory), graceful Redis-optional caching, health & readiness probes, strict validated
-  config that fails fast on insecure production settings.
-- **Maintenance**: count recompute and expired-token cleanup as on-demand admin endpoints
-  (no background worker required today — see CLAUDE.md for adding a queue later).
+- **Catalog** — search + filter apps by platform and category, per-app package sources.
+- **Script builder** — collect apps across the catalog, generate one install script per platform.
+- **Accounts** — favorites, named collections (public or private), and script history.
+- **Public collections** — share a setup; anyone can install it in one go.
+- **Admin panel** — full CRUD for categories and apps (with package references) plus
+  **runtime settings** (feature flags, rate limits, email/SMTP, branding) editable without a redeploy.
+- **Auth** — JWT access + rotating/revocable refresh tokens, Argon2id, optional email verification.
 
-## Tech stack
+## Quick start (local dev)
 
-Python 3.14 · FastAPI · Pydantic v2 · SQLAlchemy 2.0 (async) · asyncpg · PostgreSQL 18 ·
-Alembic · Redis 8 · PyJWT + Argon2 · structlog · uv · ruff · mypy · pytest.
-
-## Quickstart (Docker)
+Requires Docker, [`uv`](https://docs.astral.sh/uv/), and [Bun](https://bun.sh/).
 
 ```bash
-cp .env.example .env        # then edit FOSSLOVE_SECRET_KEY at minimum
-make up                     # builds + starts postgres, redis, migrate, api
+make infra            # start postgres + redis in Docker (shared by the dev servers)
+
+make api-install      # backend deps
+make api-migrate      # create the schema
+make api-seed         # load a sample catalog
+make api-dev          # API on http://localhost:8001
+
+make web-install      # frontend deps
+make web-env          # create apps/web/.env.local
+make web-dev          # web on http://localhost:3000
 ```
 
-- API + docs: http://localhost:8000/api/v1/docs
-- Admin UI: http://localhost:8000/admin (log in with the bootstrap admin — set
-  `FOSSLOVE_FIRST_ADMIN_EMAIL` / `FOSSLOVE_FIRST_ADMIN_PASSWORD` in `.env`)
-- Health: http://localhost:8000/health · Readiness: http://localhost:8000/health/ready
+The backend's API docs live at `http://localhost:8001/api/v1/docs`.
 
-## Quickstart (local)
+## Quick start (full Docker stack)
 
 ```bash
-make install                # uv venv + all deps (provisions Python 3.14)
-make env                    # create .env from the example
-# point FOSSLOVE_POSTGRES_* at a running Postgres, then:
-make migrate                # apply schema
-make seed                   # load sample catalog
-make dev                    # uvicorn with reload (port 8001)
+make up               # postgres + redis + api (:8000) + web (:3000), migrations auto-run
+make logs             # tail everything
+make down             # stop
 ```
 
-Generate a strong secret:
+## Common commands
+
+Run `make` for the full list. Backend targets are `api-<target>`, frontend `web-<target>`.
 
 ```bash
-python -c "import secrets; print(secrets.token_urlsafe(64))"
+make api-check        # ruff + mypy + pytest
+make web-check        # biome (lint + format) + tsc
+make api-reset-db     # DESTRUCTIVE: drop schema, re-migrate, reset identities
+make api-upgrade / make web-upgrade   # bump dependencies to latest
 ```
-
-## Common tasks
-
-```bash
-make upgrade     # bump every dependency to its latest compatible version + relock
-make check       # ruff + mypy + pytest
-make revision m="add X"   # autogenerate a migration
-make logs        # tail api (docker)
-make help        # list everything
-```
-
-## Generating a script
-
-```bash
-curl -X POST http://localhost:8000/api/v1/scripts/generate \
-  -H 'content-type: application/json' \
-  -d '{"platform": "windows", "app_ids": [1, 2, 3]}' -o install_apps.ps1
-```
-
-`platform` is `windows` or `linux`. Provide `app_ids` (a flat list) or a `collection_id`.
-Authenticated requests are recorded to the user's history.
 
 ## Configuration
 
-All settings are environment variables prefixed `FOSSLOVE_`, loaded from `.env`
-(see `.env.example`). In `production` the app refuses to start with a placeholder secret,
-`DEBUG=true`, or wildcard allowed hosts.
-
-## Project layout
-
-```
-src/fosslove/
-  core/        config, logging, security, exceptions, cache, ratelimit, middleware
-  db/          async engine/session, Base, models, event-driven count maintenance
-  schemas/     Pydantic request/response models
-  services/    business logic (async, take an AsyncSession)
-  scriptgen/   Windows + Linux script builders
-  api/         dependencies + v1 routers + app factory + health
-  admin/       SQLAdmin views + auth backend
-  seed.py      idempotent sample-catalog seeding
-migrations/    Alembic (async)
-tests/         pytest suite (httpx against a test Postgres)
-```
-
-See [CLAUDE.md](CLAUDE.md) for architecture decisions and contributor conventions.
-
-## License
-
-MIT
+Backend config is env vars prefixed `FOSSLOVE_` (see [`apps/api/.env.example`](apps/api/.env.example)).
+The frontend reads `NEXT_PUBLIC_API_BASE_URL` / `API_INTERNAL_URL` (see
+[`apps/web/.env.example`](apps/web/.env.example)). A subset of backend settings is also
+editable at runtime from the admin panel.

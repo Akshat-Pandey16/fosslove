@@ -20,6 +20,8 @@ import type {
   Page,
   PageParams,
   RegisterPayload,
+  RuntimeSettings,
+  RuntimeSettingsUpdate,
   ScriptGeneratePayload,
   ScriptRun,
   TokenPair,
@@ -166,6 +168,8 @@ export const api = {
     generate: generateScript,
   },
   admin: {
+    listApps: (params?: AppListParams) =>
+      authedRequest<Page<AppListItem>>("/admin/apps", { query: { ...params } }),
     createCategory: (data: CategoryCreatePayload) =>
       authedRequest<Category>("/admin/categories", { method: "POST", body: data }),
     updateCategory: (id: number, data: CategoryUpdatePayload) =>
@@ -180,5 +184,8 @@ export const api = {
     recomputeCounts: () => authedRequest<Message>("/admin/recompute-counts", { method: "POST" }),
     cleanupTokens: () =>
       authedRequest<Record<string, number>>("/admin/cleanup-tokens", { method: "POST" }),
+    getSettings: () => authedRequest<RuntimeSettings>("/admin/settings"),
+    updateSettings: (data: RuntimeSettingsUpdate) =>
+      authedRequest<RuntimeSettings>("/admin/settings", { method: "PATCH", body: data }),
   },
 }
