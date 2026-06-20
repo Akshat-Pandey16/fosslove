@@ -12,7 +12,7 @@ export function Logo({
 }) {
   return (
     <Link href={href} className={cn("group flex items-center gap-2.5", className)}>
-      <span className="relative grid size-9 place-items-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground shadow-sm ring-1 ring-primary/30 transition-transform group-hover:-translate-y-0.5">
+      <span className="relative grid size-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-sm ring-1 ring-primary/30 transition-transform group-hover:-translate-y-0.5">
         <svg
           viewBox="0 0 24 24"
           fill="none"

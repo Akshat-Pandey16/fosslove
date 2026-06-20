@@ -3,6 +3,7 @@ import Link from "next/link"
 import { AppGrid } from "@/components/catalog/app-grid"
 import { HeroSearch } from "@/components/home/hero-search"
 import { Container } from "@/components/layout/container"
+import { Reveal } from "@/components/motion/reveal"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api/client"
 import { safe } from "@/lib/api/safe"
@@ -48,8 +49,14 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col">
       <section className="relative overflow-hidden border-b">
-        <div className="-z-10 absolute inset-0 bg-grid mask-fade-b opacity-60" />
-        <div className="-z-10 absolute top-1/2 left-1/2 size-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent"
+        />
+        <div
+          aria-hidden
+          className="-z-10 pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/[0.07] via-background to-background"
+        />
         <Container className="grid items-center gap-12 py-20 lg:grid-cols-[1.1fr_1fr] lg:py-28">
           <div className="flex flex-col items-start gap-6">
             <span className="inline-flex items-center gap-2 rounded-full border bg-background/60 px-3 py-1 font-mono text-xs text-muted-foreground backdrop-blur">
@@ -105,12 +112,12 @@ export default async function HomePage() {
               title="Browse by category"
               action={{ href: "/categories", label: "All categories" }}
             />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <Reveal className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               {categories.items.map((category) => (
                 <Link
                   key={category.id}
                   href={`/categories/${category.id}`}
-                  className="group flex flex-col gap-2 rounded-xl border bg-card p-4 transition-all hover:border-primary/40 hover:shadow-sm"
+                  className="group flex flex-col gap-2 rounded-xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
                 >
                   <span className="font-heading font-semibold transition-colors group-hover:text-primary">
                     {category.name}
@@ -120,7 +127,7 @@ export default async function HomePage() {
                   </span>
                 </Link>
               ))}
-            </div>
+            </Reveal>
           </Container>
         </section>
       ) : null}
@@ -131,10 +138,12 @@ export default async function HomePage() {
             title="Fresh in the catalog"
             action={{ href: "/apps", label: "View all apps" }}
           />
-          <AppGrid
-            apps={apps.items}
-            emptyMessage="The catalog is being prepared. Check back soon."
-          />
+          <Reveal>
+            <AppGrid
+              apps={apps.items}
+              emptyMessage="The catalog is being prepared. Check back soon."
+            />
+          </Reveal>
         </Container>
       </section>
 
@@ -146,9 +155,12 @@ export default async function HomePage() {
               From zero to a fully provisioned machine in three steps.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          <Reveal className="grid gap-4 md:grid-cols-3">
             {STEPS.map((step, index) => (
-              <div key={step.title} className="relative rounded-xl border bg-card p-6">
+              <div
+                key={step.title}
+                className="relative rounded-xl border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+              >
                 <span className="absolute top-6 right-6 font-mono text-sm text-muted-foreground/50">
                   0{index + 1}
                 </span>
@@ -157,7 +169,7 @@ export default async function HomePage() {
                 <p className="mt-2 text-sm text-muted-foreground">{step.body}</p>
               </div>
             ))}
-          </div>
+          </Reveal>
         </Container>
       </section>
     </div>
