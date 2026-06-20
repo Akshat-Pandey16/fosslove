@@ -19,18 +19,19 @@ flatpak / apt / dnf / pacman / snap on Linux).
 - **Production concerns**: structured JSON logging, request IDs, rate limiting (Redis or
   in-memory), graceful Redis-optional caching, health & readiness probes, strict validated
   config that fails fast on insecure production settings.
-- **Background jobs** (saq): periodic count recompute and expired-token cleanup.
+- **Maintenance**: count recompute and expired-token cleanup as on-demand admin endpoints
+  (no background worker required today — see CLAUDE.md for adding a queue later).
 
 ## Tech stack
 
 Python 3.14 · FastAPI · Pydantic v2 · SQLAlchemy 2.0 (async) · asyncpg · PostgreSQL 18 ·
-Alembic · Redis 7 · saq · PyJWT + Argon2 · structlog · uv · ruff · mypy · pytest.
+Alembic · Redis 8 · PyJWT + Argon2 · structlog · uv · ruff · mypy · pytest.
 
 ## Quickstart (Docker)
 
 ```bash
 cp .env.example .env        # then edit FOSSLOVE_SECRET_KEY at minimum
-make up                     # builds + starts postgres, redis, migrate, api, worker
+make up                     # builds + starts postgres, redis, migrate, api
 ```
 
 - API + docs: http://localhost:8000/api/v1/docs
@@ -61,8 +62,7 @@ python -c "import secrets; print(secrets.token_urlsafe(64))"
 make upgrade     # bump every dependency to its latest compatible version + relock
 make check       # ruff + mypy + pytest
 make revision m="add X"   # autogenerate a migration
-make worker      # run the saq background worker
-make logs        # tail api + worker (docker)
+make logs        # tail api (docker)
 make help        # list everything
 ```
 
@@ -94,7 +94,7 @@ src/fosslove/
   scriptgen/   Windows + Linux script builders
   api/         dependencies + v1 routers + app factory + health
   admin/       SQLAdmin views + auth backend
-  worker/      saq settings + periodic tasks
+  seed.py      idempotent sample-catalog seeding
 migrations/    Alembic (async)
 tests/         pytest suite (httpx against a test Postgres)
 ```

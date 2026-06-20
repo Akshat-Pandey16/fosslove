@@ -12,7 +12,7 @@ from fosslove.schemas.catalog import (
     CategoryUpdate,
 )
 from fosslove.schemas.common import Message
-from fosslove.services import catalog_service
+from fosslove.services import catalog_service, maintenance
 from fosslove.services.mappers import to_app_read, to_category_read
 
 router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(require_admin)])
@@ -56,3 +56,8 @@ async def delete_app(app_id: int, session: SessionDep) -> Message:
 async def recompute_counts(session: SessionDep) -> Message:
     await catalog_service.recompute_counts(session)
     return Message(message="Category counts recomputed.")
+
+
+@router.post("/cleanup-tokens", response_model=dict[str, int])
+async def cleanup_tokens(session: SessionDep) -> dict[str, int]:
+    return await maintenance.cleanup_expired_tokens(session)

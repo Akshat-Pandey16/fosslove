@@ -71,21 +71,5 @@ services:
       migrate:
         condition: service_completed_successfully
 
-  worker:
-    build: .
-    command: ["worker"]
-    environment:
-      <<: *app-env
-    env_file:
-      - path: .env
-        required: false
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-
 volumes:
   pgdata:

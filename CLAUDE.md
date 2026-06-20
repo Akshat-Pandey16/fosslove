@@ -36,15 +36,18 @@ older, poorly-structured FastAPI prototype.
   adding orjson forces a slower `pydantic→dict→orjson→bytes` detour.
 - **DB:** PostgreSQL 18, SQLAlchemy 2.0.51 (async), Alembic migrations. `pg_trgm` for
   fuzzy app search; `JSONB` for flexible per-manager package metadata.
-- **Cache / rate-limit store / task broker:** Redis (server 8; Python client redis-py
-  capped at `>=7,<8` because no async queue supports redis-py 8 yet). **Optional**, with
-  graceful in-memory fallback so the API runs without it (single-process only).
-- **Background jobs:** saq (Simple Async Queue — asyncio-native, Redis-backed, built-in
-  cron). Chosen over Celery (lighter, async-native) and over arq (arq pins redis-py <6;
-  saq supports redis-py 7.x). Transactional emails (verify/reset) use FastAPI
-  `BackgroundTasks` so auth works with **zero broker**; saq only handles periodic
-  maintenance (recompute counts, token cleanup, package-availability checks). Run with
-  `saq fosslove.worker.settings.settings`. Lift the redis `<8` cap when saq supports it.
+- **Cache / rate-limit store:** Redis (server 8; redis-py 8.x — latest). **Optional**, with
+  a graceful in-memory fallback so the API runs without it (single-process only).
+- **Background jobs / scheduler:** none currently — deliberately. Category counts are kept
+  correct by a `before_flush` DB event (every write path), and transactional emails
+  (verify/reset) use FastAPI `BackgroundTasks`, so nothing needs a broker today. Periodic
+  maintenance (recompute counts, expired-token cleanup) is exposed as on-demand admin
+  endpoints (`POST /admin/recompute-counts`, `POST /admin/cleanup-tokens`), which a
+  cron/k8s-CronJob can call. **If a queue or scheduler becomes necessary** (durable email
+  delivery, bulk imports, webhooks, periodic dead-link/package-availability checks), pick
+  the option that best fits the scenario at that time — evaluate the field (e.g. arq, saq,
+  taskiq, dramatiq, Celery, or a Postgres-backed queue) rather than defaulting to one.
+  Note: saq/arq cap redis-py `<8`, so adding one may require lowering the redis floor.
 - **Auth:** PyJWT (access + rotating/revocable refresh tokens) + argon2-cffi (Argon2id).
 - **Admin UI:** SQLAdmin at `/admin` — a Django-admin-style web UI on our SQLAlchemy
   models, auth-gated to admin users, so staff add/edit catalog apps without touching code.
@@ -98,7 +101,7 @@ src/fosslove/
   scriptgen/   windows + linux script builders
   api/         deps + v1 routers + app factory
   admin/       SQLAdmin views + auth backend
-  worker/      ARQ settings + tasks
+  seed.py      idempotent sample-catalog seeding
 migrations/    Alembic (async env.py)
 tests/         pytest suite (httpx ASGITransport against a test Postgres)
 ```
@@ -109,12 +112,11 @@ tests/         pytest suite (httpx ASGITransport against a test Postgres)
 make install     # uv sync --all-extras
 make upgrade     # bump every dependency to latest + re-sync
 make dev         # uvicorn with reload
-make worker      # run ARQ worker
 make migrate     # alembic upgrade head
 make revision m="..."   # autogenerate a migration
 make seed        # load sample catalog data
 make check       # ruff + mypy + pytest
-make up / make down     # full docker stack (api + postgres + redis + worker)
+make up / make down     # full docker stack (api + postgres + redis)
 ```
 
 ## Config

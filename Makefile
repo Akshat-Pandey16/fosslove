@@ -11,7 +11,6 @@ help:
 	@echo "  env         Create .env from .env.example if missing"
 	@echo "  run         Run the API (no reload)"
 	@echo "  dev         Run the API with autoreload"
-	@echo "  worker      Run the ARQ background worker"
 	@echo "  lint        Lint with ruff"
 	@echo "  format      Auto-format and fix with ruff"
 	@echo "  typecheck   Static type-check with mypy"
@@ -24,7 +23,7 @@ help:
 	@echo "  seed        Seed sample catalog data"
 	@echo "  up          Start the full docker stack"
 	@echo "  down        Stop the docker stack"
-	@echo "  logs        Tail api + worker logs"
+	@echo "  logs        Tail api logs"
 	@echo "  clean       Remove caches and build artifacts"
 
 .PHONY: install
@@ -51,10 +50,6 @@ run:
 .PHONY: dev
 dev:
 	$(UV) run uvicorn fosslove.main:app --host 0.0.0.0 --port 8001 --reload
-
-.PHONY: worker
-worker:
-	$(UV) run saq fosslove.worker.settings.settings
 
 .PHONY: lint
 lint:
@@ -106,7 +101,7 @@ down:
 
 .PHONY: logs
 logs:
-	docker compose logs -f api worker
+	docker compose logs -f api
 
 .PHONY: clean
 clean:
