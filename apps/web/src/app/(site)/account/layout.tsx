@@ -25,7 +25,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                 <AccountNav />
               </Window>
             </aside>
-            <div className="min-w-0">{children}</div>
+            <div className="@container min-w-0">{children}</div>
           </div>
         </Container>
       </section>

@@ -45,7 +45,7 @@ export default function CollectionsPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 @lg:grid-cols-2 @3xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <Skeleton key={index} className="h-36 rounded-xl" />
           ))}
@@ -55,7 +55,7 @@ export default function CollectionsPage() {
           $ no collections yet — create one or save your builder selection
         </div>
       ) : (
-        <Reveal className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <Reveal className="grid gap-4 @lg:grid-cols-2 @3xl:grid-cols-3">
           {collections.map((collection) => (
             <CollectionCard key={collection.id} collection={collection} />
           ))}

@@ -12,7 +12,7 @@ export default function Loading() {
           <Skeleton className="h-5 w-72" />
         </header>
         <Skeleton className="h-14 w-full rounded-xl" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4 @7xl:grid-cols-5">
           {Array.from({ length: 10 }).map((_, index) => (
             <div key={index} className="overflow-hidden rounded-xl border bg-card/50">
               <div className="flex items-center gap-2 border-b bg-secondary/30 px-3 py-2">

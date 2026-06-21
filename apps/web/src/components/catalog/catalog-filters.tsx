@@ -60,8 +60,8 @@ export function CatalogFilters({
   }
 
   return (
-    <div className="panel flex flex-col gap-3 rounded-xl p-2.5 lg:flex-row lg:items-center lg:justify-between">
-      <form onSubmit={onSearch} className="relative w-full lg:max-w-sm">
+    <div className="panel flex flex-col gap-3 rounded-xl p-2.5 @4xl:flex-row @4xl:items-center @4xl:justify-between">
+      <form onSubmit={onSearch} className="relative w-full @4xl:max-w-sm">
         <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-mono text-sm text-primary">
           $
         </span>

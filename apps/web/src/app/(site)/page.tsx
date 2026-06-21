@@ -156,7 +156,7 @@ export default async function HomePage() {
               title="Browse by module"
               action={{ href: "/categories", label: "All categories" }}
             />
-            <Reveal className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Reveal className="grid grid-cols-1 gap-4 @lg:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4">
               {categories.items.map((category) => (
                 <ModuleCard key={category.id} category={category} />
               ))}

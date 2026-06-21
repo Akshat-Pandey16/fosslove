@@ -20,7 +20,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <TopBar />
       <div className="flex min-h-0 flex-1">
         <DockRail />
-        <main id="main-content" className="min-w-0 flex-1 overflow-y-auto">
+        <main id="main-content" className="@container min-w-0 flex-1 overflow-y-auto">
           {children}
         </main>
         <DeckDock />

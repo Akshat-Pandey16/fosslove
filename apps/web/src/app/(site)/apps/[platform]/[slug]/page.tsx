@@ -85,7 +85,7 @@ export default async function AppDetailPage({
         <span className="text-term-cyan">{app.slug}</span>
       </div>
 
-      <div className="grid gap-10 lg:grid-cols-[1fr_340px]">
+      <div className="grid gap-10 @4xl:grid-cols-[1fr_340px]">
         <div className="space-y-10">
           <header className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
@@ -161,7 +161,7 @@ export default async function AppDetailPage({
           ) : null}
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+        <aside className="space-y-4 @4xl:sticky @4xl:top-6 @4xl:self-start">
           <div className="panel space-y-3 rounded-xl p-5">
             <span className="font-mono text-[11px] text-muted-foreground">
               $ deck add {app.slug}
