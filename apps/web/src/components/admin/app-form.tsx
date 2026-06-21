@@ -5,6 +5,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { Window } from "@/components/deck/window"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -191,127 +192,145 @@ export function AppForm({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Category</Label>
-          <Select
-            items={categoryItems}
-            value={categoryId}
-            onValueChange={(v) => setCategoryId(String(v))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={String(category.id)}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Platform</Label>
-          <Select
-            items={platformItems}
-            value={platform}
-            onValueChange={(v) => setPlatform(v as Platform)}
-            disabled={mode === "edit"}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PLATFORMS.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {PLATFORM_LABELS[value]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <Window label="~/admin/apps/metadata">
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label className="font-mono text-xs">category</Label>
+              <Select
+                items={categoryItems}
+                value={categoryId}
+                onValueChange={(v) => setCategoryId(String(v))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={String(category.id)}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="font-mono text-xs">platform</Label>
+              <Select
+                items={platformItems}
+                value={platform}
+                onValueChange={(v) => setPlatform(v as Platform)}
+                disabled={mode === "edit"}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PLATFORMS.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {PLATFORM_LABELS[value]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="app-name">Name</Label>
-        <Input id="app-name" value={name} onChange={(event) => setName(event.target.value)} />
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="app-name" className="font-mono text-xs">
+              name
+            </Label>
+            <Input id="app-name" value={name} onChange={(event) => setName(event.target.value)} />
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="app-summary">Summary</Label>
-        <Input
-          id="app-summary"
-          value={summary}
-          onChange={(event) => setSummary(event.target.value)}
-          placeholder="One-line description"
-        />
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="app-summary" className="font-mono text-xs">
+              summary
+            </Label>
+            <Input
+              id="app-summary"
+              value={summary}
+              onChange={(event) => setSummary(event.target.value)}
+              placeholder="One-line description"
+            />
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="app-description">Description</Label>
-        <Textarea
-          id="app-description"
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          rows={4}
-        />
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="app-description" className="font-mono text-xs">
+              description
+            </Label>
+            <Textarea
+              id="app-description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              rows={4}
+            />
+          </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="app-homepage">Homepage URL</Label>
-          <Input
-            id="app-homepage"
-            value={homepage}
-            onChange={(event) => {
-              setHomepage(event.target.value)
-              if (homepageError) {
-                setHomepageError(null)
-              }
-            }}
-            placeholder="https://…"
-            aria-invalid={homepageError ? true : undefined}
-            aria-describedby={homepageError ? "app-homepage-error" : undefined}
-          />
-          {homepageError ? (
-            <p id="app-homepage-error" className="text-xs text-destructive">
-              {homepageError}
-            </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="app-homepage" className="font-mono text-xs">
+                homepage_url
+              </Label>
+              <Input
+                id="app-homepage"
+                value={homepage}
+                onChange={(event) => {
+                  setHomepage(event.target.value)
+                  if (homepageError) {
+                    setHomepageError(null)
+                  }
+                }}
+                placeholder="https://…"
+                className="font-mono"
+                aria-invalid={homepageError ? true : undefined}
+                aria-describedby={homepageError ? "app-homepage-error" : undefined}
+              />
+              {homepageError ? (
+                <p id="app-homepage-error" className="font-mono text-xs text-destructive">
+                  {homepageError}
+                </p>
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="app-license" className="font-mono text-xs">
+                license
+              </Label>
+              <Input
+                id="app-license"
+                value={license}
+                onChange={(event) => setLicense(event.target.value)}
+              />
+            </div>
+          </div>
+
+          {mode === "edit" ? (
+            <div className="flex items-center justify-between rounded-lg border bg-secondary/20 p-4">
+              <div>
+                <Label htmlFor="app-active" className="font-mono text-xs">
+                  is_active
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Inactive apps are hidden from the catalog.
+                </p>
+              </div>
+              <Switch id="app-active" checked={isActive} onCheckedChange={setIsActive} />
+            </div>
           ) : null}
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="app-license">License</Label>
-          <Input
-            id="app-license"
-            value={license}
-            onChange={(event) => setLicense(event.target.value)}
-          />
-        </div>
-      </div>
+      </Window>
 
-      {mode === "edit" ? (
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div>
-            <Label htmlFor="app-active">Active</Label>
-            <p className="text-sm text-muted-foreground">
-              Inactive apps are hidden from the catalog.
-            </p>
-          </div>
-          <Switch id="app-active" checked={isActive} onCheckedChange={setIsActive} />
-        </div>
-      ) : null}
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Label>Package sources</Label>
+      <Window
+        label="~/admin/apps/package-sources.manifest"
+        toolbar={
           <Button type="button" variant="outline" size="sm" onClick={addRef}>
             <Plus /> Add source
           </Button>
-        </div>
+        }
+      >
         {refs.length === 0 ? (
-          <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-            No package sources yet. Add at least one (e.g. winget or flatpak).
+          <p className="rounded-lg border border-dashed bg-secondary/20 p-4 font-mono text-xs text-muted-foreground">
+            # no package sources yet — add at least one (e.g. winget or flatpak).
           </p>
         ) : (
           <div className="space-y-3">
@@ -322,11 +341,11 @@ export function AppForm({
               return (
                 <div
                   key={row.id}
-                  className="grid items-end gap-2 rounded-lg border p-3 sm:grid-cols-[140px_1fr_1fr_80px_auto]"
+                  className="grid items-end gap-2 rounded-lg border bg-secondary/20 p-3 sm:grid-cols-[140px_1fr_1fr_80px_auto]"
                 >
                   <div className="space-y-1">
-                    <Label htmlFor={`${row.id}-manager`} className="text-xs">
-                      Manager
+                    <Label htmlFor={`${row.id}-manager`} className="font-mono text-xs">
+                      manager
                     </Label>
                     <Select
                       items={managerItems}
@@ -346,8 +365,8 @@ export function AppForm({
                     </Select>
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor={`${row.id}-identifier`} className="text-xs">
-                      Identifier
+                    <Label htmlFor={`${row.id}-identifier`} className="font-mono text-xs">
+                      identifier
                     </Label>
                     <Input
                       id={`${row.id}-identifier`}
@@ -359,14 +378,14 @@ export function AppForm({
                       aria-describedby={error ? `${row.id}-error` : undefined}
                     />
                     {error ? (
-                      <p id={`${row.id}-error`} className="text-xs text-destructive">
+                      <p id={`${row.id}-error`} className="font-mono text-xs text-destructive">
                         {error}
                       </p>
                     ) : null}
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor={`${row.id}-args`} className="text-xs">
-                      Install args
+                    <Label htmlFor={`${row.id}-args`} className="font-mono text-xs">
+                      install_args
                     </Label>
                     <Input
                       id={`${row.id}-args`}
@@ -377,8 +396,8 @@ export function AppForm({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor={`${row.id}-priority`} className="text-xs">
-                      Priority
+                    <Label htmlFor={`${row.id}-priority`} className="font-mono text-xs">
+                      priority
                     </Label>
                     <Input
                       id={`${row.id}-priority`}
@@ -387,6 +406,7 @@ export function AppForm({
                       onChange={(event) =>
                         updateRef(row.id, { priority: Number(event.target.value) || 0 })
                       }
+                      className="font-mono"
                     />
                   </div>
                   <Button
@@ -403,10 +423,10 @@ export function AppForm({
             })}
           </div>
         )}
-      </div>
+      </Window>
 
       <div className="flex gap-2">
-        <Button onClick={submit} disabled={loading}>
+        <Button onClick={submit} disabled={loading} className="glow-primary">
           {loading ? <Loader2 className="animate-spin" /> : null}
           {mode === "create" ? "Create app" : "Save changes"}
         </Button>

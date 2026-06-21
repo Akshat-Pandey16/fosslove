@@ -16,13 +16,17 @@ export function SiteHeader() {
   const pathname = usePathname()
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/65">
+    <header className="sticky top-0 z-40 border-b bg-background/75 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+      />
       <Container className="flex h-16 items-center gap-2">
         <div className="flex items-center gap-1">
           <MobileNav />
           <Logo />
         </div>
-        <nav className="ml-4 hidden items-center gap-0.5 lg:flex">
+        <nav className="ml-5 hidden items-center gap-0.5 font-mono lg:flex">
           {NAV_LINKS.map((link) => {
             const active = pathname === link.href || pathname.startsWith(`${link.href}/`)
             return (
@@ -31,13 +35,14 @@ export function SiteHeader() {
                 href={link.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "text-foreground underline decoration-primary decoration-2 underline-offset-8"
-                    : "text-muted-foreground hover:text-foreground",
+                  "group rounded-md px-3 py-2 text-[13px] transition-colors",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {link.label}
+                <span className={cn("transition-opacity", active ? "opacity-100" : "opacity-0")}>
+                  /
+                </span>
+                {link.label.toLowerCase()}
               </Link>
             )
           })}

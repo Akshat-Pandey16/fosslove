@@ -4,6 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { SectionHeading } from "@/components/deck/section-heading"
+import { Window } from "@/components/deck/window"
+import { Reveal } from "@/components/motion/reveal"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,59 +50,81 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="font-heading text-3xl font-bold tracking-tight">Categories</h1>
-          <p className="text-muted-foreground">Organise the catalog into categories.</p>
-        </div>
-        <CategoryFormDialog mode="create" />
-      </header>
+      <SectionHeading
+        tag="~/admin/categories"
+        title="Category modules"
+        description="Organise the catalog into categories."
+      />
 
-      <div className="rounded-xl border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead className="text-right">Windows</TableHead>
-              <TableHead className="text-right">Linux</TableHead>
-              <TableHead className="w-24" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                  Loading…
-                </TableCell>
+      <div className="flex justify-end">
+        <CategoryFormDialog mode="create" />
+      </div>
+
+      <Reveal>
+        <Window label="~/admin/categories/modules.tbl" bodyClassName="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  name
+                </TableHead>
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  slug
+                </TableHead>
+                <TableHead className="text-right font-mono text-xs text-muted-foreground uppercase">
+                  windows
+                </TableHead>
+                <TableHead className="text-right font-mono text-xs text-muted-foreground uppercase">
+                  linux
+                </TableHead>
+                <TableHead className="w-24" />
               </TableRow>
-            ) : data && data.items.length > 0 ? (
-              data.items.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
-                    {category.slug}
-                  </TableCell>
-                  <TableCell className="text-right">{category.windows_app_count}</TableCell>
-                  <TableCell className="text-right">{category.linux_app_count}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-1">
-                      <CategoryFormDialog mode="edit" category={category} />
-                      <DeleteCategoryButton category={category} />
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center font-mono text-sm text-muted-foreground"
+                  >
+                    loading…
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                  No categories yet.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : data && data.items.length > 0 ? (
+                data.items.map((category) => (
+                  <TableRow key={category.id}>
+                    <TableCell className="font-medium">{category.name}</TableCell>
+                    <TableCell className="font-mono text-xs text-term-cyan">
+                      {category.slug}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {category.windows_app_count}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {category.linux_app_count}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <CategoryFormDialog mode="edit" category={category} />
+                        <DeleteCategoryButton category={category} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center font-mono text-sm text-muted-foreground"
+                  >
+                    no categories yet.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Window>
+      </Reveal>
     </div>
   )
 }
@@ -164,7 +189,7 @@ function CategoryFormDialog({ mode, category }: { mode: "create" | "edit"; categ
       <DialogTrigger
         render={
           mode === "create" ? (
-            <Button>
+            <Button className="glow-primary">
               <Plus /> New category
             </Button>
           ) : (
@@ -176,11 +201,15 @@ function CategoryFormDialog({ mode, category }: { mode: "create" | "edit"; categ
       />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "New category" : "Edit category"}</DialogTitle>
+          <DialogTitle className="font-mono text-sm text-primary">
+            {mode === "create" ? "~/admin/categories/new" : "~/admin/categories/edit"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="category-name">Name</Label>
+            <Label htmlFor="category-name" className="font-mono text-xs">
+              name
+            </Label>
             <Input
               id="category-name"
               value={name}
@@ -189,7 +218,9 @@ function CategoryFormDialog({ mode, category }: { mode: "create" | "edit"; categ
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="category-description">Description</Label>
+            <Label htmlFor="category-description" className="font-mono text-xs">
+              description
+            </Label>
             <Textarea
               id="category-description"
               value={description}
@@ -198,12 +229,15 @@ function CategoryFormDialog({ mode, category }: { mode: "create" | "edit"; categ
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="category-icon">Icon URL</Label>
+            <Label htmlFor="category-icon" className="font-mono text-xs">
+              icon_url
+            </Label>
             <Input
               id="category-icon"
               value={iconUrl}
               onChange={(event) => setIconUrl(event.target.value)}
               placeholder="https://…"
+              className="font-mono"
             />
           </div>
         </div>

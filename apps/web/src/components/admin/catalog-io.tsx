@@ -97,24 +97,27 @@ export function CatalogIO() {
     <div className="flex items-center gap-2">
       <Button
         variant="outline"
+        className="hover-lift-glow font-mono text-xs"
         onClick={() => exportCatalog.mutate()}
         disabled={exportCatalog.isPending}
       >
         {exportCatalog.isPending ? <Loader2 className="animate-spin" /> : <Download />}
-        Export catalog
+        export
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger
           render={
-            <Button variant="outline">
-              <Upload /> Import apps
+            <Button variant="outline" className="hover-lift-glow font-mono text-xs">
+              <Upload /> import
             </Button>
           }
         />
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Import apps</DialogTitle>
+            <DialogTitle className="font-mono text-sm text-primary">
+              ~/admin/apps/import
+            </DialogTitle>
             <DialogDescription>
               Paste catalog JSON or upload a file. Accepts a bare array, {"{ apps: [...] }"}, or a
               full export.
@@ -122,17 +125,21 @@ export function CatalogIO() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="import-file">Upload file</Label>
+              <Label htmlFor="import-file" className="font-mono text-xs">
+                upload file
+              </Label>
               <input
                 id="import-file"
                 type="file"
                 accept="application/json,.json"
                 onChange={onFileChange}
-                className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-2.5 file:py-1 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted"
+                className="block w-full font-mono text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-2.5 file:py-1 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="import-json">JSON</Label>
+              <Label htmlFor="import-json" className="font-mono text-xs">
+                json
+              </Label>
               <Textarea
                 id="import-json"
                 value={text}

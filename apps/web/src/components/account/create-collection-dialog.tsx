@@ -71,11 +71,15 @@ export function CreateCollectionDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New collection</DialogTitle>
-          <DialogDescription>Create a bundle, then add apps to it.</DialogDescription>
+          <DialogDescription className="font-mono">
+            ~/account/collections — create a bundle, then add apps to it.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="new-collection-name">Name</Label>
+            <Label htmlFor="new-collection-name" className="font-mono">
+              Name
+            </Label>
             <Input
               id="new-collection-name"
               value={name}
@@ -85,7 +89,9 @@ export function CreateCollectionDialog() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="new-collection-description">Description</Label>
+            <Label htmlFor="new-collection-description" className="font-mono">
+              Description
+            </Label>
             <Textarea
               id="new-collection-description"
               value={description}
@@ -95,7 +101,9 @@ export function CreateCollectionDialog() {
             />
           </div>
           <div className="flex items-center justify-between gap-2">
-            <Label htmlFor="new-collection-public">Make public</Label>
+            <Label htmlFor="new-collection-public" className="font-mono">
+              Make public
+            </Label>
             <Switch id="new-collection-public" checked={isPublic} onCheckedChange={setIsPublic} />
           </div>
         </div>

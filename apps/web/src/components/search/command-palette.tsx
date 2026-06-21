@@ -50,21 +50,31 @@ export function CommandPalette({
       title="Search apps"
       description="Find apps in the catalog"
     >
-      <Command shouldFilter={false}>
-        <CommandInput placeholder="Search apps…" value={value} onValueChange={setValue} />
+      <Command shouldFilter={false} className="font-mono">
+        <CommandInput
+          placeholder="$ search apps…"
+          value={value}
+          onValueChange={setValue}
+          className="placeholder:text-term-lime/70"
+        />
         <CommandList aria-live="polite">
           {query.length === 0 ? (
             <div className="px-3 py-8 text-center text-sm text-muted-foreground">
-              Type to search the catalog…
+              <span className="text-term-lime">$ </span>
+              type to query the catalog
+              <span className="term-cursor" />
             </div>
           ) : isFetching && results.length === 0 ? (
             <div role="status" className="px-3 py-8 text-center text-sm text-muted-foreground">
-              Searching…
+              <span className="text-term-lime">$ </span>
+              searching…
             </div>
           ) : results.length === 0 ? (
-            <CommandEmpty>No apps found.</CommandEmpty>
+            <CommandEmpty>
+              <span className="text-muted-foreground">! </span>no apps found
+            </CommandEmpty>
           ) : (
-            <CommandGroup heading="Apps">
+            <CommandGroup heading="apps">
               {results.map((app) => (
                 <CommandItem
                   key={app.id}
@@ -72,15 +82,15 @@ export function CommandPalette({
                   onSelect={() => go(`/apps/${app.platform}/${app.slug}`)}
                 >
                   <PlatformBadge platform={app.platform} compact />
-                  <span className="font-medium">{app.name}</span>
-                  <span className="truncate text-muted-foreground">· {app.category_name}</span>
+                  <span className="font-medium text-foreground">{app.name}</span>
+                  <span className="truncate text-term-cyan">~/{app.category_name}</span>
                 </CommandItem>
               ))}
               <CommandItem
                 value="see-all-results"
                 onSelect={() => go(`/apps?q=${encodeURIComponent(query)}`)}
               >
-                <Search /> See all results for “{query}”
+                <Search className="text-term-lime" /> see all results for “{query}”
               </CommandItem>
             </CommandGroup>
           )}

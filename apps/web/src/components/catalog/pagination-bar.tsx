@@ -29,8 +29,10 @@ export function PaginationBar({ page, totalPages }: { page: number; totalPages: 
       <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => goto(page - 1)}>
         <ChevronLeft /> Prev
       </Button>
-      <span className="font-mono text-sm text-muted-foreground">
-        {page} / {totalPages}
+      <span className="rounded-md border bg-card/50 px-3 py-1.5 font-mono text-xs text-muted-foreground">
+        <span className="text-primary">{String(page).padStart(2, "0")}</span>
+        <span className="text-muted-foreground/50"> / </span>
+        {String(totalPages).padStart(2, "0")}
       </span>
       <Button
         variant="outline"

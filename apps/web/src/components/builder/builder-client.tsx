@@ -6,12 +6,13 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { GenerateScriptButton } from "@/components/catalog/generate-script-button"
 import { PlatformBadge } from "@/components/catalog/platform-badge"
+import { Window } from "@/components/deck/window"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/api/client"
 import { ApiError } from "@/lib/api/errors"
 import type { AppListItem, Platform } from "@/lib/api/types"
-import { PLATFORM_LABELS, PLATFORMS } from "@/lib/constants"
+import { PLATFORM_LABELS, PLATFORMS, scriptFilename } from "@/lib/constants"
 import { useBuilder } from "@/lib/stores/builder"
 import { SaveCollectionDialog } from "./save-collection-dialog"
 
@@ -63,18 +64,21 @@ export function BuilderClient() {
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed py-20 text-center">
-        <div className="grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
-          <Boxes className="size-6" />
+      <Window label="~/deck — empty" className="bg-card/40">
+        <div className="flex flex-col items-center gap-4 py-16 text-center">
+          <div className="grid size-12 place-items-center rounded-lg border bg-secondary/40 text-muted-foreground">
+            <Boxes className="size-6" />
+          </div>
+          <div className="space-y-1">
+            <p className="font-heading text-lg font-semibold">Your deck is empty</p>
+            <p className="font-mono text-sm text-muted-foreground">
+              <span className="text-muted-foreground/60">$ </span>
+              deck add &lt;app&gt; — load apps from the catalog to compile a script
+            </p>
+          </div>
+          <Button render={<Link href="/apps">Browse the catalog</Link>} />
         </div>
-        <div className="space-y-1">
-          <p className="font-heading text-lg font-semibold">Your builder is empty</p>
-          <p className="text-sm text-muted-foreground">
-            Add apps from the catalog and they'll collect here, ready to script.
-          </p>
-        </div>
-        <Button render={<Link href="/apps">Browse the catalog</Link>} />
-      </div>
+      </Window>
     )
   }
 
@@ -85,9 +89,12 @@ export function BuilderClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          {items.length} app{items.length === 1 ? "" : "s"} selected
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card/40 px-4 py-3 backdrop-blur">
+        <p className="flex items-center gap-2 font-mono text-sm text-muted-foreground">
+          <span className="size-1.5 animate-pulse-dot rounded-full bg-term-lime" />
+          <span className="text-term-lime">$</span> deck status —{" "}
+          <span className="text-foreground">{items.length}</span> app
+          {items.length === 1 ? "" : "s"} loaded
         </p>
         <div className="flex items-center gap-2">
           <SaveCollectionDialog appIds={items.map((item) => item.id)} />
@@ -115,22 +122,30 @@ export function BuilderClient() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 8 }}
                   transition={{ duration: 0.18 }}
-                  className="flex items-center justify-between gap-2 p-3"
+                  className="group/row flex items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-secondary/30"
                 >
-                  <div className="min-w-0">
-                    <Link
-                      href={`/apps/${item.platform}/${item.slug}`}
-                      className="block truncate font-medium transition-colors hover:text-primary"
-                    >
-                      {item.name}
-                    </Link>
-                    <span className="text-xs text-muted-foreground">{item.category_name}</span>
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <span aria-hidden className="font-mono text-sm text-term-lime/70">
+                      →
+                    </span>
+                    <div className="min-w-0">
+                      <Link
+                        href={`/apps/${item.platform}/${item.slug}`}
+                        className="block truncate font-mono text-sm font-medium transition-colors hover:text-primary"
+                      >
+                        {item.name}
+                      </Link>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {item.category_name}
+                      </span>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => remove(item.id)}
                     aria-label={`Remove ${item.name}`}
+                    className="text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover/row:opacity-100"
                   >
                     <X />
                   </Button>
@@ -158,24 +173,32 @@ function BuilderGroup({
   children: React.ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-xl border bg-card">
-      <div className="flex items-center justify-between gap-2 border-b p-4">
-        <div className="flex items-center gap-2">
-          <PlatformBadge platform={platform} />
-          <span className="text-sm text-muted-foreground">
-            {count} app{count === 1 ? "" : "s"}
-          </span>
-        </div>
+    <Window
+      label={scriptFilename(platform)}
+      bodyClassName="p-0"
+      toolbar={
+        <span className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+          <span className="size-1.5 rounded-full bg-term-lime/70" />
+          {count} app{count === 1 ? "" : "s"}
+        </span>
+      }
+    >
+      <div className="flex items-center justify-between gap-2 border-b bg-secondary/20 px-4 py-2.5">
+        <PlatformBadge platform={platform} />
         <Button variant="ghost" size="xs" onClick={onClear}>
           Clear
         </Button>
       </div>
       <ul className="divide-y">{children}</ul>
-      <div className="border-t p-4">
-        <GenerateScriptButton platform={platform} appIds={appIds} className="w-full">
-          Download {PLATFORM_LABELS[platform]} script
+      <div className="border-t bg-secondary/20 p-3">
+        <GenerateScriptButton
+          platform={platform}
+          appIds={appIds}
+          className="hover-lift-glow w-full"
+        >
+          Compile {PLATFORM_LABELS[platform]} script
         </GenerateScriptButton>
       </div>
-    </section>
+    </Window>
   )
 }

@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { AppGrid } from "@/components/catalog/app-grid"
+import { SectionHeading } from "@/components/deck/section-heading"
+import { Reveal } from "@/components/motion/reveal"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/api/client"
 
@@ -13,10 +15,11 @@ export default function FavoritesPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="font-heading text-3xl font-bold tracking-tight">Favorites</h1>
-        <p className="text-muted-foreground">Apps you've saved for later.</p>
-      </header>
+      <SectionHeading
+        tag="~/account/favorites"
+        title="Favorites"
+        description="Apps you've saved for later."
+      />
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
@@ -24,10 +27,12 @@ export default function FavoritesPage() {
           ))}
         </div>
       ) : (
-        <AppGrid
-          apps={data?.items ?? []}
-          emptyMessage="No favorites yet. Tap the heart on any app to save it."
-        />
+        <Reveal>
+          <AppGrid
+            apps={data?.items ?? []}
+            emptyMessage="No favorites yet. Tap the heart on any app to save it."
+          />
+        </Reveal>
       )}
     </div>
   )

@@ -3,6 +3,9 @@
 import { useQuery } from "@tanstack/react-query"
 import { GenerateScriptButton } from "@/components/catalog/generate-script-button"
 import { PlatformBadge } from "@/components/catalog/platform-badge"
+import { SectionHeading } from "@/components/deck/section-heading"
+import { Window } from "@/components/deck/window"
+import { Reveal } from "@/components/motion/reveal"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/api/client"
 import { formatDate } from "@/lib/constants"
@@ -17,10 +20,11 @@ export default function HistoryPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="font-heading text-3xl font-bold tracking-tight">Script history</h1>
-        <p className="text-muted-foreground">Scripts you've generated. Re-download any of them.</p>
-      </header>
+      <SectionHeading
+        tag="~/account/history"
+        title="Script history"
+        description="Scripts you've generated. Re-download any of them."
+      />
 
       {isLoading ? (
         <div className="space-y-3">
@@ -29,33 +33,41 @@ export default function HistoryPage() {
           ))}
         </div>
       ) : runs.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center text-sm text-muted-foreground">
-          No scripts generated yet.
+        <div className="rounded-xl border border-dashed p-12 text-center font-mono text-sm text-muted-foreground">
+          $ no scripts generated yet
         </div>
       ) : (
-        <div className="divide-y rounded-xl border">
-          {runs.map((run) => (
-            <div key={run.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <div className="flex items-center gap-3">
-                <PlatformBadge platform={run.platform} />
-                <div>
-                  <div className="text-sm font-medium">
-                    {run.app_count} app{run.app_count === 1 ? "" : "s"}
+        <Reveal>
+          <Window label="~/account/history.log" bodyClassName="p-0">
+            <ul className="divide-y">
+              {runs.map((run) => (
+                <li
+                  key={run.id}
+                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-secondary/30"
+                >
+                  <div className="flex items-center gap-3">
+                    <span aria-hidden className="size-1.5 rounded-full bg-term-lime" />
+                    <PlatformBadge platform={run.platform} />
+                    <div className="font-mono text-sm">
+                      <span className="text-term-cyan">
+                        {run.app_count} app{run.app_count === 1 ? "" : "s"}
+                      </span>
+                      <span className="text-muted-foreground"> · {formatDate(run.created_at)}</span>
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">{formatDate(run.created_at)}</div>
-                </div>
-              </div>
-              <GenerateScriptButton
-                platform={run.platform}
-                appIds={run.app_ids}
-                variant="outline"
-                size="sm"
-              >
-                Download again
-              </GenerateScriptButton>
-            </div>
-          ))}
-        </div>
+                  <GenerateScriptButton
+                    platform={run.platform}
+                    appIds={run.app_ids}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Download again
+                  </GenerateScriptButton>
+                </li>
+              ))}
+            </ul>
+          </Window>
+        </Reveal>
       )}
     </div>
   )

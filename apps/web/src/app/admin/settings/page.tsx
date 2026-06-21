@@ -4,6 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { SectionHeading } from "@/components/deck/section-heading"
+import { Window } from "@/components/deck/window"
+import { Reveal } from "@/components/motion/reveal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,13 +31,11 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <header className="space-y-1">
-        <h1 className="font-heading text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">
-          Configure the platform at runtime. Secrets, the database, and CORS stay in environment
-          variables.
-        </p>
-      </header>
+      <SectionHeading
+        tag="~/admin/settings"
+        title="Runtime config"
+        description="Configure the platform at runtime. Secrets, the database, and CORS stay in environment variables."
+      />
       {isLoading || !data ? (
         <Skeleton className="h-[480px] rounded-xl" />
       ) : (
@@ -119,125 +120,147 @@ function SettingsForm({ settings }: { settings: RuntimeSettings }) {
 
   return (
     <div className="space-y-6">
-      <Section title="Feature flags" description="Toggle product features without a redeploy.">
-        <Toggle
-          label="User registration"
-          description="Allow new accounts to be created."
-          checked={form.registration_enabled}
-          onChange={(value) => set("registration_enabled", value)}
-        />
-        <Toggle
-          label="Email verification"
-          description="Require email verification (off = new users auto-verified)."
-          checked={form.email_enabled}
-          onChange={(value) => set("email_enabled", value)}
-        />
-      </Section>
-
-      <Section title="Rate limiting" description="Protect the API from abuse.">
-        <Toggle
-          label="Enabled"
-          description="Master switch for request rate limiting."
-          checked={form.rate_limit_enabled}
-          onChange={(value) => set("rate_limit_enabled", value)}
-        />
-        <Field label="Global limit">
-          <Input
-            value={form.rate_limit_default}
-            onChange={(event) => set("rate_limit_default", event.target.value)}
-            placeholder="200/minute"
-            className="font-mono"
-          />
-        </Field>
-        <Field label="Auth limit">
-          <Input
-            value={form.rate_limit_auth}
-            onChange={(event) => set("rate_limit_auth", event.target.value)}
-            placeholder="10/minute"
-            className="font-mono"
-          />
-        </Field>
-      </Section>
-
-      <Section
-        title="Email & SMTP"
-        description="Outgoing email for verification and password reset."
-      >
-        <Field label="Backend">
-          <Select
-            items={{ console: "Console (log only)", smtp: "SMTP" }}
-            value={form.email_backend}
-            onValueChange={(value) => set("email_backend", value === "smtp" ? "smtp" : "console")}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="console">Console (log only)</SelectItem>
-              <SelectItem value="smtp">SMTP</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="From address">
-          <Input
-            value={form.email_from}
-            onChange={(event) => set("email_from", event.target.value)}
-            placeholder="no-reply@example.com"
-          />
-        </Field>
-        <Field label="SMTP host">
-          <Input
-            value={form.smtp_host}
-            onChange={(event) => set("smtp_host", event.target.value)}
-          />
-        </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="SMTP port">
-            <Input
-              type="number"
-              value={form.smtp_port}
-              onChange={(event) => set("smtp_port", Number(event.target.value) || 0)}
+      <Reveal>
+        <Window label="~/admin/settings/feature-flags">
+          <Section description="$ toggle product features without a redeploy.">
+            <Toggle
+              label="registration_enabled"
+              description="Allow new accounts to be created."
+              checked={form.registration_enabled}
+              onChange={(value) => set("registration_enabled", value)}
             />
-          </Field>
-          <Field label="SMTP user">
-            <Input
-              value={form.smtp_user}
-              onChange={(event) => set("smtp_user", event.target.value)}
+            <Toggle
+              label="email_enabled"
+              description="Require email verification (off = new users auto-verified)."
+              checked={form.email_enabled}
+              onChange={(value) => set("email_enabled", value)}
             />
-          </Field>
-        </div>
-        <Field label="SMTP password">
-          <Input
-            type="password"
-            value={smtpPassword}
-            onChange={(event) => setSmtpPassword(event.target.value)}
-            placeholder={settings.smtp_password_set ? "•••••••• (leave blank to keep)" : "Not set"}
-          />
-        </Field>
-        <Toggle
-          label="Use TLS"
-          description="STARTTLS for the SMTP connection."
-          checked={form.smtp_use_tls}
-          onChange={(value) => set("smtp_use_tls", value)}
-        />
-      </Section>
+          </Section>
+        </Window>
+      </Reveal>
 
-      <Section title="Branding" description="Names and URLs used across the app and emails.">
-        <Field label="Project name">
-          <Input
-            value={form.project_name}
-            onChange={(event) => set("project_name", event.target.value)}
-          />
-        </Field>
-        <Field label="Frontend base URL">
-          <Input
-            value={form.frontend_base_url}
-            onChange={(event) => set("frontend_base_url", event.target.value)}
-            placeholder="https://app.example.com"
-            className="font-mono"
-          />
-        </Field>
-      </Section>
+      <Reveal>
+        <Window label="~/admin/settings/rate-limiting">
+          <Section description="$ protect the API from abuse.">
+            <Toggle
+              label="rate_limit_enabled"
+              description="Master switch for request rate limiting."
+              checked={form.rate_limit_enabled}
+              onChange={(value) => set("rate_limit_enabled", value)}
+            />
+            <Field label="rate_limit_default">
+              <Input
+                value={form.rate_limit_default}
+                onChange={(event) => set("rate_limit_default", event.target.value)}
+                placeholder="200/minute"
+                className="font-mono"
+              />
+            </Field>
+            <Field label="rate_limit_auth">
+              <Input
+                value={form.rate_limit_auth}
+                onChange={(event) => set("rate_limit_auth", event.target.value)}
+                placeholder="10/minute"
+                className="font-mono"
+              />
+            </Field>
+          </Section>
+        </Window>
+      </Reveal>
+
+      <Reveal>
+        <Window label="~/admin/settings/email-smtp">
+          <Section description="$ outgoing email for verification and password reset.">
+            <Field label="email_backend">
+              <Select
+                items={{ console: "Console (log only)", smtp: "SMTP" }}
+                value={form.email_backend}
+                onValueChange={(value) =>
+                  set("email_backend", value === "smtp" ? "smtp" : "console")
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="console">Console (log only)</SelectItem>
+                  <SelectItem value="smtp">SMTP</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="email_from">
+              <Input
+                value={form.email_from}
+                onChange={(event) => set("email_from", event.target.value)}
+                placeholder="no-reply@example.com"
+                className="font-mono"
+              />
+            </Field>
+            <Field label="smtp_host">
+              <Input
+                value={form.smtp_host}
+                onChange={(event) => set("smtp_host", event.target.value)}
+                className="font-mono"
+              />
+            </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="smtp_port">
+                <Input
+                  type="number"
+                  value={form.smtp_port}
+                  onChange={(event) => set("smtp_port", Number(event.target.value) || 0)}
+                  className="font-mono"
+                />
+              </Field>
+              <Field label="smtp_user">
+                <Input
+                  value={form.smtp_user}
+                  onChange={(event) => set("smtp_user", event.target.value)}
+                  className="font-mono"
+                />
+              </Field>
+            </div>
+            <Field label="smtp_password">
+              <Input
+                type="password"
+                value={smtpPassword}
+                onChange={(event) => setSmtpPassword(event.target.value)}
+                placeholder={
+                  settings.smtp_password_set ? "•••••••• (leave blank to keep)" : "Not set"
+                }
+                className="font-mono"
+              />
+            </Field>
+            <Toggle
+              label="smtp_use_tls"
+              description="STARTTLS for the SMTP connection."
+              checked={form.smtp_use_tls}
+              onChange={(value) => set("smtp_use_tls", value)}
+            />
+          </Section>
+        </Window>
+      </Reveal>
+
+      <Reveal>
+        <Window label="~/admin/settings/branding">
+          <Section description="$ names and URLs used across the app and emails.">
+            <Field label="project_name">
+              <Input
+                value={form.project_name}
+                onChange={(event) => set("project_name", event.target.value)}
+              />
+            </Field>
+            <Field label="frontend_base_url">
+              <Input
+                value={form.frontend_base_url}
+                onChange={(event) => set("frontend_base_url", event.target.value)}
+                placeholder="https://app.example.com"
+                className="font-mono"
+              />
+            </Field>
+          </Section>
+        </Window>
+      </Reveal>
 
       <div className="sticky bottom-4 flex justify-end">
         <Button onClick={save} disabled={mutation.isPending} className="glow-primary">
@@ -249,30 +272,19 @@ function SettingsForm({ settings }: { settings: RuntimeSettings }) {
   )
 }
 
-function Section({
-  title,
-  description,
-  children,
-}: {
-  title: string
-  description: string
-  children: React.ReactNode
-}) {
+function Section({ description, children }: { description: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-6">
-      <div>
-        <h2 className="font-heading text-lg font-semibold">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
+    <div className="space-y-4">
+      <p className="font-mono text-xs text-muted-foreground">{description}</p>
       <div className="space-y-4">{children}</div>
-    </section>
+    </div>
   )
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label className="font-mono text-xs">{label}</Label>
       {children}
     </div>
   )
@@ -290,9 +302,9 @@ function Toggle({
   onChange: (value: boolean) => void
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
-      <div>
-        <div className="text-sm font-medium">{label}</div>
+    <div className="flex items-center justify-between gap-4 rounded-lg border bg-secondary/20 p-4">
+      <div className="space-y-0.5">
+        <div className="font-mono text-sm font-medium">{label}</div>
         <div className="text-sm text-muted-foreground">{description}</div>
       </div>
       <Switch checked={checked} onCheckedChange={onChange} />

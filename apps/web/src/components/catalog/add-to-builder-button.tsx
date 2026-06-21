@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import type { AppListItem } from "@/lib/api/types"
 import { useBuilder, useInBuilder } from "@/lib/stores/builder"
+import { cn } from "@/lib/utils"
 
 type ButtonSize = "xs" | "sm" | "default" | "lg"
 
@@ -34,17 +35,17 @@ export function AddToBuilderButton({
       type="button"
       size={size}
       variant={inBuilder ? "secondary" : "default"}
-      className={className}
+      className={cn("font-mono", inBuilder && "border border-primary/40 text-primary", className)}
       onClick={handleClick}
       aria-pressed={inBuilder}
     >
       {inBuilder ? (
         <>
-          <Check /> Added
+          <Check /> in deck
         </>
       ) : (
         <>
-          <Plus /> Build
+          <Plus /> deck
         </>
       )}
     </Button>

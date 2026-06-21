@@ -60,20 +60,24 @@ export function CatalogFilters({
   }
 
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div className="panel flex flex-col gap-3 rounded-xl p-2.5 lg:flex-row lg:items-center lg:justify-between">
       <form onSubmit={onSearch} className="relative w-full lg:max-w-sm">
-        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-mono text-sm text-primary">
+          $
+        </span>
+        <Search className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           name="q"
           type="search"
           defaultValue={q}
-          placeholder="Search apps…"
+          placeholder="grep apps…"
           aria-label="Search apps"
-          className="h-9 pl-9"
+          className="h-9 pr-9 pl-7 font-mono"
         />
       </form>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="inline-flex rounded-lg border p-0.5">
+        <span className="hidden font-mono text-xs text-muted-foreground sm:inline">--platform</span>
+        <div className="inline-flex rounded-lg border bg-card/60 p-0.5">
           {PLATFORM_OPTIONS.map((option) => (
             <button
               key={option.value}
@@ -81,7 +85,7 @@ export function CatalogFilters({
               aria-pressed={platform === option.value}
               onClick={() => update({ platform: option.value })}
               className={cn(
-                "rounded-md px-3 py-1 text-sm font-medium transition-colors",
+                "rounded-md px-3 py-1 font-mono text-xs transition-colors",
                 platform === option.value
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground",
@@ -97,7 +101,7 @@ export function CatalogFilters({
             value={categoryId}
             onValueChange={(value) => update({ category_id: String(value) })}
           >
-            <SelectTrigger className="h-9 w-48">
+            <SelectTrigger className="h-9 w-48 font-mono">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

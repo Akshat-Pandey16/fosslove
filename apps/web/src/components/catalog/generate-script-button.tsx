@@ -11,6 +11,7 @@ import { queryKeys } from "@/lib/api/query-keys"
 import type { Platform } from "@/lib/api/types"
 import { useAuth } from "@/lib/auth/auth-provider"
 import { downloadBlob } from "@/lib/download"
+import { cn } from "@/lib/utils"
 
 type ButtonSize = "xs" | "sm" | "default" | "lg"
 type ButtonVariant = "default" | "outline" | "secondary" | "ghost"
@@ -71,12 +72,12 @@ export function GenerateScriptButton({
       type="button"
       size={size}
       variant={variant}
-      className={className}
+      className={cn("font-mono", className)}
       onClick={run}
       disabled={loading || empty}
     >
       {loading ? <Loader2 className="animate-spin" /> : <Download />}
-      {children ?? "Get install script"}
+      {children ?? "Compile install script"}
     </Button>
   )
 }

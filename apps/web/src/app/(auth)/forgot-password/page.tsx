@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { Window } from "@/components/deck/window"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -31,13 +32,17 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 rounded-2xl border bg-card p-8 shadow-sm duration-500">
+    <Window
+      label="~/auth/reset"
+      className="animate-in fade-in slide-in-from-bottom-2 duration-500"
+      bodyClassName="p-6 sm:p-8"
+    >
       {sent ? (
         <div className="space-y-4 text-center">
-          <CheckCircle2 className="mx-auto size-10 text-primary" />
+          <CheckCircle2 className="mx-auto size-10 text-term-amber" />
           <h1 className="font-heading text-2xl font-bold tracking-tight">Check your inbox</h1>
-          <p className="text-sm text-muted-foreground">
-            If an account exists for that email, we've sent a link to reset your password.
+          <p className="font-mono text-sm text-term-lime">
+            $ mail sent — if that account exists, a reset link is on its way.
           </p>
           <Button
             variant="outline"
@@ -47,10 +52,15 @@ export default function ForgotPasswordPage() {
         </div>
       ) : (
         <>
-          <div className="mb-6 space-y-1">
+          <div className="mb-6 space-y-2">
+            <span className="font-mono text-xs text-primary/80">~/reset</span>
             <h1 className="font-heading text-2xl font-bold tracking-tight">Reset your password</h1>
-            <p className="text-sm text-muted-foreground">
-              Enter your email and we'll send you a reset link.
+            <p className="font-mono text-sm text-muted-foreground">
+              <span className="text-muted-foreground">$ </span>
+              <span className="text-term-lime">fosslove</span>
+              <span className="text-foreground"> reset </span>
+              <span className="text-term-cyan">--request</span>
+              <span className="term-cursor" />
             </p>
           </div>
           <Form {...form}>
@@ -60,12 +70,15 @@ export default function ForgotPasswordPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="font-mono text-xs text-muted-foreground">
+                      --email
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="email"
                         autoComplete="email"
                         placeholder="you@example.com"
+                        className="font-mono"
                         {...field}
                       />
                     </FormControl>
@@ -73,19 +86,23 @@ export default function ForgotPasswordPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              <Button
+                type="submit"
+                className="glow-primary w-full"
+                disabled={form.formState.isSubmitting}
+              >
                 {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : null}
                 Send reset link
               </Button>
             </form>
           </Form>
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            <Link href="/login" className="font-medium text-primary hover:underline">
-              Back to sign in
+          <p className="mt-6 text-center font-mono text-xs text-muted-foreground">
+            <Link href="/login" className="text-primary hover:underline">
+              ~/login
             </Link>
           </p>
         </>
       )}
-    </div>
+    </Window>
   )
 }

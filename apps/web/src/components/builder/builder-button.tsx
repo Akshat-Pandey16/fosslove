@@ -16,7 +16,7 @@ export function BuilderButton() {
         <Link href="/builder" aria-label={`Builder (${count} apps)`}>
           <Boxes />
           {count > 0 ? (
-            <span className="absolute -top-0.5 -right-0.5 grid size-4 place-items-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+            <span className="absolute -top-0.5 -right-0.5 grid size-4 place-items-center rounded-md bg-primary font-mono text-[10px] font-semibold text-primary-foreground">
               {count > 9 ? "9+" : count}
             </span>
           ) : null}

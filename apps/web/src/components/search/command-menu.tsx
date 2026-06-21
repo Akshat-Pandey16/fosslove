@@ -37,11 +37,12 @@ export function CommandMenu() {
         type="button"
         variant="outline"
         onClick={trigger}
-        className="h-9 w-full justify-start gap-2 text-muted-foreground sm:w-64 lg:w-80"
+        className="h-9 w-full justify-start gap-2 bg-card/60 font-mono text-muted-foreground hover:border-primary/45 sm:w-64 lg:w-80"
       >
-        <Search className="size-4" />
-        <span className="hidden sm:inline">Search apps…</span>
-        <kbd className="ml-auto hidden rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px] sm:inline">
+        <span className="text-term-lime">$</span>
+        <Search className="size-3.5" />
+        <span className="hidden sm:inline">search apps…</span>
+        <kbd className="ml-auto hidden rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-primary sm:inline">
           ⌘K
         </kbd>
       </Button>

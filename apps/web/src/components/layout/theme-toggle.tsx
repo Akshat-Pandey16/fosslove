@@ -35,15 +35,15 @@ export function ThemeToggle() {
           </Button>
         }
       />
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="font-mono">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          <Sun className="size-4" /> Light
+          <Sun className="size-4" /> light
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <Moon className="size-4" /> Dark
+          <Moon className="size-4" /> dark
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          <Monitor className="size-4" /> System
+          <Monitor className="size-4" /> system
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

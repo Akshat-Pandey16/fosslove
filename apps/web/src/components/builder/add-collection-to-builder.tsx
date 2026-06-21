@@ -17,8 +17,13 @@ export function AddCollectionToBuilder({ apps }: { apps: AppListItem[] }) {
   }
 
   return (
-    <Button variant="outline" onClick={handleClick} disabled={apps.length === 0}>
-      <Boxes /> Add all to builder
+    <Button
+      variant="outline"
+      className="font-mono"
+      onClick={handleClick}
+      disabled={apps.length === 0}
+    >
+      <Boxes /> Load all to deck
     </Button>
   )
 }

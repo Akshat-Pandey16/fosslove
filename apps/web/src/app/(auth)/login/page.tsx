@@ -8,6 +8,7 @@ import { Suspense } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
+import { Window } from "@/components/deck/window"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -54,10 +55,21 @@ function LoginForm() {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 rounded-2xl border bg-card p-8 shadow-sm duration-500">
-      <div className="mb-6 space-y-1">
+    <Window
+      label="~/auth/login"
+      glow
+      className="animate-in fade-in slide-in-from-bottom-2 duration-500"
+      bodyClassName="p-6 sm:p-8"
+    >
+      <div className="mb-6 space-y-2">
+        <span className="font-mono text-xs text-primary/80">~/auth</span>
         <h1 className="font-heading text-2xl font-bold tracking-tight">Sign in</h1>
-        <p className="text-sm text-muted-foreground">Welcome back to FOSSLove.</p>
+        <p className="font-mono text-sm text-muted-foreground">
+          <span className="text-muted-foreground">$ </span>
+          <span className="text-term-lime">fosslove</span>
+          <span className="text-foreground"> login</span>
+          <span className="term-cursor" />
+        </p>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -66,12 +78,13 @@ function LoginForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="font-mono text-xs text-muted-foreground">--email</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
                     autoComplete="email"
                     placeholder="you@example.com"
+                    className="font-mono"
                     {...field}
                   />
                 </FormControl>
@@ -85,34 +98,45 @@ function LoginForm() {
             render={({ field }) => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="font-mono text-xs text-muted-foreground">
+                    --password
+                  </FormLabel>
                   <Link
                     href="/forgot-password"
-                    className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    className="font-mono text-xs text-muted-foreground transition-colors hover:text-primary"
                   >
-                    Forgot password?
+                    forgot?
                   </Link>
                 </div>
                 <FormControl>
-                  <Input type="password" autoComplete="current-password" {...field} />
+                  <Input
+                    type="password"
+                    autoComplete="current-password"
+                    className="font-mono"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+          <Button
+            type="submit"
+            className="glow-primary w-full"
+            disabled={form.formState.isSubmitting}
+          >
             {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : null}
             Sign in
           </Button>
         </form>
       </Form>
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        No account?{" "}
-        <Link href="/register" className="font-medium text-primary hover:underline">
-          Create one
+      <p className="mt-6 text-center font-mono text-xs text-muted-foreground">
+        no account?{" "}
+        <Link href="/register" className="text-primary hover:underline">
+          ~/register
         </Link>
       </p>
-    </div>
+    </Window>
   )
 }
 

@@ -73,19 +73,38 @@ export default async function CategoryPage({
     EMPTY_APPS,
   )
 
+  const total = category.windows_app_count + category.linux_app_count
+
   return (
     <Container className="space-y-8 py-10">
-      <div>
-        <Link
-          href="/categories"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" /> All categories
-        </Link>
-        <h1 className="font-heading text-3xl font-bold tracking-tight">{category.name}</h1>
-        {category.description ? (
-          <p className="mt-2 max-w-2xl text-muted-foreground">{category.description}</p>
-        ) : null}
+      <div className="relative overflow-hidden rounded-xl border bg-card/40">
+        <div className="bg-grid pointer-events-none absolute inset-0 opacity-50" />
+        <div className="relative space-y-4 p-6 sm:p-8">
+          <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground">
+            <Link
+              href="/categories"
+              className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
+            >
+              <ArrowLeft className="size-3.5" /> ~/categories
+            </Link>
+            <span className="text-muted-foreground/40">/</span>
+            <span className="text-term-cyan">{category.slug}</span>
+          </div>
+          <h1 className="font-heading text-4xl font-bold tracking-tight">{category.name}</h1>
+          {category.description ? (
+            <p className="max-w-2xl text-muted-foreground text-pretty">{category.description}</p>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-term-lime" /> {total} module
+              {total === 1 ? "" : "s"} indexed
+            </span>
+            <span className="text-muted-foreground/40">·</span>
+            <span>{category.windows_app_count} windows</span>
+            <span className="text-muted-foreground/40">·</span>
+            <span>{category.linux_app_count} linux</span>
+          </div>
+        </div>
       </div>
       <CatalogFilters categories={[]} hideCategory />
       <AppGrid apps={apps.items} emptyMessage="No apps in this category yet." />

@@ -9,6 +9,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { GenerateScriptButton } from "@/components/catalog/generate-script-button"
 import { PlatformBadge } from "@/components/catalog/platform-badge"
+import { Window } from "@/components/deck/window"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,7 +56,9 @@ export default function CollectionDetailPage() {
   if (isError || !data) {
     return (
       <div className="space-y-4 rounded-xl border border-dashed p-12 text-center">
-        <p className="text-sm text-muted-foreground">This collection could not be loaded.</p>
+        <p className="font-mono text-sm text-muted-foreground">
+          $ this collection could not be loaded
+        </p>
         <Button
           variant="outline"
           render={<Link href="/account/collections">Back to collections</Link>}
@@ -106,17 +109,17 @@ function CollectionView({ collection }: { collection: CollectionDetail }) {
       <div>
         <Link
           href="/account/collections"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="mb-4 inline-flex items-center gap-1.5 font-mono text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="size-4" /> Collections
+          <ArrowLeft className="size-4" /> ~/account/collections
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <h1 className="font-heading text-3xl font-bold tracking-tight">{collection.name}</h1>
-              <span className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-xs text-muted-foreground">
                 {collection.is_public ? <Globe className="size-3" /> : <Lock className="size-3" />}
-                {collection.is_public ? "Public" : "Private"}
+                {collection.is_public ? "public" : "private"}
               </span>
             </div>
             {collection.description ? (
@@ -155,7 +158,8 @@ function CollectionView({ collection }: { collection: CollectionDetail }) {
       </div>
 
       {platformsWithApps.length > 0 ? (
-        <div className="flex flex-wrap gap-3 rounded-xl border bg-card p-4">
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card/40 p-4">
+          <span className="font-mono text-xs text-muted-foreground">$ compile →</span>
           {platformsWithApps.map((platform) => (
             <GenerateScriptButton key={platform} platform={platform} collectionId={collection.id}>
               Download {PLATFORM_LABELS[platform]} script
@@ -166,47 +170,51 @@ function CollectionView({ collection }: { collection: CollectionDetail }) {
 
       {items.length === 0 ? (
         <div className="space-y-4 rounded-xl border border-dashed p-12 text-center">
-          <p className="text-sm text-muted-foreground">This collection is empty.</p>
+          <p className="font-mono text-sm text-muted-foreground">$ this collection is empty</p>
           <Button variant="outline" render={<Link href="/apps">Browse apps to add</Link>} />
         </div>
       ) : (
-        <ul className="divide-y rounded-xl border">
-          <AnimatePresence initial={false}>
-            {items.map((item) => (
-              <motion.li
-                key={item.app.id}
-                layout
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, x: 8 }}
-                transition={{ duration: 0.18 }}
-                className="flex items-center justify-between gap-3 p-4"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <PlatformBadge platform={item.app.platform} compact />
-                  <div className="min-w-0">
-                    <Link
-                      href={`/apps/${item.app.platform}/${item.app.slug}`}
-                      className="block truncate font-medium transition-colors hover:text-primary"
-                    >
-                      {item.app.name}
-                    </Link>
-                    <span className="text-xs text-muted-foreground">{item.app.category_name}</span>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => removeItem(item.app.id)}
-                  disabled={setApps.isPending}
-                  aria-label={`Remove ${item.app.name}`}
+        <Window label={`~/account/collections/${collection.id}`} bodyClassName="p-0">
+          <ul className="divide-y">
+            <AnimatePresence initial={false}>
+              {items.map((item) => (
+                <motion.li
+                  key={item.app.id}
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.18 }}
+                  className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-secondary/30"
                 >
-                  <X />
-                </Button>
-              </motion.li>
-            ))}
-          </AnimatePresence>
-        </ul>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <PlatformBadge platform={item.app.platform} compact />
+                    <div className="min-w-0">
+                      <Link
+                        href={`/apps/${item.app.platform}/${item.app.slug}`}
+                        className="block truncate font-medium transition-colors hover:text-primary"
+                      >
+                        {item.app.name}
+                      </Link>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {item.app.category_name}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => removeItem(item.app.id)}
+                    disabled={setApps.isPending}
+                    aria-label={`Remove ${item.app.name}`}
+                  >
+                    <X />
+                  </Button>
+                </motion.li>
+              ))}
+            </AnimatePresence>
+          </ul>
+        </Window>
       )}
     </div>
   )

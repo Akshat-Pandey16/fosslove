@@ -15,10 +15,10 @@ export function PlatformBadge({
     <span
       title={compact ? PLATFORM_LABELS[platform] : undefined}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono text-xs font-medium",
+        "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono text-[11px] tracking-wide uppercase",
         platform === "windows"
-          ? "border-sky-500/30 text-sky-600 dark:text-sky-400"
-          : "border-amber-500/30 text-amber-600 dark:text-amber-400",
+          ? "border-sky-500/35 bg-sky-500/10 text-sky-600 dark:text-sky-300"
+          : "border-amber-500/35 bg-amber-500/10 text-amber-600 dark:text-amber-300",
         compact && "px-1.5",
         className,
       )}
@@ -27,7 +27,9 @@ export function PlatformBadge({
         aria-hidden
         className={cn(
           "size-1.5 rounded-full",
-          platform === "windows" ? "bg-sky-500" : "bg-amber-500",
+          platform === "windows"
+            ? "bg-sky-500 shadow-[0_0_6px] shadow-sky-500/60"
+            : "bg-amber-500 shadow-[0_0_6px] shadow-amber-500/60",
         )}
       />
       {compact ? (

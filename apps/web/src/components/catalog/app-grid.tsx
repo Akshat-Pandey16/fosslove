@@ -13,8 +13,11 @@ export function AppGrid({
 }) {
   if (apps.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed p-12 text-center text-sm text-muted-foreground">
-        {emptyMessage}
+      <div className="bg-grid-sm relative overflow-hidden rounded-xl border border-dashed p-12 text-center">
+        <p className="font-mono text-sm text-muted-foreground">
+          <span className="text-muted-foreground/50">$ </span>
+          {emptyMessage}
+        </p>
       </div>
     )
   }

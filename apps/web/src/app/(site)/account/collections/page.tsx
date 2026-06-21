@@ -1,11 +1,13 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Globe, Lock, Trash2 } from "lucide-react"
+import { ArrowUpRight, Globe, Lock, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { toast } from "sonner"
 import { CreateCollectionDialog } from "@/components/account/create-collection-dialog"
+import { SectionHeading } from "@/components/deck/section-heading"
+import { Reveal } from "@/components/motion/reveal"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,13 +35,14 @@ export default function CollectionsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="font-heading text-3xl font-bold tracking-tight">Collections</h1>
-          <p className="text-muted-foreground">Reusable bundles of apps you can script anytime.</p>
-        </div>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <SectionHeading
+          tag="~/account/collections"
+          title="Collections"
+          description="Reusable bundles of apps you can script anytime."
+        />
         <CreateCollectionDialog />
-      </header>
+      </div>
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -48,15 +51,15 @@ export default function CollectionsPage() {
           ))}
         </div>
       ) : collections.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center text-sm text-muted-foreground">
-          No collections yet. Create one or save your builder selection.
+        <div className="rounded-xl border border-dashed p-12 text-center font-mono text-sm text-muted-foreground">
+          $ no collections yet — create one or save your builder selection
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <Reveal className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {collections.map((collection) => (
             <CollectionCard key={collection.id} collection={collection} />
           ))}
-        </div>
+        </Reveal>
       )}
     </div>
   )
@@ -77,50 +80,59 @@ function CollectionCard({ collection }: { collection: Collection }) {
   })
 
   return (
-    <div className="group flex flex-col gap-3 rounded-xl border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-md">
-      <div className="flex items-start justify-between gap-2">
-        <Link href={`/account/collections/${collection.id}`} className="min-w-0">
-          <h2 className="truncate font-heading text-lg font-semibold transition-colors group-hover:text-primary">
-            {collection.name}
-          </h2>
-        </Link>
-        <span className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs text-muted-foreground">
+    <div className="hover-lift-glow group flex flex-col overflow-hidden rounded-xl border bg-card/40">
+      <div className="flex items-center gap-1.5 border-b bg-secondary/30 px-3 py-2">
+        <span aria-hidden className="flex gap-1.5">
+          <span className="size-2 rounded-full bg-muted-foreground/30" />
+          <span className="size-2 rounded-full bg-muted-foreground/30" />
+        </span>
+        <span className="ml-auto inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
           {collection.is_public ? <Globe className="size-3" /> : <Lock className="size-3" />}
-          {collection.is_public ? "Public" : "Private"}
+          {collection.is_public ? "public" : "private"}
         </span>
       </div>
-      {collection.description ? (
-        <p className="line-clamp-2 text-sm text-muted-foreground">{collection.description}</p>
-      ) : null}
-      <div className="mt-auto flex items-center justify-between pt-1">
-        <span className="font-mono text-xs text-muted-foreground">
-          {collection.item_count} app{collection.item_count === 1 ? "" : "s"}
-        </span>
-        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-          <AlertDialogTrigger
-            render={
-              <Button variant="ghost" size="icon-sm" aria-label="Delete collection">
-                <Trash2 />
-              </Button>
-            }
-          />
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete “{collection.name}”?</AlertDialogTitle>
-              <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => remove.mutate()}
-                disabled={remove.isPending}
-                className="bg-destructive text-white hover:bg-destructive/90"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        <div className="flex items-start justify-between gap-2">
+          <Link href={`/account/collections/${collection.id}`} className="min-w-0">
+            <h2 className="truncate font-heading text-lg font-semibold transition-colors group-hover:text-primary">
+              {collection.name}
+            </h2>
+          </Link>
+          <ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+        </div>
+        {collection.description ? (
+          <p className="line-clamp-2 text-sm text-muted-foreground">{collection.description}</p>
+        ) : null}
+        <div className="mt-auto flex items-center justify-between pt-1">
+          <span className="font-mono text-xs text-muted-foreground">
+            {collection.item_count} app{collection.item_count === 1 ? "" : "s"}
+          </span>
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialogTrigger
+              render={
+                <Button variant="ghost" size="icon-sm" aria-label="Delete collection">
+                  <Trash2 />
+                </Button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete “{collection.name}”?</AlertDialogTitle>
+                <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => remove.mutate()}
+                  disabled={remove.isPending}
+                  className="bg-destructive text-white hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </div>
   )

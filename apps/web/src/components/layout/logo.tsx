@@ -12,14 +12,14 @@ export function Logo({
 }) {
   return (
     <Link href={href} className={cn("group flex items-center gap-2.5", className)}>
-      <span className="relative grid size-9 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-sm ring-1 ring-primary/30 transition-transform group-hover:-translate-y-0.5">
+      <span className="relative grid size-9 place-items-center rounded-md bg-primary text-primary-foreground shadow-[0_0_18px_-4px_color-mix(in_oklch,var(--primary)_75%,transparent)] ring-1 ring-primary/40 transition-transform group-hover:-translate-y-0.5">
         <svg
           viewBox="0 0 24 24"
           fill="none"
           aria-hidden="true"
           className="size-5"
           stroke="currentColor"
-          strokeWidth="2.2"
+          strokeWidth="2.4"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -29,7 +29,7 @@ export function Logo({
       </span>
       {showWordmark ? (
         <span className="font-heading text-lg font-semibold tracking-tight">
-          FOSS<span className="text-primary">Love</span>
+          FOSS<span className="text-glow">Love</span>
         </span>
       ) : null}
     </Link>

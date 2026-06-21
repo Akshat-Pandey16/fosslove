@@ -5,6 +5,8 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { AppForm } from "@/components/admin/app-form"
+import { SectionHeading } from "@/components/deck/section-heading"
+import { Window } from "@/components/deck/window"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/api/client"
@@ -27,24 +29,28 @@ export default function EditAppPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="space-y-3">
         <Link
           href="/admin/apps"
-          className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground transition-colors hover:text-primary"
         >
-          <ArrowLeft className="size-4" /> Apps
+          <ArrowLeft className="size-4" /> ~/admin/apps
         </Link>
-        <h1 className="font-heading text-3xl font-bold tracking-tight">
-          {app.data ? app.data.name : "Edit app"}
-        </h1>
+        <SectionHeading
+          tag="~/admin/apps/edit"
+          title={app.data ? app.data.name : "Edit app"}
+          description="Update app metadata and package sources."
+        />
       </div>
       {loading ? (
         <Skeleton className="h-96 max-w-3xl rounded-xl" />
       ) : app.isError || !app.data ? (
-        <div className="space-y-4 rounded-xl border border-dashed p-12 text-center">
-          <p className="text-sm text-muted-foreground">This app could not be loaded.</p>
-          <Button variant="outline" render={<Link href="/admin/apps">Back to apps</Link>} />
-        </div>
+        <Window label="~/admin/apps/error" className="max-w-3xl">
+          <div className="space-y-4 py-8 text-center">
+            <p className="font-mono text-sm text-destructive">! this app could not be loaded.</p>
+            <Button variant="outline" render={<Link href="/admin/apps">Back to apps</Link>} />
+          </div>
+        </Window>
       ) : (
         <AppForm mode="edit" app={app.data} categories={categories.data?.items ?? []} />
       )}

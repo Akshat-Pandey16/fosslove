@@ -17,26 +17,30 @@ export function BuilderBar() {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
-      <div className="glow-primary pointer-events-auto flex items-center gap-2 rounded-full border bg-background/90 py-1.5 pr-1.5 pl-2 shadow-lg backdrop-blur">
-        <span className="flex items-center gap-2 px-2 text-sm">
-          <span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+      <div className="glow-primary pointer-events-auto flex items-center gap-2 rounded-lg border bg-background/90 py-1.5 pr-1.5 pl-3 shadow-lg backdrop-blur">
+        <span className="flex items-center gap-2 font-mono text-sm">
+          <span className="size-1.5 animate-pulse-dot rounded-full bg-term-lime" />
+          <span className="text-term-lime">$</span>
+          <span className="grid size-6 place-items-center rounded-md bg-primary text-xs font-semibold text-primary-foreground">
             {count}
           </span>
-          <span className="hidden sm:inline">app{count === 1 ? "" : "s"} ready to build</span>
+          <span className="hidden text-muted-foreground sm:inline">
+            app{count === 1 ? "" : "s"} on deck
+          </span>
         </span>
         <Button
           size="sm"
-          className="rounded-full"
+          className="rounded-md font-mono"
           render={
             <Link href="/builder">
-              Build script <ArrowRight />
+              Open deck <ArrowRight />
             </Link>
           }
         />
         <Button
           size="icon-sm"
           variant="ghost"
-          className="rounded-full"
+          className="rounded-md"
           onClick={clear}
           aria-label="Clear builder"
         >

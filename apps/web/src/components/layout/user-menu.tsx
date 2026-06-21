@@ -60,38 +60,38 @@ export function UserMenu() {
           </Button>
         }
       />
-      <DropdownMenuContent align="end" className="w-60">
+      <DropdownMenuContent align="end" className="w-60 font-mono">
         <div className="flex flex-col gap-0.5 px-2 py-1.5">
           <span className="text-sm font-medium text-foreground">{user.full_name ?? "Account"}</span>
-          <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
+          <span className="truncate text-xs font-normal text-term-cyan">{user.email}</span>
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/account" />}>
-          <LayoutDashboard /> Overview
+          <LayoutDashboard /> overview
         </DropdownMenuItem>
         <DropdownMenuItem render={<Link href="/account/favorites" />}>
-          <Heart /> Favorites
+          <Heart /> favorites
         </DropdownMenuItem>
         <DropdownMenuItem render={<Link href="/account/collections" />}>
-          <Library /> Collections
+          <Library /> collections
         </DropdownMenuItem>
         <DropdownMenuItem render={<Link href="/account/history" />}>
-          <ScrollText /> Script history
+          <ScrollText /> history
         </DropdownMenuItem>
         <DropdownMenuItem render={<Link href="/account/settings" />}>
-          <Settings /> Settings
+          <Settings /> settings
         </DropdownMenuItem>
         {isAdmin ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem render={<Link href="/admin" />}>
-              <Shield /> Admin panel
+              <Shield /> admin
             </DropdownMenuItem>
           </>
         ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-          <LogOut /> Sign out
+          <LogOut /> sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -2,6 +2,9 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { useState } from "react"
+import { SectionHeading } from "@/components/deck/section-heading"
+import { Window } from "@/components/deck/window"
+import { Reveal } from "@/components/motion/reveal"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -63,12 +66,11 @@ export default function AdminActivityPage() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="font-heading text-3xl font-bold tracking-tight">Activity log</h1>
-        <p className="text-muted-foreground">
-          Admin and auth events, newest first. Filter by action, status, or target.
-        </p>
-      </header>
+      <SectionHeading
+        tag="~/admin/activity"
+        title="Audit log"
+        description="Admin and auth events, newest first. Filter by action, status, or target."
+      />
 
       <div className="flex flex-wrap items-center gap-3">
         <Input
@@ -78,7 +80,7 @@ export default function AdminActivityPage() {
             setPage(1)
           }}
           placeholder="login, app.create…"
-          className="max-w-56"
+          className="max-w-56 font-mono"
         />
         <Select
           items={STATUS_ITEMS}
@@ -88,7 +90,7 @@ export default function AdminActivityPage() {
             setPage(1)
           }}
         >
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-40 font-mono">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -106,68 +108,87 @@ export default function AdminActivityPage() {
             setPage(1)
           }}
           placeholder="Target type"
-          className="max-w-56"
+          className="max-w-56 font-mono"
         />
       </div>
 
-      <div className="rounded-xl border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Time</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Target</TableHead>
-              <TableHead>IP</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                  Loading…
-                </TableCell>
+      <Reveal>
+        <Window label="~/admin/activity/audit.log" bodyClassName="p-0">
+          <Table className="font-mono text-xs">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  time
+                </TableHead>
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  action
+                </TableHead>
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  status
+                </TableHead>
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  user
+                </TableHead>
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  target
+                </TableHead>
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  ip
+                </TableHead>
               </TableRow>
-            ) : isError ? (
-              <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center text-destructive">
-                  Failed to load activity. Please retry.
-                </TableCell>
-              </TableRow>
-            ) : data && data.items.length > 0 ? (
-              data.items.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(log.created_at).toLocaleString()}
-                  </TableCell>
-                  <TableCell className="font-medium">{log.action}</TableCell>
-                  <TableCell>
-                    <Badge variant={log.status === "failure" ? "destructive" : "secondary"}>
-                      {log.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
-                    {userLabel(log.user_id)}
-                  </TableCell>
-                  <TableCell className="max-w-64 truncate text-muted-foreground">
-                    {targetLabel(log)}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
-                    {log.client_ip ?? "—"}
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                    loading…
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                  No activity yet.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : isError ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-10 text-center text-destructive">
+                    ! failed to load activity — please retry
+                  </TableCell>
+                </TableRow>
+              ) : data && data.items.length > 0 ? (
+                data.items.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(log.created_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-term-cyan">{log.action}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={log.status === "failure" ? "destructive" : "outline"}
+                        className={
+                          log.status === "failure"
+                            ? "font-mono"
+                            : "border-term-amber/30 font-mono text-term-amber"
+                        }
+                      >
+                        {log.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {userLabel(log.user_id)}
+                    </TableCell>
+                    <TableCell className="max-w-64 truncate text-muted-foreground">
+                      {targetLabel(log)}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{log.client_ip ?? "—"}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                    no activity yet.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Window>
+      </Reveal>
 
       {meta && meta.pages > 1 ? (
         <div className="flex items-center justify-center gap-3">

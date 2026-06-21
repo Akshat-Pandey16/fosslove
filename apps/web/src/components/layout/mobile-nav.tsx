@@ -27,7 +27,8 @@ export function MobileNav() {
         <SheetHeader className="p-0">
           <SheetTitle render={<Logo />} />
         </SheetHeader>
-        <nav className="mt-6 flex flex-col gap-1">
+        <p className="mt-6 px-3 font-mono text-xs text-muted-foreground">~/nav</p>
+        <nav className="mt-2 flex flex-col gap-0.5 font-mono">
           {NAV_LINKS.map((link) => {
             const active = pathname === link.href || pathname.startsWith(`${link.href}/`)
             return (
@@ -37,11 +38,14 @@ export function MobileNav() {
                 onClick={() => setOpen(false)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted",
+                  "rounded-md px-3 py-2 text-sm transition-colors",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {link.label}
+                <span className={cn("transition-opacity", active ? "opacity-100" : "opacity-0")}>
+                  /
+                </span>
+                {link.label.toLowerCase()}
               </Link>
             )
           })}

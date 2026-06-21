@@ -8,6 +8,7 @@ import { Suspense } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
+import { Window } from "@/components/deck/window"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -60,10 +61,22 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 rounded-2xl border bg-card p-8 shadow-sm duration-500">
-      <div className="mb-6 space-y-1">
+    <Window
+      label="~/auth/reset/confirm"
+      glow
+      className="animate-in fade-in slide-in-from-bottom-2 duration-500"
+      bodyClassName="p-6 sm:p-8"
+    >
+      <div className="mb-6 space-y-2">
+        <span className="font-mono text-xs text-primary/80">~/reset/confirm</span>
         <h1 className="font-heading text-2xl font-bold tracking-tight">Set a new password</h1>
-        <p className="text-sm text-muted-foreground">Choose a strong password for your account.</p>
+        <p className="font-mono text-sm text-muted-foreground">
+          <span className="text-muted-foreground">$ </span>
+          <span className="text-term-lime">fosslove</span>
+          <span className="text-foreground"> passwd </span>
+          <span className="text-term-cyan">--new</span>
+          <span className="term-cursor" />
+        </p>
       </div>
       {token ? (
         <Form {...form}>
@@ -73,9 +86,16 @@ function ResetPasswordForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New password</FormLabel>
+                  <FormLabel className="font-mono text-xs text-muted-foreground">
+                    --password
+                  </FormLabel>
                   <FormControl>
-                    <Input type="password" autoComplete="new-password" {...field} />
+                    <Input
+                      type="password"
+                      autoComplete="new-password"
+                      className="font-mono"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -86,30 +106,41 @@ function ResetPasswordForm() {
               name="confirm"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm password</FormLabel>
+                  <FormLabel className="font-mono text-xs text-muted-foreground">
+                    --confirm
+                  </FormLabel>
                   <FormControl>
-                    <Input type="password" autoComplete="new-password" {...field} />
+                    <Input
+                      type="password"
+                      autoComplete="new-password"
+                      className="font-mono"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            <Button
+              type="submit"
+              className="glow-primary w-full"
+              disabled={form.formState.isSubmitting}
+            >
               {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : null}
               Update password
             </Button>
           </form>
         </Form>
       ) : (
-        <p className="text-sm text-destructive">
-          This reset link is missing its token. Request a new one from the{" "}
-          <Link href="/forgot-password" className="font-medium underline">
-            forgot password
-          </Link>{" "}
-          page.
+        <p className="font-mono text-sm text-destructive">
+          <span className="text-muted-foreground">! </span>
+          token missing — request a new link from{" "}
+          <Link href="/forgot-password" className="underline">
+            ~/forgot-password
+          </Link>
         </p>
       )}
-    </div>
+    </Window>
   )
 }
 

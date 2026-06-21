@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
+import { Window } from "@/components/deck/window"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -61,11 +62,21 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 rounded-2xl border bg-card p-8 shadow-sm duration-500">
-      <div className="mb-6 space-y-1">
+    <Window
+      label="~/auth/register"
+      glow
+      className="animate-in fade-in slide-in-from-bottom-2 duration-500"
+      bodyClassName="p-6 sm:p-8"
+    >
+      <div className="mb-6 space-y-2">
+        <span className="font-mono text-xs text-primary/80">~/register</span>
         <h1 className="font-heading text-2xl font-bold tracking-tight">Create your account</h1>
-        <p className="text-sm text-muted-foreground">
-          Save favorites, build collections, and keep your script history.
+        <p className="font-mono text-sm text-muted-foreground">
+          <span className="text-muted-foreground">$ </span>
+          <span className="text-term-lime">fosslove</span>
+          <span className="text-foreground"> init </span>
+          <span className="text-term-cyan">--account</span>
+          <span className="term-cursor" />
         </p>
       </div>
       <Form {...form}>
@@ -75,9 +86,14 @@ export default function RegisterPage() {
             name="full_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel className="font-mono text-xs text-muted-foreground">--name</FormLabel>
                 <FormControl>
-                  <Input autoComplete="name" placeholder="Ada Lovelace" {...field} />
+                  <Input
+                    autoComplete="name"
+                    placeholder="Ada Lovelace"
+                    className="font-mono"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -88,12 +104,13 @@ export default function RegisterPage() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="font-mono text-xs text-muted-foreground">--email</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
                     autoComplete="email"
                     placeholder="you@example.com"
+                    className="font-mono"
                     {...field}
                   />
                 </FormControl>
@@ -106,29 +123,40 @@ export default function RegisterPage() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="font-mono text-xs text-muted-foreground">
+                  --password
+                </FormLabel>
                 <FormControl>
-                  <Input type="password" autoComplete="new-password" {...field} />
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    className="font-mono"
+                    {...field}
+                  />
                 </FormControl>
-                <FormDescription>
-                  At least 8 characters, with a letter and a number.
+                <FormDescription className="font-mono text-xs">
+                  min 8 chars · ≥1 letter · ≥1 number
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+          <Button
+            type="submit"
+            className="glow-primary w-full"
+            disabled={form.formState.isSubmitting}
+          >
             {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : null}
             Create account
           </Button>
         </form>
       </Form>
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
-        <Link href="/login" className="font-medium text-primary hover:underline">
-          Sign in
+      <p className="mt-6 text-center font-mono text-xs text-muted-foreground">
+        already registered?{" "}
+        <Link href="/login" className="text-primary hover:underline">
+          ~/login
         </Link>
       </p>
-    </div>
+    </Window>
   )
 }

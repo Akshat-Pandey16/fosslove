@@ -2,12 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
+import { Loader2, Monitor } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
+import { SectionHeading } from "@/components/deck/section-heading"
+import { Window } from "@/components/deck/window"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,10 +61,11 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl space-y-8">
-      <header className="space-y-1">
-        <h1 className="font-heading text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your profile and account security.</p>
-      </header>
+      <SectionHeading
+        tag="~/account/settings"
+        title="Settings"
+        description="Manage your profile and account security."
+      />
       <ProfileSection fullName={user?.full_name ?? ""} email={user?.email ?? ""} />
       <EmailSection email={user?.email ?? ""} />
       <PasswordSection />
@@ -91,12 +94,12 @@ function ProfileSection({ fullName, email }: { fullName: string; email: string }
   }
 
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-6">
+    <Window label="~/account/profile" bodyClassName="space-y-4 p-6">
       <h2 className="font-heading text-lg font-semibold">Profile</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormItem>
-            <FormLabel>Email</FormLabel>
+            <FormLabel className="font-mono">Email</FormLabel>
             <Input value={email} disabled readOnly />
           </FormItem>
           <FormField
@@ -104,7 +107,7 @@ function ProfileSection({ fullName, email }: { fullName: string; email: string }
             name="full_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel className="font-mono">Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Your name" {...field} />
                 </FormControl>
@@ -118,7 +121,7 @@ function ProfileSection({ fullName, email }: { fullName: string; email: string }
           </Button>
         </form>
       </Form>
-    </section>
+    </Window>
   )
 }
 
@@ -143,11 +146,11 @@ function EmailSection({ email }: { email: string }) {
   }
 
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-6">
+    <Window label="~/account/email" bodyClassName="space-y-4 p-6">
       <div>
         <h2 className="font-heading text-lg font-semibold">Email address</h2>
         <p className="text-sm text-muted-foreground">
-          Currently <span className="font-medium text-foreground">{email}</span>. We may send a
+          Currently <span className="font-mono text-foreground">{email}</span>. We may send a
           confirmation link to the new address.
         </p>
       </div>
@@ -158,7 +161,7 @@ function EmailSection({ email }: { email: string }) {
             name="new_email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New email</FormLabel>
+                <FormLabel className="font-mono">New email</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -177,7 +180,7 @@ function EmailSection({ email }: { email: string }) {
           </Button>
         </form>
       </Form>
-    </section>
+    </Window>
   )
 }
 
@@ -204,7 +207,7 @@ function PasswordSection() {
   }
 
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-6">
+    <Window label="~/account/password" bodyClassName="space-y-4 p-6">
       <h2 className="font-heading text-lg font-semibold">Change password</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -213,7 +216,7 @@ function PasswordSection() {
             name="current_password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Current password</FormLabel>
+                <FormLabel className="font-mono">Current password</FormLabel>
                 <FormControl>
                   <Input type="password" autoComplete="current-password" {...field} />
                 </FormControl>
@@ -226,7 +229,7 @@ function PasswordSection() {
             name="new_password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New password</FormLabel>
+                <FormLabel className="font-mono">New password</FormLabel>
                 <FormControl>
                   <Input type="password" autoComplete="new-password" {...field} />
                 </FormControl>
@@ -239,7 +242,7 @@ function PasswordSection() {
             name="confirm"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm new password</FormLabel>
+                <FormLabel className="font-mono">Confirm new password</FormLabel>
                 <FormControl>
                   <Input type="password" autoComplete="new-password" {...field} />
                 </FormControl>
@@ -253,7 +256,7 @@ function PasswordSection() {
           </Button>
         </form>
       </Form>
-    </section>
+    </Window>
   )
 }
 
@@ -276,7 +279,7 @@ function SessionsSection() {
   })
 
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-6">
+    <Window label="~/account/sessions" bodyClassName="space-y-4 p-6">
       <div>
         <h2 className="font-heading text-lg font-semibold">Active sessions</h2>
         <p className="text-sm text-muted-foreground">
@@ -284,26 +287,34 @@ function SessionsSection() {
         </p>
       </div>
       {isLoading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 font-mono text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" />
-          Loading sessions…
+          loading sessions…
         </div>
       ) : !data || data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No active sessions.</p>
+        <p className="font-mono text-sm text-muted-foreground">$ no active sessions</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="divide-y rounded-lg border bg-background/40">
           {data.map((session) => (
             <li
               key={session.id}
-              className="flex items-start justify-between gap-4 rounded-lg border bg-background p-4"
+              className="flex items-start justify-between gap-4 p-4 transition-colors hover:bg-secondary/30"
             >
-              <div className="space-y-1 text-sm">
-                <p className="font-medium">{session.user_agent ?? "Unknown device"}</p>
-                <p className="text-muted-foreground">IP {session.client_ip ?? "—"}</p>
-                <p className="text-muted-foreground">
-                  Signed in {formatDate(session.created_at)} · Last used{" "}
-                  {session.last_used_at ? formatDate(session.last_used_at) : "—"}
-                </p>
+              <div className="flex min-w-0 items-start gap-3">
+                <span aria-hidden className="mt-0.5 flex items-center gap-2">
+                  <span className="size-1.5 rounded-full bg-term-lime" />
+                  <Monitor className="size-4 text-muted-foreground" />
+                </span>
+                <div className="min-w-0 space-y-1 text-sm">
+                  <p className="truncate font-medium">{session.user_agent ?? "Unknown device"}</p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    ip {session.client_ip ?? "—"}
+                  </p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    in {formatDate(session.created_at)} · used{" "}
+                    {session.last_used_at ? formatDate(session.last_used_at) : "—"}
+                  </p>
+                </div>
               </div>
               <Button
                 variant="outline"
@@ -317,7 +328,7 @@ function SessionsSection() {
           ))}
         </ul>
       )}
-    </section>
+    </Window>
   )
 }
 
@@ -341,7 +352,7 @@ function ExportSection() {
   }
 
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-6">
+    <Window label="~/account/export" bodyClassName="space-y-4 p-6">
       <div>
         <h2 className="font-heading text-lg font-semibold">Export your data</h2>
         <p className="text-sm text-muted-foreground">
@@ -352,7 +363,7 @@ function ExportSection() {
         {exporting ? <Loader2 className="animate-spin" /> : null}
         Download my data
       </Button>
-    </section>
+    </Window>
   )
 }
 
@@ -372,7 +383,11 @@ function DangerSection() {
   }
 
   return (
-    <section className="space-y-4 rounded-xl border border-destructive/30 bg-destructive/5 p-6">
+    <Window
+      label="~/account/danger"
+      bodyClassName="space-y-4 p-6"
+      className="border-destructive/40 bg-destructive/5"
+    >
       <div>
         <h2 className="font-heading text-lg font-semibold text-destructive">Danger zone</h2>
         <p className="text-sm text-muted-foreground">
@@ -399,6 +414,6 @@ function DangerSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </section>
+    </Window>
   )
 }

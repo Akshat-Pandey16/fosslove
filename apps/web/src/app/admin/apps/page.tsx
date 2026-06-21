@@ -7,6 +7,9 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { CatalogIO } from "@/components/admin/catalog-io"
 import { PlatformBadge } from "@/components/catalog/platform-badge"
+import { SectionHeading } from "@/components/deck/section-heading"
+import { Window } from "@/components/deck/window"
+import { Reveal } from "@/components/motion/reveal"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,95 +45,122 @@ export default function AdminAppsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="font-heading text-3xl font-bold tracking-tight">Apps</h1>
-          <p className="text-muted-foreground">
-            Every app in the catalog, including inactive ones.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <CatalogIO />
-          <Button
-            render={
-              <Link href="/admin/apps/new">
-                <Plus /> New app
-              </Link>
-            }
-          />
-        </div>
-      </header>
+      <SectionHeading
+        tag="~/admin/apps"
+        title="App registry"
+        description="Every app in the catalog, including inactive ones."
+      />
 
-      <div className="rounded-xl border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Platform</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-24" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                  Loading…
-                </TableCell>
+      <div className="flex flex-wrap items-center gap-2">
+        <CatalogIO />
+        <Button
+          className="glow-primary"
+          render={
+            <Link href="/admin/apps/new">
+              <Plus /> New app
+            </Link>
+          }
+        />
+      </div>
+
+      <Reveal>
+        <Window label="~/admin/apps/registry.tbl" bodyClassName="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  name
+                </TableHead>
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  platform
+                </TableHead>
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  category
+                </TableHead>
+                <TableHead className="font-mono text-xs text-muted-foreground uppercase">
+                  status
+                </TableHead>
+                <TableHead className="w-24" />
               </TableRow>
-            ) : isError ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-destructive">
-                  Failed to load apps. Please retry.
-                </TableCell>
-              </TableRow>
-            ) : data && data.items.length > 0 ? (
-              data.items.map((app) => (
-                <TableRow key={app.id}>
-                  <TableCell className="font-medium">{app.name}</TableCell>
-                  <TableCell>
-                    <PlatformBadge platform={app.platform} />
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{app.category_name}</TableCell>
-                  <TableCell>
-                    <span
-                      className={
-                        app.is_active
-                          ? "inline-flex items-center rounded-md border border-primary/30 px-2 py-0.5 text-xs text-primary"
-                          : "inline-flex items-center rounded-md border px-2 py-0.5 text-xs text-muted-foreground"
-                      }
-                    >
-                      {app.is_active ? "Active" : "Inactive"}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label="Edit"
-                        render={
-                          <Link href={`/admin/apps/${app.id}`}>
-                            <Pencil />
-                          </Link>
-                        }
-                      />
-                      <DeleteAppButton app={app} />
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center font-mono text-sm text-muted-foreground"
+                  >
+                    loading…
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                  No apps yet.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : isError ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center font-mono text-sm text-destructive"
+                  >
+                    ! failed to load apps — please retry
+                  </TableCell>
+                </TableRow>
+              ) : data && data.items.length > 0 ? (
+                data.items.map((app) => (
+                  <TableRow key={app.id}>
+                    <TableCell className="font-medium">{app.name}</TableCell>
+                    <TableCell>
+                      <PlatformBadge platform={app.platform} />
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {app.category_name}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={
+                          app.is_active
+                            ? "inline-flex items-center gap-1.5 rounded-md border border-term-amber/30 bg-term-amber/5 px-2 py-0.5 font-mono text-xs text-term-amber"
+                            : "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono text-xs text-muted-foreground"
+                        }
+                      >
+                        <span
+                          className={
+                            app.is_active
+                              ? "size-1.5 rounded-full bg-term-lime"
+                              : "size-1.5 rounded-full bg-muted-foreground/40"
+                          }
+                        />
+                        {app.is_active ? "active" : "inactive"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label="Edit"
+                          render={
+                            <Link href={`/admin/apps/${app.id}`}>
+                              <Pencil />
+                            </Link>
+                          }
+                        />
+                        <DeleteAppButton app={app} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center font-mono text-sm text-muted-foreground"
+                  >
+                    no apps yet.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Window>
+      </Reveal>
 
       {meta && meta.pages > 1 ? (
         <div className="flex items-center justify-center gap-3">

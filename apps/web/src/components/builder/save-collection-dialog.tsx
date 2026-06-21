@@ -37,9 +37,10 @@ export function SaveCollectionDialog({ appIds }: { appIds: number[] }) {
       <Button
         variant="outline"
         size="sm"
+        className="font-mono"
         render={
           <Link href="/login?next=/builder">
-            <Bookmark /> Save as collection
+            <Bookmark /> Save deck
           </Link>
         }
       />
@@ -85,21 +86,24 @@ export function SaveCollectionDialog({ appIds }: { appIds: number[] }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button variant="outline" size="sm">
-            <Bookmark /> Save as collection
+          <Button variant="outline" size="sm" className="font-mono">
+            <Bookmark /> Save deck
           </Button>
         }
       />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Save as collection</DialogTitle>
+          <span className="font-mono text-xs text-primary/80">~/deck/save</span>
+          <DialogTitle>Save deck as collection</DialogTitle>
           <DialogDescription>
-            Save these {appIds.length} apps as a reusable bundle.
+            Persist these {appIds.length} apps as a reusable bundle.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="collection-name">Name</Label>
+            <Label htmlFor="collection-name" className="font-mono text-xs text-muted-foreground">
+              name
+            </Label>
             <Input
               id="collection-name"
               value={name}
@@ -109,7 +113,12 @@ export function SaveCollectionDialog({ appIds }: { appIds: number[] }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="collection-description">Description</Label>
+            <Label
+              htmlFor="collection-description"
+              className="font-mono text-xs text-muted-foreground"
+            >
+              description
+            </Label>
             <Textarea
               id="collection-description"
               value={description}
@@ -118,8 +127,10 @@ export function SaveCollectionDialog({ appIds }: { appIds: number[] }) {
               maxLength={2000}
             />
           </div>
-          <div className="flex items-center justify-between gap-2">
-            <Label htmlFor="collection-public">Make public</Label>
+          <div className="flex items-center justify-between gap-2 rounded-lg border bg-secondary/30 px-3 py-2.5">
+            <Label htmlFor="collection-public" className="font-mono text-xs text-muted-foreground">
+              make public
+            </Label>
             <Switch id="collection-public" checked={isPublic} onCheckedChange={setIsPublic} />
           </div>
         </div>
