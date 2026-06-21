@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api/client"
 import { errorMessage } from "@/lib/api/errors"
+import { queryKeys } from "@/lib/api/query-keys"
 import { useAuth } from "@/lib/auth/auth-provider"
 import { cn } from "@/lib/utils"
 
@@ -25,18 +26,18 @@ export function FavoriteButton({
   const queryClient = useQueryClient()
 
   const { data } = useQuery({
-    queryKey: ["favorites", "membership"],
-    queryFn: () => api.favorites.list({ size: 100 }),
+    queryKey: queryKeys.favorites.ids,
+    queryFn: () => api.favorites.ids(),
     enabled: isAuthenticated,
     staleTime: 60_000,
   })
 
-  const isFavorite = data?.items.some((app) => app.id === appId) ?? false
+  const isFavorite = data?.includes(appId) ?? false
 
   const mutation = useMutation({
     mutationFn: () => (isFavorite ? api.favorites.remove(appId) : api.favorites.add(appId)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.favorites.all })
       toast.success(isFavorite ? "Removed from favorites" : "Added to favorites")
     },
     onError: (error) => toast.error(errorMessage(error)),

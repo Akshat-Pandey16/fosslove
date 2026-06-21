@@ -1,9 +1,10 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -30,9 +31,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { api } from "@/lib/api/client"
 import { errorMessage } from "@/lib/api/errors"
+import { applyApiError } from "@/lib/api/form-errors"
+import { queryKeys } from "@/lib/api/query-keys"
 import { useAuth } from "@/lib/auth/auth-provider"
+import { formatDate } from "@/lib/constants"
+import { downloadBlob } from "@/lib/download"
 
 const profileSchema = z.object({ full_name: z.string().max(200) })
+const emailSchema = z.object({ new_email: z.email("Enter a valid email") })
 const passwordSchema = z
   .object({
     current_password: z.string().min(1, "Enter your current password"),
@@ -58,7 +64,10 @@ export default function SettingsPage() {
         <p className="text-muted-foreground">Manage your profile and account security.</p>
       </header>
       <ProfileSection fullName={user?.full_name ?? ""} email={user?.email ?? ""} />
+      <EmailSection email={user?.email ?? ""} />
       <PasswordSection />
+      <SessionsSection />
+      <ExportSection />
       <DangerSection />
     </div>
   )
@@ -106,6 +115,65 @@ function ProfileSection({ fullName, email }: { fullName: string; email: string }
           <Button type="submit" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : null}
             Save changes
+          </Button>
+        </form>
+      </Form>
+    </section>
+  )
+}
+
+function EmailSection({ email }: { email: string }) {
+  const queryClient = useQueryClient()
+  const form = useForm<z.infer<typeof emailSchema>>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: { new_email: "" },
+  })
+
+  const onSubmit = async (values: z.infer<typeof emailSchema>) => {
+    try {
+      const { message } = await api.users.requestEmailChange(values.new_email)
+      toast.success(message)
+      form.reset()
+      await queryClient.invalidateQueries({ queryKey: queryKeys.me })
+    } catch (error) {
+      if (!applyApiError(error, form)) {
+        toast.error(errorMessage(error))
+      }
+    }
+  }
+
+  return (
+    <section className="space-y-4 rounded-xl border bg-card p-6">
+      <div>
+        <h2 className="font-heading text-lg font-semibold">Email address</h2>
+        <p className="text-sm text-muted-foreground">
+          Currently <span className="font-medium text-foreground">{email}</span>. We may send a
+          confirmation link to the new address.
+        </p>
+      </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="new_email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>New email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : null}
+            Update email
           </Button>
         </form>
       </Form>
@@ -185,6 +253,105 @@ function PasswordSection() {
           </Button>
         </form>
       </Form>
+    </section>
+  )
+}
+
+function SessionsSection() {
+  const queryClient = useQueryClient()
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.sessions,
+    queryFn: () => api.users.listSessions(),
+  })
+
+  const revoke = useMutation({
+    mutationFn: (id: string) => api.users.revokeSession(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sessions })
+      toast.success("Session revoked")
+    },
+    onError: (error) => {
+      toast.error(errorMessage(error))
+    },
+  })
+
+  return (
+    <section className="space-y-4 rounded-xl border bg-card p-6">
+      <div>
+        <h2 className="font-heading text-lg font-semibold">Active sessions</h2>
+        <p className="text-sm text-muted-foreground">
+          Devices currently signed in to your account.
+        </p>
+      </div>
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          Loading sessions…
+        </div>
+      ) : !data || data.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No active sessions.</p>
+      ) : (
+        <ul className="space-y-3">
+          {data.map((session) => (
+            <li
+              key={session.id}
+              className="flex items-start justify-between gap-4 rounded-lg border bg-background p-4"
+            >
+              <div className="space-y-1 text-sm">
+                <p className="font-medium">{session.user_agent ?? "Unknown device"}</p>
+                <p className="text-muted-foreground">IP {session.client_ip ?? "—"}</p>
+                <p className="text-muted-foreground">
+                  Signed in {formatDate(session.created_at)} · Last used{" "}
+                  {session.last_used_at ? formatDate(session.last_used_at) : "—"}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => revoke.mutate(session.id)}
+                disabled={revoke.isPending}
+              >
+                Revoke
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+function ExportSection() {
+  const [exporting, setExporting] = useState(false)
+
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      const data = await api.users.exportData()
+      downloadBlob(
+        new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
+        "fosslove-data.json",
+      )
+      toast.success("Data exported")
+    } catch (error) {
+      toast.error(errorMessage(error))
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  return (
+    <section className="space-y-4 rounded-xl border bg-card p-6">
+      <div>
+        <h2 className="font-heading text-lg font-semibold">Export your data</h2>
+        <p className="text-sm text-muted-foreground">
+          Download a JSON file of your profile, collections, favorites, and script history.
+        </p>
+      </div>
+      <Button variant="outline" onClick={handleExport} disabled={exporting}>
+        {exporting ? <Loader2 className="animate-spin" /> : null}
+        Download my data
+      </Button>
     </section>
   )
 }

@@ -114,6 +114,7 @@ class AppListItem(APIModel):
     id: int
     category_id: int
     category_name: str
+    category_slug: str
     platform: Platform
     name: str
     slug: str

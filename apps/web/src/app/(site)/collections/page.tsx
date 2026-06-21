@@ -6,17 +6,21 @@ import { api } from "@/lib/api/client"
 import { safe } from "@/lib/api/safe"
 import type { Collection, Page } from "@/lib/api/types"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: "Public collections",
   description: "Curated, shareable bundles of open-source apps.",
+  alternates: { canonical: "/collections" },
 }
 
 const EMPTY: Page<Collection> = { items: [], meta: { page: 1, size: 0, total: 0, pages: 0 } }
 
 export default async function PublicCollectionsPage() {
-  const collections = await safe(api.collections.listPublic({ size: 60 }), EMPTY)
+  const collections = await safe(
+    api.collections.listPublic({ size: 60 }, { next: { revalidate } }),
+    EMPTY,
+  )
 
   return (
     <Container className="space-y-8 py-10">

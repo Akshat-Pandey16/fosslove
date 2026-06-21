@@ -20,6 +20,11 @@ async def list_favorites(
     return paginate([to_app_list_item(a) for a in apps], total, pagination)
 
 
+@router.get("/ids", response_model=list[int])
+async def list_favorite_ids(user: VerifiedUser, session: SessionDep) -> list[int]:
+    return await favorite_service.favorite_ids(session, user.id)
+
+
 @router.post("/{app_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def add_favorite(
     app_id: int, user: VerifiedUser, session: SessionDep, activity: ActivityDep

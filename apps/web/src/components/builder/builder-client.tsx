@@ -8,7 +8,9 @@ import { GenerateScriptButton } from "@/components/catalog/generate-script-butto
 import { PlatformBadge } from "@/components/catalog/platform-badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { Platform } from "@/lib/api/types"
+import { api } from "@/lib/api/client"
+import { ApiError } from "@/lib/api/errors"
+import type { AppListItem, Platform } from "@/lib/api/types"
 import { PLATFORM_LABELS, PLATFORMS } from "@/lib/constants"
 import { useBuilder } from "@/lib/stores/builder"
 import { SaveCollectionDialog } from "./save-collection-dialog"
@@ -17,12 +19,38 @@ export function BuilderClient() {
   const items = useBuilder((state) => state.items)
   const remove = useBuilder((state) => state.remove)
   const clearPlatform = useBuilder((state) => state.clearPlatform)
+  const reconcile = useBuilder((state) => state.reconcile)
   const clear = useBuilder((state) => state.clear)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    const ids = useBuilder.getState().items.map((item) => item.id)
+    if (ids.length === 0) {
+      return
+    }
+    let cancelled = false
+    Promise.allSettled(ids.map((id) => api.catalog.getApp(id))).then((results) => {
+      if (cancelled) {
+        return
+      }
+      const resolved: AppListItem[] = []
+      const checked: number[] = []
+      results.forEach((result, index) => {
+        const id = ids[index]
+        if (result.status === "fulfilled") {
+          resolved.push(result.value)
+          checked.push(id)
+        } else if (result.reason instanceof ApiError && result.reason.status === 404) {
+          checked.push(id)
+        }
+      })
+      reconcile(resolved, checked)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [reconcile])
 
   if (!mounted) {
     return (
@@ -91,7 +119,7 @@ export function BuilderClient() {
                 >
                   <div className="min-w-0">
                     <Link
-                      href={`/apps/${item.id}`}
+                      href={`/apps/${item.platform}/${item.slug}`}
                       className="block truncate font-medium transition-colors hover:text-primary"
                     >
                       {item.name}

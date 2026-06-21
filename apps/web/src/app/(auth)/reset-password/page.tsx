@@ -20,12 +20,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { api } from "@/lib/api/client"
 import { errorMessage } from "@/lib/api/errors"
+import { applyApiError } from "@/lib/api/form-errors"
 
 const schema = z
   .object({
     password: z
       .string()
       .min(8, "At least 8 characters")
+      .max(128, "At most 128 characters")
       .regex(/[A-Za-z]/, "Include a letter")
       .regex(/\d/, "Include a number"),
     confirm: z.string(),
@@ -51,7 +53,9 @@ function ResetPasswordForm() {
       toast.success("Password updated. Please sign in.")
       router.push("/login")
     } catch (error) {
-      toast.error(errorMessage(error))
+      if (!applyApiError(error, form)) {
+        toast.error(errorMessage(error))
+      }
     }
   }
 

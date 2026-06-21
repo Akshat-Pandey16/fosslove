@@ -30,6 +30,15 @@ async def remove_favorite(session: AsyncSession, user_id: uuid.UUID, app_id: int
     await session.commit()
 
 
+async def favorite_ids(session: AsyncSession, user_id: uuid.UUID) -> list[int]:
+    rows = await session.scalars(
+        select(Favorite.app_id)
+        .where(Favorite.user_id == user_id)
+        .order_by(Favorite.created_at.desc())
+    )
+    return list(rows)
+
+
 async def list_favorites(
     session: AsyncSession, user_id: uuid.UUID, pagination: Pagination
 ) -> tuple[list[App], int]:

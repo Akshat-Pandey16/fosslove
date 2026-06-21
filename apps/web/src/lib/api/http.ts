@@ -60,12 +60,12 @@ export async function rawRequest(path: string, opts: RequestOptions = {}): Promi
 
 export async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const res = await rawRequest(path, opts)
-  if (res.status === 204) {
+  if (res.status === 204 || res.status === 304) {
     return undefined as T
   }
   const data = await res.json().catch(() => null)
   if (!res.ok) {
-    throw ApiError.fromBody(res.status, data)
+    throw ApiError.fromResponse(res, data)
   }
   return data as T
 }

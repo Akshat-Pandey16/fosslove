@@ -44,6 +44,19 @@ export default function AdminSettingsPage() {
   )
 }
 
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === "http:" || url.protocol === "https:"
+  } catch {
+    return false
+  }
+}
+
+function isRateLimitSpec(value: string): boolean {
+  return /^\d+\s*(\/|\s+per\s+)\s*(second|minute|hour|day|month|year)s?$/i.test(value.trim())
+}
+
 function SettingsForm({ settings }: { settings: RuntimeSettings }) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState<RuntimeSettings>(settings)
@@ -90,6 +103,15 @@ function SettingsForm({ settings }: { settings: RuntimeSettings }) {
     }
     if (Object.keys(updates).length === 0) {
       toast.message("Nothing to save")
+      return
+    }
+    const url = form.frontend_base_url.trim()
+    if (!isHttpUrl(url) || url.length > 500) {
+      toast.error("Frontend URL must be a valid http(s) URL")
+      return
+    }
+    if (!isRateLimitSpec(form.rate_limit_default) || !isRateLimitSpec(form.rate_limit_auth)) {
+      toast.error("Rate limits must look like 200/minute")
       return
     }
     mutation.mutate(updates)

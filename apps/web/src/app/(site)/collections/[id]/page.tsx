@@ -11,7 +11,7 @@ import { ApiError } from "@/lib/api/errors"
 import type { CollectionDetail } from "@/lib/api/types"
 import { PLATFORM_LABELS, PLATFORMS } from "@/lib/constants"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300
 
 async function loadCollection(idParam: string): Promise<CollectionDetail> {
   const id = Number(idParam)
@@ -19,7 +19,7 @@ async function loadCollection(idParam: string): Promise<CollectionDetail> {
     notFound()
   }
   try {
-    return await api.collections.get(id)
+    return await api.collections.get(id, { next: { revalidate } })
   } catch (error) {
     if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
       notFound()
@@ -35,10 +35,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   try {
-    const collection = await api.collections.get(Number(id))
+    const collection = await api.collections.get(Number(id), { next: { revalidate } })
+    const description = collection.description ?? `${collection.name} collection on FOSSLove.`
+    const canonical = `/collections/${collection.id}`
     return {
       title: collection.name,
-      description: collection.description ?? `${collection.name} collection.`,
+      description,
+      alternates: { canonical },
+      openGraph: { title: collection.name, description, url: canonical, type: "website" },
     }
   } catch {
     return { title: "Collection" }
@@ -101,7 +105,7 @@ export default async function PublicCollectionPage({
               <PlatformBadge platform={item.app.platform} compact />
               <div className="min-w-0">
                 <Link
-                  href={`/apps/${item.app.id}`}
+                  href={`/apps/${item.app.platform}/${item.app.slug}`}
                   className="block truncate font-medium transition-colors hover:text-primary"
                 >
                   {item.app.name}

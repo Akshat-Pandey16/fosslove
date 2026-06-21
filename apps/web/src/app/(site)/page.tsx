@@ -9,7 +9,7 @@ import { api } from "@/lib/api/client"
 import { safe } from "@/lib/api/safe"
 import type { Category, Page } from "@/lib/api/types"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300
 
 const EMPTY_CATEGORIES: Page<Category> = {
   items: [],
@@ -36,8 +36,8 @@ const STEPS = [
 
 export default async function HomePage() {
   const [categories, apps] = await Promise.all([
-    safe(api.catalog.listCategories({ size: 6 }), EMPTY_CATEGORIES),
-    safe(api.catalog.listApps({ size: 10 }), {
+    safe(api.catalog.listCategories({ size: 6 }, { next: { revalidate } }), EMPTY_CATEGORIES),
+    safe(api.catalog.listApps({ size: 10 }, { next: { revalidate } }), {
       items: [],
       meta: { page: 1, size: 0, total: 0, pages: 0 },
     }),
@@ -116,7 +116,7 @@ export default async function HomePage() {
               {categories.items.map((category) => (
                 <Link
                   key={category.id}
-                  href={`/categories/${category.id}`}
+                  href={`/categories/${category.slug}`}
                   className="group flex flex-col gap-2 rounded-xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
                 >
                   <span className="font-heading font-semibold transition-colors group-hover:text-primary">

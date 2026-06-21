@@ -104,6 +104,15 @@ export default function AdminCategoriesPage() {
   )
 }
 
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === "http:" || url.protocol === "https:"
+  } catch {
+    return false
+  }
+}
+
 function CategoryFormDialog({ mode, category }: { mode: "create" | "edit"; category?: Category }) {
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
@@ -113,16 +122,26 @@ function CategoryFormDialog({ mode, category }: { mode: "create" | "edit"; categ
   const [loading, setLoading] = useState(false)
 
   const submit = async () => {
-    if (!name.trim()) {
+    const trimmedName = name.trim()
+    if (!trimmedName) {
       toast.error("Name is required")
+      return
+    }
+    if (trimmedName.length > 100) {
+      toast.error("Name must be 100 characters or fewer")
+      return
+    }
+    const trimmedIcon = iconUrl.trim()
+    if (trimmedIcon && (!isHttpUrl(trimmedIcon) || trimmedIcon.length > 500)) {
+      toast.error("Icon URL must be a valid http(s) URL")
       return
     }
     setLoading(true)
     try {
       const payload = {
-        name: name.trim(),
+        name: trimmedName,
         description: description.trim() || null,
-        icon_url: iconUrl.trim() || null,
+        icon_url: trimmedIcon || null,
       }
       if (mode === "create") {
         await api.admin.createCategory(payload)
@@ -166,6 +185,7 @@ function CategoryFormDialog({ mode, category }: { mode: "create" | "edit"; categ
               id="category-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
+              maxLength={100}
             />
           </div>
           <div className="space-y-2">
@@ -174,6 +194,7 @@ function CategoryFormDialog({ mode, category }: { mode: "create" | "edit"; categ
               id="category-description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
+              maxLength={2000}
             />
           </div>
           <div className="space-y-2">

@@ -138,6 +138,11 @@
   ::selection {
     background: color-mix(in oklch, var(--primary) 28%, transparent);
   }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
 }
 
 @layer utilities {

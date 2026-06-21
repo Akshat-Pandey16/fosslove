@@ -19,14 +19,16 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { errorMessage } from "@/lib/api/errors"
+import { applyApiError } from "@/lib/api/form-errors"
 import { useAuth } from "@/lib/auth/auth-provider"
 
 const schema = z.object({
-  full_name: z.string().max(200).optional(),
+  full_name: z.string().max(200, "At most 200 characters").optional(),
   email: z.email("Enter a valid email"),
   password: z
     .string()
     .min(8, "At least 8 characters")
+    .max(128, "At most 128 characters")
     .regex(/[A-Za-z]/, "Include a letter")
     .regex(/\d/, "Include a number"),
 })
@@ -52,7 +54,9 @@ export default function RegisterPage() {
       toast.success("Account created")
       router.push("/account")
     } catch (error) {
-      toast.error(errorMessage(error))
+      if (!applyApiError(error, form)) {
+        toast.error(errorMessage(error))
+      }
     }
   }
 

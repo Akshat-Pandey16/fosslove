@@ -18,6 +18,7 @@ interface BuilderState {
   remove: (id: number) => void
   toggle: (app: AppListItem) => void
   clearPlatform: (platform: Platform) => void
+  reconcile: (resolved: AppListItem[], checkedIds: number[]) => void
   clear: () => void
 }
 
@@ -50,6 +51,20 @@ export const useBuilder = create<BuilderState>()(
         ),
       clearPlatform: (platform) =>
         set((state) => ({ items: state.items.filter((item) => item.platform !== platform) })),
+      reconcile: (resolved, checkedIds) =>
+        set((state) => {
+          const live = new Map(resolved.map((app) => [app.id, app]))
+          const checked = new Set(checkedIds)
+          return {
+            items: state.items.flatMap((item) => {
+              const fresh = live.get(item.id)
+              if (fresh) {
+                return [toItem(fresh)]
+              }
+              return checked.has(item.id) ? [] : [item]
+            }),
+          }
+        }),
       clear: () => set({ items: [] }),
     }),
     { name: "fosslove.builder", skipHydration: true },

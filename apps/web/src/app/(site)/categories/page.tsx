@@ -6,17 +6,21 @@ import { api } from "@/lib/api/client"
 import { safe } from "@/lib/api/safe"
 import type { Category, Page } from "@/lib/api/types"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: "Categories",
   description: "Browse open-source apps by category.",
+  alternates: { canonical: "/categories" },
 }
 
 const EMPTY: Page<Category> = { items: [], meta: { page: 1, size: 0, total: 0, pages: 0 } }
 
 export default async function CategoriesPage() {
-  const categories = await safe(api.catalog.listCategories({ size: 100 }), EMPTY)
+  const categories = await safe(
+    api.catalog.listCategories({ size: 100 }, { next: { revalidate } }),
+    EMPTY,
+  )
 
   return (
     <Container className="space-y-8 py-10">
@@ -36,7 +40,7 @@ export default async function CategoriesPage() {
           {categories.items.map((category) => (
             <Link
               key={category.id}
-              href={`/categories/${category.id}`}
+              href={`/categories/${category.slug}`}
               className="group flex flex-col gap-3 rounded-xl border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-sm"
             >
               <div className="flex items-start justify-between">

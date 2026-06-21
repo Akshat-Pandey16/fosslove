@@ -20,14 +20,19 @@ const display = Bricolage_Grotesque({
 })
 
 const appName = process.env.NEXT_PUBLIC_APP_NAME ?? "FOSSLove"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+
+const defaultTitle = `${appName} — Install the open-source apps you love, in one script`
+const defaultDescription =
+  "Browse a curated catalog of free and open-source apps for Windows and Linux, then generate a ready-to-run install script for every package manager."
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: `${appName} — Install the open-source apps you love, in one script`,
+    default: defaultTitle,
     template: `%s · ${appName}`,
   },
-  description:
-    "Browse a curated catalog of free and open-source apps for Windows and Linux, then generate a ready-to-run install script for every package manager.",
+  description: defaultDescription,
   keywords: [
     "foss",
     "open source",
@@ -39,6 +44,17 @@ export const metadata: Metadata = {
     "windows",
   ],
   applicationName: appName,
+  openGraph: {
+    type: "website",
+    siteName: appName,
+    title: defaultTitle,
+    description: defaultDescription,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: defaultTitle,
+    description: defaultDescription,
+  },
 }
 
 export default function RootLayout({

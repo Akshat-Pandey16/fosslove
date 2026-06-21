@@ -2,11 +2,15 @@ import { tokenStore } from "@/lib/auth/tokens"
 import { ApiError } from "./errors"
 import { type RequestOptions, rawRequest, request } from "./http"
 import type {
+  ActivityLog,
+  ActivityLogParams,
   AppCreatePayload,
   AppDetail,
+  AppImportPayload,
   AppListItem,
   AppListParams,
   AppUpdatePayload,
+  CatalogExport,
   Category,
   CategoryCreatePayload,
   CategoryUpdatePayload,
@@ -19,17 +23,22 @@ import type {
   Message,
   Page,
   PageParams,
+  Platform,
   RegisterPayload,
   RuntimeSettings,
   RuntimeSettingsUpdate,
   ScriptGeneratePayload,
   ScriptRun,
+  SessionRead,
   TokenPair,
   User,
+  UserDataExport,
   UserUpdatePayload,
 } from "./types"
 
 const isServer = typeof window === "undefined"
+
+const REFRESH_LOCK = "fosslove.refresh"
 
 let refreshing: Promise<boolean> | null = null
 
@@ -45,18 +54,29 @@ async function doRefresh(): Promise<boolean> {
     })
     tokenStore.set(pair)
     return true
-  } catch {
-    tokenStore.clear()
+  } catch (error) {
+    if (error instanceof ApiError && error.isAuthExpired) {
+      tokenStore.clear()
+    }
     return false
   }
 }
 
-function runRefresh(): Promise<boolean> {
-  if (!refreshing) {
-    refreshing = doRefresh().finally(() => {
-      refreshing = null
-    })
+function runRefresh(staleAccess: string | null): Promise<boolean> {
+  if (refreshing) {
+    return refreshing
   }
+  const exec = async () => {
+    if (tokenStore.getAccess() !== staleAccess) {
+      return true
+    }
+    return doRefresh()
+  }
+  const locks = !isServer ? navigator.locks : undefined
+  const started = locks ? locks.request(REFRESH_LOCK, exec) : exec()
+  refreshing = started.finally(() => {
+    refreshing = null
+  })
   return refreshing
 }
 
@@ -69,7 +89,7 @@ async function authedRequest<T>(path: string, opts: RequestOptions = {}): Promis
     return await request<T>(path, { ...opts, token })
   } catch (error) {
     if (error instanceof ApiError && error.status === 401 && tokenStore.getRefresh()) {
-      if (await runRefresh()) {
+      if (await runRefresh(token)) {
         return request<T>(path, { ...opts, token: tokenStore.getAccess() })
       }
     }
@@ -80,25 +100,46 @@ async function authedRequest<T>(path: string, opts: RequestOptions = {}): Promis
 export interface ScriptDownload {
   filename: string
   blob: Blob
+  skippedIds: number[]
+}
+
+function parseSkipped(header: string | null): number[] {
+  if (!header) {
+    return []
+  }
+  return header
+    .split(",")
+    .map((part) => Number(part.trim()))
+    .filter((value) => Number.isFinite(value))
 }
 
 async function generateScript(payload: ScriptGeneratePayload): Promise<ScriptDownload> {
   const attempt = (token: string | null) =>
     rawRequest("/scripts/generate", { method: "POST", body: payload, token })
 
-  let res = await attempt(isServer ? null : tokenStore.getAccess())
-  if (!isServer && res.status === 401 && tokenStore.getRefresh() && (await runRefresh())) {
+  const initialToken = isServer ? null : tokenStore.getAccess()
+  let res = await attempt(initialToken)
+  if (
+    !isServer &&
+    res.status === 401 &&
+    tokenStore.getRefresh() &&
+    (await runRefresh(initialToken))
+  ) {
     res = await attempt(tokenStore.getAccess())
   }
   if (!res.ok) {
     const data = await res.json().catch(() => null)
-    throw ApiError.fromBody(res.status, data)
+    throw ApiError.fromResponse(res, data)
   }
   const blob = await res.blob()
   const disposition = res.headers.get("content-disposition") ?? ""
   const match = /filename="?([^"]+)"?/.exec(disposition)
   const fallback = payload.platform === "windows" ? "install_apps.ps1" : "install_apps.sh"
-  return { filename: match?.[1] ?? fallback, blob }
+  return {
+    filename: match?.[1] ?? fallback,
+    blob,
+    skippedIds: parseSkipped(res.headers.get("x-fosslove-skipped")),
+  }
 }
 
 export const api = {
@@ -120,6 +161,8 @@ export const api = {
         method: "POST",
         body: { token, new_password },
       }),
+    confirmEmailChange: (token: string) =>
+      request<Message>("/auth/email-change/confirm", { method: "POST", body: { token } }),
   },
   users: {
     me: (opts?: RequestOptions) => authedRequest<User>("/users/me", opts),
@@ -127,16 +170,26 @@ export const api = {
       authedRequest<User>("/users/me", { method: "PATCH", body: data }),
     changePassword: (data: ChangePasswordPayload) =>
       authedRequest<Message>("/users/me/change-password", { method: "POST", body: data }),
-    remove: () => authedRequest<Message>("/users/me", { method: "DELETE" }),
+    requestEmailChange: (new_email: string) =>
+      authedRequest<Message>("/users/me/email", { method: "POST", body: { new_email } }),
+    listSessions: () => authedRequest<SessionRead[]>("/users/me/sessions"),
+    revokeSession: (tokenId: string) =>
+      authedRequest<void>(`/users/me/sessions/${tokenId}`, { method: "DELETE" }),
+    exportData: () => authedRequest<UserDataExport>("/users/me/export"),
+    remove: () => authedRequest<void>("/users/me", { method: "DELETE" }),
   },
   catalog: {
     listCategories: (params?: PageParams, opts?: RequestOptions) =>
       authedRequest<Page<Category>>("/categories", { ...opts, query: { ...params } }),
     getCategory: (id: number, opts?: RequestOptions) =>
       authedRequest<Category>(`/categories/${id}`, opts),
+    getCategoryBySlug: (slug: string, opts?: RequestOptions) =>
+      authedRequest<Category>(`/categories/by-slug/${encodeURIComponent(slug)}`, opts),
     listApps: (params?: AppListParams, opts?: RequestOptions) =>
       authedRequest<Page<AppListItem>>("/apps", { ...opts, query: { ...params } }),
     getApp: (id: number, opts?: RequestOptions) => authedRequest<AppDetail>(`/apps/${id}`, opts),
+    getAppBySlug: (platform: Platform, slug: string, opts?: RequestOptions) =>
+      authedRequest<AppDetail>(`/apps/by-slug/${platform}/${encodeURIComponent(slug)}`, opts),
   },
   collections: {
     listMine: (params?: PageParams) =>
@@ -154,13 +207,14 @@ export const api = {
         method: "PATCH",
         body: { app_ids },
       }),
-    remove: (id: number) => authedRequest<Message>(`/collections/${id}`, { method: "DELETE" }),
+    remove: (id: number) => authedRequest<void>(`/collections/${id}`, { method: "DELETE" }),
   },
   favorites: {
     list: (params?: PageParams) =>
       authedRequest<Page<AppListItem>>("/favorites", { query: { ...params } }),
-    add: (appId: number) => authedRequest<Message>(`/favorites/${appId}`, { method: "PATCH" }),
-    remove: (appId: number) => authedRequest<Message>(`/favorites/${appId}`, { method: "DELETE" }),
+    ids: () => authedRequest<number[]>("/favorites/ids"),
+    add: (appId: number) => authedRequest<void>(`/favorites/${appId}`, { method: "POST" }),
+    remove: (appId: number) => authedRequest<void>(`/favorites/${appId}`, { method: "DELETE" }),
   },
   scripts: {
     history: (params?: PageParams) =>
@@ -175,12 +229,17 @@ export const api = {
     updateCategory: (id: number, data: CategoryUpdatePayload) =>
       authedRequest<Category>(`/admin/categories/${id}`, { method: "PATCH", body: data }),
     deleteCategory: (id: number) =>
-      authedRequest<Message>(`/admin/categories/${id}`, { method: "DELETE" }),
+      authedRequest<void>(`/admin/categories/${id}`, { method: "DELETE" }),
     createApp: (data: AppCreatePayload) =>
       authedRequest<AppDetail>("/admin/apps", { method: "POST", body: data }),
     updateApp: (id: number, data: AppUpdatePayload) =>
       authedRequest<AppDetail>(`/admin/apps/${id}`, { method: "PATCH", body: data }),
-    deleteApp: (id: number) => authedRequest<Message>(`/admin/apps/${id}`, { method: "DELETE" }),
+    deleteApp: (id: number) => authedRequest<void>(`/admin/apps/${id}`, { method: "DELETE" }),
+    importApps: (data: AppImportPayload) =>
+      authedRequest<AppDetail[]>("/admin/apps/import", { method: "POST", body: data }),
+    exportCatalog: () => authedRequest<CatalogExport>("/admin/catalog/export"),
+    listActivity: (params?: ActivityLogParams) =>
+      authedRequest<Page<ActivityLog>>("/admin/activity", { query: { ...params } }),
     recomputeCounts: () => authedRequest<Message>("/admin/recompute-counts", { method: "POST" }),
     cleanupTokens: () =>
       authedRequest<Record<string, number>>("/admin/cleanup-tokens", { method: "POST" }),

@@ -47,17 +47,27 @@ export function SaveCollectionDialog({ appIds }: { appIds: number[] }) {
   }
 
   const submit = async () => {
-    if (!name.trim()) {
+    const trimmedName = name.trim()
+    if (!trimmedName) {
       toast.error("Give your collection a name")
+      return
+    }
+    if (trimmedName.length > 120) {
+      toast.error("Name must be 120 characters or fewer")
+      return
+    }
+    const uniqueIds = [...new Set(appIds.filter((id) => id > 0))]
+    if (uniqueIds.length > 500) {
+      toast.error("A collection may contain at most 500 apps")
       return
     }
     setLoading(true)
     try {
       const collection = await api.collections.create({
-        name: name.trim(),
+        name: trimmedName,
         description: description.trim() || null,
         is_public: isPublic,
-        app_ids: appIds,
+        app_ids: uniqueIds,
       })
       toast.success("Collection saved")
       setOpen(false)
@@ -95,6 +105,7 @@ export function SaveCollectionDialog({ appIds }: { appIds: number[] }) {
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="My dev setup"
+              maxLength={120}
             />
           </div>
           <div className="space-y-2">
@@ -104,6 +115,7 @@ export function SaveCollectionDialog({ appIds }: { appIds: number[] }) {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Optional"
+              maxLength={2000}
             />
           </div>
           <div className="flex items-center justify-between gap-2">

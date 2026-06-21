@@ -12,19 +12,15 @@ import { safe } from "@/lib/api/safe"
 import type { AppListItem, Category, Page, Platform } from "@/lib/api/types"
 import { PAGE_SIZE } from "@/lib/constants"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300
 
 const EMPTY_APPS: Page<AppListItem> = { items: [], meta: { page: 1, size: 0, total: 0, pages: 0 } }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
-async function loadCategory(idParam: string): Promise<Category> {
-  const id = Number(idParam)
-  if (!Number.isInteger(id) || id <= 0) {
-    notFound()
-  }
+async function loadCategory(slug: string): Promise<Category> {
   try {
-    return await api.catalog.getCategory(id)
+    return await api.catalog.getCategoryBySlug(slug, { next: { revalidate } })
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       notFound()
@@ -36,12 +32,19 @@ async function loadCategory(idParam: string): Promise<Category> {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }): Promise<Metadata> {
-  const { id } = await params
+  const { slug } = await params
   try {
-    const category = await api.catalog.getCategory(Number(id))
-    return { title: category.name, description: category.description ?? `${category.name} apps.` }
+    const category = await api.catalog.getCategoryBySlug(slug, { next: { revalidate } })
+    const description = category.description ?? `${category.name} apps on FOSSLove.`
+    const canonical = `/categories/${category.slug}`
+    return {
+      title: category.name,
+      description,
+      alternates: { canonical },
+      openGraph: { title: category.name, description, url: canonical, type: "website" },
+    }
   } catch {
     return { title: "Category" }
   }
@@ -51,11 +54,11 @@ export default async function CategoryPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
   searchParams: SearchParams
 }) {
-  const [{ id }, sp] = await Promise.all([params, searchParams])
-  const category = await loadCategory(id)
+  const [{ slug }, sp] = await Promise.all([params, searchParams])
+  const category = await loadCategory(slug)
 
   const page = Math.max(1, Number(sp.page) || 1)
   const platform: Platform | undefined =
@@ -63,7 +66,10 @@ export default async function CategoryPage({
   const q = typeof sp.q === "string" ? sp.q : undefined
 
   const apps = await safe(
-    api.catalog.listApps({ category_id: category.id, page, size: PAGE_SIZE, platform, q }),
+    api.catalog.listApps(
+      { category_id: category.id, page, size: PAGE_SIZE, platform, q },
+      { next: { revalidate } },
+    ),
     EMPTY_APPS,
   )
 

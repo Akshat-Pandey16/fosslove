@@ -63,7 +63,14 @@ export function CatalogFilters({
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <form onSubmit={onSearch} className="relative w-full lg:max-w-sm">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input name="q" defaultValue={q} placeholder="Search apps…" className="h-9 pl-9" />
+        <Input
+          name="q"
+          type="search"
+          defaultValue={q}
+          placeholder="Search apps…"
+          aria-label="Search apps"
+          className="h-9 pl-9"
+        />
       </form>
       <div className="flex flex-wrap items-center gap-2">
         <div className="inline-flex rounded-lg border p-0.5">
@@ -71,6 +78,7 @@ export function CatalogFilters({
             <button
               key={option.value}
               type="button"
+              aria-pressed={platform === option.value}
               onClick={() => update({ platform: option.value })}
               className={cn(
                 "rounded-md px-3 py-1 text-sm font-medium transition-colors",

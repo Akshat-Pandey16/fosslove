@@ -13,6 +13,7 @@ export function PlatformBadge({
 }) {
   return (
     <span
+      title={compact ? PLATFORM_LABELS[platform] : undefined}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono text-xs font-medium",
         platform === "windows"
@@ -23,12 +24,17 @@ export function PlatformBadge({
       )}
     >
       <span
+        aria-hidden
         className={cn(
           "size-1.5 rounded-full",
           platform === "windows" ? "bg-sky-500" : "bg-amber-500",
         )}
       />
-      {compact ? null : PLATFORM_LABELS[platform]}
+      {compact ? (
+        <span className="sr-only">{PLATFORM_LABELS[platform]}</span>
+      ) : (
+        PLATFORM_LABELS[platform]
+      )}
     </span>
   )
 }

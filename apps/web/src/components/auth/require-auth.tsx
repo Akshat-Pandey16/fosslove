@@ -31,8 +31,9 @@ export function RequireAuth({
 
   if (isLoading || !isAuthenticated || (admin && !isAdmin)) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
+      <div role="status" className="flex min-h-[50vh] items-center justify-center">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        <span className="sr-only">Loading…</span>
       </div>
     )
   }

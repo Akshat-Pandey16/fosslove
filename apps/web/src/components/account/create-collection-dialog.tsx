@@ -32,14 +32,19 @@ export function CreateCollectionDialog() {
   const [loading, setLoading] = useState(false)
 
   const submit = async () => {
-    if (!name.trim()) {
+    const trimmedName = name.trim()
+    if (!trimmedName) {
       toast.error("Give your collection a name")
+      return
+    }
+    if (trimmedName.length > 120) {
+      toast.error("Name must be 120 characters or fewer")
       return
     }
     setLoading(true)
     try {
       const collection = await api.collections.create({
-        name: name.trim(),
+        name: trimmedName,
         description: description.trim() || null,
         is_public: isPublic,
         app_ids: [],
@@ -76,6 +81,7 @@ export function CreateCollectionDialog() {
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="My dev setup"
+              maxLength={120}
             />
           </div>
           <div className="space-y-2">
@@ -85,6 +91,7 @@ export function CreateCollectionDialog() {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Optional"
+              maxLength={2000}
             />
           </div>
           <div className="flex items-center justify-between gap-2">

@@ -29,10 +29,20 @@ import type {
 import { MANAGER_LABELS, PACKAGE_MANAGERS, PLATFORM_LABELS, PLATFORMS } from "@/lib/constants"
 
 interface RefRow {
+  id: string
   manager: PackageManager
   identifier: string
   install_args: string
   priority: number
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === "http:" || url.protocol === "https:"
+  } catch {
+    return false
+  }
 }
 
 export function AppForm({
@@ -60,6 +70,7 @@ export function AppForm({
   const [refs, setRefs] = useState<RefRow[]>(
     app
       ? app.package_refs.map((ref) => ({
+          id: crypto.randomUUID(),
           manager: ref.manager,
           identifier: ref.identifier,
           install_args: ref.install_args ?? "",
@@ -68,6 +79,8 @@ export function AppForm({
       : [],
   )
   const [loading, setLoading] = useState(false)
+  const [homepageError, setHomepageError] = useState<string | null>(null)
+  const [refErrors, setRefErrors] = useState<Record<string, string>>({})
 
   const categoryItems: Record<string, string> = Object.fromEntries(
     categories.map((category) => [String(category.id), category.name]),
@@ -82,12 +95,17 @@ export function AppForm({
   const addRef = () =>
     setRefs((current) => [
       ...current,
-      { manager: "winget", identifier: "", install_args: "", priority: (current.length + 1) * 10 },
+      {
+        id: crypto.randomUUID(),
+        manager: "winget",
+        identifier: "",
+        install_args: "",
+        priority: (current.length + 1) * 10,
+      },
     ])
-  const updateRef = (index: number, patch: Partial<RefRow>) =>
-    setRefs((current) => current.map((row, idx) => (idx === index ? { ...row, ...patch } : row)))
-  const removeRef = (index: number) =>
-    setRefs((current) => current.filter((_, idx) => idx !== index))
+  const updateRef = (id: string, patch: Partial<RefRow>) =>
+    setRefs((current) => current.map((row) => (row.id === id ? { ...row, ...patch } : row)))
+  const removeRef = (id: string) => setRefs((current) => current.filter((row) => row.id !== id))
 
   const submit = async () => {
     if (!categoryId) {
@@ -98,6 +116,34 @@ export function AppForm({
       toast.error("Name is required")
       return
     }
+
+    const trimmedHomepage = homepage.trim()
+    if (trimmedHomepage && (!isHttpUrl(trimmedHomepage) || trimmedHomepage.length > 500)) {
+      setHomepageError("Enter a valid http(s) URL (max 500 characters).")
+      toast.error("Homepage must be a valid URL")
+      return
+    }
+    setHomepageError(null)
+
+    const nextRefErrors: Record<string, string> = {}
+    for (const row of refs) {
+      const identifier = row.identifier.trim()
+      if (!identifier) {
+        continue
+      }
+      if (identifier.length > 500 || row.install_args.trim().length > 500) {
+        nextRefErrors[row.id] = "Identifier and install args must be 500 characters or fewer."
+      } else if (row.manager === "direct" && !isHttpUrl(identifier)) {
+        nextRefErrors[row.id] = "Direct downloads need a valid http(s) URL."
+      }
+    }
+    if (Object.keys(nextRefErrors).length > 0) {
+      setRefErrors(nextRefErrors)
+      toast.error("Fix the highlighted package sources")
+      return
+    }
+    setRefErrors({})
+
     const packageRefs: PackageReferencePayload[] = refs
       .filter((row) => row.identifier.trim())
       .map((row) => ({
@@ -218,9 +264,21 @@ export function AppForm({
           <Input
             id="app-homepage"
             value={homepage}
-            onChange={(event) => setHomepage(event.target.value)}
+            onChange={(event) => {
+              setHomepage(event.target.value)
+              if (homepageError) {
+                setHomepageError(null)
+              }
+            }}
             placeholder="https://…"
+            aria-invalid={homepageError ? true : undefined}
+            aria-describedby={homepageError ? "app-homepage-error" : undefined}
           />
+          {homepageError ? (
+            <p id="app-homepage-error" className="text-xs text-destructive">
+              {homepageError}
+            </p>
+          ) : null}
         </div>
         <div className="space-y-2">
           <Label htmlFor="app-license">License</Label>
@@ -257,69 +315,92 @@ export function AppForm({
           </p>
         ) : (
           <div className="space-y-3">
-            {refs.map((row, index) => (
-              <div
-                key={index}
-                className="grid items-end gap-2 rounded-lg border p-3 sm:grid-cols-[140px_1fr_1fr_80px_auto]"
-              >
-                <div className="space-y-1">
-                  <Label className="text-xs">Manager</Label>
-                  <Select
-                    items={managerItems}
-                    value={row.manager}
-                    onValueChange={(v) => updateRef(index, { manager: v as PackageManager })}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PACKAGE_MANAGERS.map((value) => (
-                        <SelectItem key={value} value={value}>
-                          {MANAGER_LABELS[value]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Identifier</Label>
-                  <Input
-                    value={row.identifier}
-                    onChange={(event) => updateRef(index, { identifier: event.target.value })}
-                    placeholder="org.mozilla.firefox"
-                    className="font-mono"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Install args</Label>
-                  <Input
-                    value={row.install_args}
-                    onChange={(event) => updateRef(index, { install_args: event.target.value })}
-                    placeholder="optional"
-                    className="font-mono"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Priority</Label>
-                  <Input
-                    type="number"
-                    value={row.priority}
-                    onChange={(event) =>
-                      updateRef(index, { priority: Number(event.target.value) || 0 })
-                    }
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeRef(index)}
-                  aria-label="Remove source"
+            {refs.map((row) => {
+              const error = refErrors[row.id]
+              const directHint =
+                row.manager === "direct" ? "https://download…" : "org.mozilla.firefox"
+              return (
+                <div
+                  key={row.id}
+                  className="grid items-end gap-2 rounded-lg border p-3 sm:grid-cols-[140px_1fr_1fr_80px_auto]"
                 >
-                  <Trash2 />
-                </Button>
-              </div>
-            ))}
+                  <div className="space-y-1">
+                    <Label htmlFor={`${row.id}-manager`} className="text-xs">
+                      Manager
+                    </Label>
+                    <Select
+                      items={managerItems}
+                      value={row.manager}
+                      onValueChange={(v) => updateRef(row.id, { manager: v as PackageManager })}
+                    >
+                      <SelectTrigger id={`${row.id}-manager`} className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PACKAGE_MANAGERS.map((value) => (
+                          <SelectItem key={value} value={value}>
+                            {MANAGER_LABELS[value]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`${row.id}-identifier`} className="text-xs">
+                      Identifier
+                    </Label>
+                    <Input
+                      id={`${row.id}-identifier`}
+                      value={row.identifier}
+                      onChange={(event) => updateRef(row.id, { identifier: event.target.value })}
+                      placeholder={directHint}
+                      className="font-mono"
+                      aria-invalid={error ? true : undefined}
+                      aria-describedby={error ? `${row.id}-error` : undefined}
+                    />
+                    {error ? (
+                      <p id={`${row.id}-error`} className="text-xs text-destructive">
+                        {error}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`${row.id}-args`} className="text-xs">
+                      Install args
+                    </Label>
+                    <Input
+                      id={`${row.id}-args`}
+                      value={row.install_args}
+                      onChange={(event) => updateRef(row.id, { install_args: event.target.value })}
+                      placeholder="optional"
+                      className="font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`${row.id}-priority`} className="text-xs">
+                      Priority
+                    </Label>
+                    <Input
+                      id={`${row.id}-priority`}
+                      type="number"
+                      value={row.priority}
+                      onChange={(event) =>
+                        updateRef(row.id, { priority: Number(event.target.value) || 0 })
+                      }
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeRef(row.id)}
+                    aria-label="Remove source"
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>

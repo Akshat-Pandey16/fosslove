@@ -69,6 +69,7 @@ export interface AppListItem {
   id: number
   category_id: number
   category_name: string
+  category_slug: string
   platform: Platform
   name: string
   slug: string
@@ -240,4 +241,58 @@ export interface AppListParams {
 export interface PageParams {
   page?: number
   size?: number
+}
+
+export interface SessionRead {
+  id: string
+  user_agent: string | null
+  client_ip: string | null
+  created_at: string
+  last_used_at: string | null
+  expires_at: string
+}
+
+export interface UserDataExport {
+  user: User
+  collections: Record<string, unknown>[]
+  favorites: number[]
+  script_runs: Record<string, unknown>[]
+}
+
+export interface EmailChangePayload {
+  new_email: string
+}
+
+export interface ActivityLog {
+  id: number
+  user_id: string | null
+  action: string
+  status: string
+  target_type: string | null
+  target_id: string | null
+  client_ip: string | null
+  request_id: string | null
+  user_agent: string | null
+  detail: Record<string, unknown> | null
+  created_at: string
+}
+
+export interface ActivityLogParams {
+  page?: number
+  size?: number
+  action?: string | null
+  user_id?: string | null
+  target_type?: string | null
+  status?: string | null
+  since?: string | null
+  until?: string | null
+}
+
+export interface CatalogExport {
+  categories: Category[]
+  apps: AppDetail[]
+}
+
+export interface AppImportPayload {
+  apps: AppCreatePayload[]
 }

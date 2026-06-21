@@ -28,11 +28,15 @@ const schema = z.object({
 
 type Values = z.infer<typeof schema>
 
+function safeNext(raw: string | null): string {
+  return raw?.startsWith("/") && !raw.startsWith("//") ? raw : "/account"
+}
+
 function LoginForm() {
   const { login } = useAuth()
   const router = useRouter()
   const params = useSearchParams()
-  const next = params.get("next") || "/account"
+  const next = safeNext(params.get("next"))
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),

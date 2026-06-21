@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, Package, Settings, Tag } from "lucide-react"
+import { LayoutDashboard, Package, ScrollText, Settings, Tag } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/categories", label: "Categories", icon: Tag, exact: false },
   { href: "/admin/apps", label: "Apps", icon: Package, exact: false },
+  { href: "/admin/activity", label: "Activity", icon: ScrollText, exact: false },
   { href: "/admin/settings", label: "Settings", icon: Settings, exact: false },
 ]
 
@@ -25,6 +26,7 @@ export function AdminNav() {
           <Link
             key={link.href}
             href={link.href}
+            aria-current={active ? "page" : undefined}
             className={cn(
               "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors",
               active

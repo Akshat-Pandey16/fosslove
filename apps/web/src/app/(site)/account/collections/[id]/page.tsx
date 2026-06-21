@@ -186,7 +186,7 @@ function CollectionView({ collection }: { collection: CollectionDetail }) {
                   <PlatformBadge platform={item.app.platform} compact />
                   <div className="min-w-0">
                     <Link
-                      href={`/apps/${item.app.id}`}
+                      href={`/apps/${item.app.platform}/${item.app.slug}`}
                       className="block truncate font-medium transition-colors hover:text-primary"
                     >
                       {item.app.name}

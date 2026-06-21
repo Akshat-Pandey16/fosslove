@@ -8,11 +8,12 @@ import { safe } from "@/lib/api/safe"
 import type { AppListItem, Category, Page, Platform } from "@/lib/api/types"
 import { PAGE_SIZE } from "@/lib/constants"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: "Apps",
   description: "Browse the full catalog of free and open-source apps for Windows and Linux.",
+  alternates: { canonical: "/apps" },
 }
 
 const EMPTY_APPS: Page<AppListItem> = { items: [], meta: { page: 1, size: 0, total: 0, pages: 0 } }
@@ -36,10 +37,13 @@ export default async function AppsPage({ searchParams }: { searchParams: SearchP
 
   const [apps, categories] = await Promise.all([
     safe(
-      api.catalog.listApps({ page, size: PAGE_SIZE, platform, category_id: categoryId, q }),
+      api.catalog.listApps(
+        { page, size: PAGE_SIZE, platform, category_id: categoryId, q },
+        { next: { revalidate } },
+      ),
       EMPTY_APPS,
     ),
-    safe(api.catalog.listCategories({ size: 100 }), EMPTY_CATEGORIES),
+    safe(api.catalog.listCategories({ size: 100 }, { next: { revalidate } }), EMPTY_CATEGORIES),
   ])
 
   return (

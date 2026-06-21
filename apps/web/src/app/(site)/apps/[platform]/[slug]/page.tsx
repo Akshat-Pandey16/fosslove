@@ -11,18 +11,21 @@ import { Container } from "@/components/layout/container"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api/client"
 import { ApiError } from "@/lib/api/errors"
-import type { AppDetail } from "@/lib/api/types"
+import type { AppDetail, Platform } from "@/lib/api/types"
 import { formatDate, MANAGER_LABELS, PLATFORM_LABELS } from "@/lib/constants"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300
 
-async function loadApp(idParam: string): Promise<AppDetail> {
-  const id = Number(idParam)
-  if (!Number.isInteger(id) || id <= 0) {
+function parsePlatform(value: string): Platform {
+  if (value !== "windows" && value !== "linux") {
     notFound()
   }
+  return value
+}
+
+async function loadApp(platform: Platform, slug: string): Promise<AppDetail> {
   try {
-    return await api.catalog.getApp(id)
+    return await api.catalog.getAppBySlug(platform, slug, { next: { revalidate } })
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       notFound()
@@ -34,24 +37,35 @@ async function loadApp(idParam: string): Promise<AppDetail> {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ platform: string; slug: string }>
 }): Promise<Metadata> {
-  const { id } = await params
+  const { platform, slug } = await params
   try {
-    const app = await api.catalog.getApp(Number(id))
+    const app = await api.catalog.getAppBySlug(parsePlatform(platform), slug, {
+      next: { revalidate },
+    })
+    const description =
+      app.summary ?? `Install ${app.name} on ${PLATFORM_LABELS[app.platform]} with FOSSLove.`
+    const canonical = `/apps/${app.platform}/${app.slug}`
     return {
       title: app.name,
-      description:
-        app.summary ?? `Install ${app.name} on ${PLATFORM_LABELS[app.platform]} with FOSSLove.`,
+      description,
+      alternates: { canonical },
+      openGraph: { title: app.name, description, url: canonical, type: "website" },
+      twitter: { title: app.name, description },
     }
   } catch {
     return { title: "App" }
   }
 }
 
-export default async function AppDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const app = await loadApp(id)
+export default async function AppDetailPage({
+  params,
+}: {
+  params: Promise<{ platform: string; slug: string }>
+}) {
+  const { platform, slug } = await params
+  const app = await loadApp(parsePlatform(platform), slug)
   const refs = [...app.package_refs].sort((a, b) => a.priority - b.priority)
 
   return (
@@ -69,7 +83,7 @@ export default async function AppDetailPage({ params }: { params: Promise<{ id: 
             <div className="flex flex-wrap items-center gap-3">
               <PlatformBadge platform={app.platform} />
               <Link
-                href={`/categories/${app.category_id}`}
+                href={`/categories/${app.category_slug}`}
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 {app.category_name}

@@ -5,6 +5,7 @@ import { Pencil, Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { toast } from "sonner"
+import { CatalogIO } from "@/components/admin/catalog-io"
 import { PlatformBadge } from "@/components/catalog/platform-badge"
 import {
   AlertDialog,
@@ -48,13 +49,16 @@ export default function AdminAppsPage() {
             Every app in the catalog, including inactive ones.
           </p>
         </div>
-        <Button
-          render={
-            <Link href="/admin/apps/new">
-              <Plus /> New app
-            </Link>
-          }
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <CatalogIO />
+          <Button
+            render={
+              <Link href="/admin/apps/new">
+                <Plus /> New app
+              </Link>
+            }
+          />
+        </div>
       </header>
 
       <div className="rounded-xl border">

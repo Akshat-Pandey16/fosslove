@@ -78,6 +78,10 @@ async def test_favorites_put_is_idempotent(
     listing = await client.get("/api/v1/favorites", headers=auth_headers)
     assert listing.json()["meta"]["total"] == 1
 
+    ids = await client.get("/api/v1/favorites/ids", headers=auth_headers)
+    assert ids.status_code == 200
+    assert ids.json() == [app_id]
+
 
 async def test_slug_lookup_routes(client: AsyncClient, app_id: int) -> None:
     response = await client.get("/api/v1/apps/by-slug/windows/firefox")
