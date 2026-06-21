@@ -16,7 +16,7 @@ export function BuilderBar() {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-10 z-40 flex justify-center px-4 lg:hidden">
       <div className="glow-primary pointer-events-auto flex items-center gap-2 rounded-lg border bg-background/90 py-1.5 pr-1.5 pl-3 shadow-lg backdrop-blur">
         <span className="flex items-center gap-2 font-mono text-sm">
           <span className="size-1.5 animate-pulse-dot rounded-full bg-term-lime" />

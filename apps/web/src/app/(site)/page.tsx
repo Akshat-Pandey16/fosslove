@@ -42,12 +42,13 @@ const STEPS = [
 export default async function HomePage() {
   const [categories, apps] = await Promise.all([
     safe(api.catalog.listCategories({ size: 8 }, { next: { revalidate } }), EMPTY_CATEGORIES),
-    safe(api.catalog.listApps({ size: 12 }, { next: { revalidate } }), EMPTY_APPS),
+    safe(api.catalog.listApps({ size: 24 }, { next: { revalidate } }), EMPTY_APPS),
   ])
 
   const appCount = apps.meta.total
   const categoryCount = categories.meta.total
-  const deckApps = apps.items.slice(0, 10).map((app) => ({
+  const freshApps = apps.items.slice(0, 12)
+  const deckApps = apps.items.map((app) => ({
     id: app.id,
     name: app.name,
     slug: app.slug,
@@ -73,7 +74,7 @@ export default async function HomePage() {
             </span>
           </div>
 
-          <div className="grid items-start gap-10 lg:grid-cols-[1.04fr_1fr] lg:gap-12">
+          <div className="grid items-start gap-10 xl:grid-cols-[1.04fr_1fr] xl:gap-12">
             <div className="flex flex-col items-start gap-6">
               <span className="inline-flex items-center gap-2 rounded-full border bg-card/60 px-3 py-1 font-mono text-xs text-muted-foreground backdrop-blur">
                 <Layers className="size-3.5 text-term-cyan" />
@@ -173,7 +174,7 @@ export default async function HomePage() {
           />
           <Reveal>
             <AppGrid
-              apps={apps.items}
+              apps={freshApps}
               emptyMessage="The catalog is being prepared. Check back soon."
             />
           </Reveal>

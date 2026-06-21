@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpRight, Check, Copy, Plus } from "lucide-react"
+import { ArrowUpRight, Check, Copy, Plus, Search } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -138,9 +138,10 @@ const DEMO_APPS: DeckApp[] = [
 ]
 
 export function DeckConsole({ apps }: { apps: DeckApp[] }) {
-  const palette = useMemo(() => (apps.length > 0 ? apps.slice(0, 10) : DEMO_APPS), [apps])
+  const palette = useMemo(() => (apps.length > 0 ? apps.slice(0, 24) : DEMO_APPS), [apps])
   const [platform, setPlatform] = useState<Platform>("linux")
   const [selected, setSelected] = useState<number[]>(() => palette.slice(0, 3).map((a) => a.id))
+  const [chipQuery, setChipQuery] = useState("")
   const [revealed, setRevealed] = useState(0)
   const revealedRef = useRef(0)
   const reduced = useRef(false)
@@ -215,6 +216,8 @@ export function DeckConsole({ apps }: { apps: DeckApp[] }) {
 
   const rendered = renderLines(lines, revealed, typing)
   const file = platform === "windows" ? "install_apps.ps1" : "install_apps.sh"
+  const query = chipQuery.trim().toLowerCase()
+  const shown = query ? palette.filter((app) => app.name.toLowerCase().includes(query)) : palette
 
   return (
     <div className="glow-primary overflow-hidden rounded-xl border bg-card/80 backdrop-blur">
@@ -276,31 +279,49 @@ export function DeckConsole({ apps }: { apps: DeckApp[] }) {
         />
       </div>
 
-      <div className="flex flex-wrap gap-1.5 border-t bg-card px-3 py-3">
-        {palette.map((app) => {
-          const active = selected.includes(app.id)
-          return (
-            <button
-              key={app.id}
-              type="button"
-              aria-pressed={active}
-              onClick={() => toggle(app.id)}
-              className={cn(
-                "group inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-xs transition-all",
-                active
-                  ? "border-primary/50 bg-primary/10 text-foreground"
-                  : "border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground",
-              )}
-            >
-              {active ? (
-                <Check className="size-3 text-primary" />
-              ) : (
-                <Plus className="size-3 opacity-60" />
-              )}
-              {app.name}
-            </button>
-          )
-        })}
+      <div className="space-y-2 border-t bg-card px-3 py-3">
+        <div className="relative">
+          <Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-2.5 size-3.5 text-muted-foreground" />
+          <input
+            value={chipQuery}
+            onChange={(event) => setChipQuery(event.target.value)}
+            placeholder="filter apps…"
+            aria-label="Filter apps"
+            className="h-8 w-full rounded-md border bg-secondary/30 pr-2 pl-8 font-mono text-xs outline-none placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-ring/50"
+          />
+        </div>
+        <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
+          {shown.length === 0 ? (
+            <span className="px-1 py-1 font-mono text-muted-foreground/60 text-xs">
+              # no apps match “{chipQuery.trim()}”
+            </span>
+          ) : (
+            shown.map((app) => {
+              const active = selected.includes(app.id)
+              return (
+                <button
+                  key={app.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => toggle(app.id)}
+                  className={cn(
+                    "group inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-xs transition-all",
+                    active
+                      ? "border-primary/50 bg-primary/10 text-foreground"
+                      : "border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground",
+                  )}
+                >
+                  {active ? (
+                    <Check className="size-3 text-primary" />
+                  ) : (
+                    <Plus className="size-3 opacity-60" />
+                  )}
+                  {app.name}
+                </button>
+              )
+            })
+          )}
+        </div>
       </div>
     </div>
   )
