@@ -1,0 +1,183 @@
+{
+  "category": "Communication",
+  "description": "Chat, voice and video conferencing",
+  "apps": [
+    {
+      "name": "Discord",
+      "summary": "Voice, video, and text chat app popular for communities and gaming, organized into servers and channels.",
+      "homepage": "https://discord.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Discord.Discord"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.discordapp.Discord"
+        }
+      ]
+    },
+    {
+      "name": "Telegram Desktop",
+      "summary": "Cloud-based messaging app with chats, groups, channels, and voice/video calls; open-source clients.",
+      "homepage": "https://telegram.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Telegram.TelegramDesktop"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.telegram.desktop"
+        },
+        {
+          "manager": "apt",
+          "identifier": "telegram-desktop"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "telegram-desktop"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "telegram-desktop"
+        }
+      ]
+    },
+    {
+      "name": "Signal",
+      "summary": "End-to-end encrypted messaging app with one-to-one and group text, voice, and video calls.",
+      "homepage": "https://signal.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "OpenWhisperSystems.Signal"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.signal.Signal"
+        }
+      ]
+    },
+    {
+      "name": "Element",
+      "summary": "Open-source Matrix client for end-to-end encrypted chat, voice, and video over the decentralized Matrix network.",
+      "homepage": "https://element.io",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Element.Element"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "im.riot.Riot"
+        }
+      ]
+    },
+    {
+      "name": "Zoom",
+      "summary": "Video conferencing app for meetings, webinars, chat, and screen sharing; free tier with meeting limits.",
+      "homepage": "https://zoom.us",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Zoom.Zoom"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "us.zoom.Zoom"
+        }
+      ]
+    },
+    {
+      "name": "Slack",
+      "summary": "Team messaging and collaboration app with channels, direct messages, calls, and integrations.",
+      "homepage": "https://slack.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "SlackTechnologies.Slack"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.slack.Slack"
+        }
+      ]
+    },
+    {
+      "name": "Jitsi Meet",
+      "summary": "Open-source desktop client for Jitsi WebRTC video conferences with screen sharing and encryption.",
+      "homepage": "https://jitsi.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Jitsi.Meet"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.jitsi.jitsi-meet"
+        }
+      ]
+    },
+    {
+      "name": "Mumble",
+      "summary": "Open-source, low-latency, encrypted voice chat application primarily used for gaming and group voice comms.",
+      "homepage": "https://www.mumble.info",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Mumble.Mumble.Client"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "info.mumble.Mumble"
+        }
+      ]
+    },
+    {
+      "name": "Thunderbird",
+      "summary": "Free, open-source email, calendar, and chat client from Mozilla, supporting IMAP/POP and add-ons.",
+      "homepage": "https://www.thunderbird.net",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Mozilla.Thunderbird"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.mozilla.Thunderbird"
+        },
+        {
+          "manager": "apt",
+          "identifier": "thunderbird"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "thunderbird"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "thunderbird"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "category": "Gaming",
+  "description": "Game launchers, stores and tools",
+  "apps": [
+    {
+      "name": "Steam",
+      "summary": "Valve's game store, library and launcher with Proton compatibility for running Windows games on Linux.",
+      "homepage": "https://store.steampowered.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Valve.Steam"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.valvesoftware.Steam"
+        }
+      ]
+    },
+    {
+      "name": "Heroic Games Launcher",
+      "summary": "Open-source launcher for Epic Games, GOG and Amazon Prime Gaming libraries on Windows and Linux.",
+      "homepage": "https://heroicgameslauncher.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "HeroicGamesLauncher.HeroicGamesLauncher"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.heroicgameslauncher.hgl"
+        }
+      ]
+    },
+    {
+      "name": "Lutris",
+      "summary": "Open-source game manager for Linux that installs and runs games across many platforms and Wine.",
+      "homepage": "https://lutris.net",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "net.lutris.Lutris"
+        }
+      ]
+    },
+    {
+      "name": "Prism Launcher",
+      "summary": "Open-source Minecraft launcher for managing multiple instances, mods and mod loaders like Fabric and Forge.",
+      "homepage": "https://prismlauncher.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "PrismLauncher.PrismLauncher"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.prismlauncher.PrismLauncher"
+        }
+      ]
+    },
+    {
+      "name": "RetroArch",
+      "summary": "Open-source frontend for emulators, game engines and media players via the libretro core API.",
+      "homepage": "https://www.retroarch.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Libretro.RetroArch"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.libretro.RetroArch"
+        }
+      ]
+    },
+    {
+      "name": "itch",
+      "summary": "Open-source desktop app for downloading, installing and updating games and software from itch.io.",
+      "homepage": "https://itch.io/app",
+      "windows": [
+        {
+          "manager": "direct",
+          "identifier": "https://itch.io/app"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.itch.itch"
+        }
+      ]
+    },
+    {
+      "name": "Bottles",
+      "summary": "Open-source Wine prefix manager for running Windows software and games on Linux in sandboxed environments.",
+      "homepage": "https://usebottles.com",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.usebottles.bottles"
+        }
+      ]
+    },
+    {
+      "name": "ProtonUp-Qt",
+      "summary": "Open-source GUI to install and manage GE-Proton and Wine-GE compatibility tools for Steam and Lutris.",
+      "homepage": "https://davidotek.github.io/protonup-qt",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "net.davidotek.pupgui2"
+        }
+      ]
+    },
+    {
+      "name": "GOG Galaxy",
+      "summary": "GOG's DRM-free game client that combines multiple game libraries and platforms into one launcher.",
+      "homepage": "https://www.gog.com/galaxy",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "GOG.Galaxy"
+        }
+      ]
+    },
+    {
+      "name": "Epic Games Launcher",
+      "summary": "Epic's free client for the Epic Games Store, Fortnite and Unreal Engine downloads.",
+      "homepage": "https://store.epicgames.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "EpicGames.EpicGamesLauncher"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "category": "Virtualization & Containers",
+  "description": "VMs, containers and emulators",
+  "apps": [
+    {
+      "name": "VirtualBox",
+      "summary": "Oracle's free, open-source type-2 hypervisor for running x86/AMD64 virtual machines on Windows, Linux and macOS hosts.",
+      "homepage": "https://www.virtualbox.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Oracle.VirtualBox"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.VirtualBox.VirtualBox"
+        }
+      ]
+    },
+    {
+      "name": "QEMU",
+      "summary": "Generic open-source machine emulator and virtualizer supporting many CPU architectures and full-system emulation.",
+      "homepage": "https://www.qemu.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "SoftwareFreedomConservancy.QEMU"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "pacman",
+          "identifier": "qemu-full"
+        }
+      ]
+    },
+    {
+      "name": "Virtual Machine Manager",
+      "summary": "libvirt desktop UI (virt-manager) for creating and managing KVM, QEMU and Xen virtual machines.",
+      "homepage": "https://virt-manager.org/",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.virt_manager.virt-manager"
+        },
+        {
+          "manager": "apt",
+          "identifier": "virt-manager"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "virt-manager"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "virt-manager"
+        }
+      ]
+    },
+    {
+      "name": "GNOME Boxes",
+      "summary": "Simple GNOME application for creating and running virtual machines with minimal configuration.",
+      "homepage": "https://apps.gnome.org/Boxes/",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.gnome.Boxes"
+        },
+        {
+          "manager": "apt",
+          "identifier": "gnome-boxes"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "gnome-boxes"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "gnome-boxes"
+        }
+      ]
+    },
+    {
+      "name": "Docker Desktop",
+      "summary": "Desktop application for building, running and sharing containerized apps with a bundled Docker engine and Kubernetes.",
+      "homepage": "https://www.docker.com/products/docker-desktop/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Docker.DockerDesktop"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "direct",
+          "identifier": "https://docs.docker.com/desktop/setup/install/linux/"
+        }
+      ]
+    },
+    {
+      "name": "Podman Desktop",
+      "summary": "Open-source graphical tool for working with containers and Kubernetes using Podman and other container engines.",
+      "homepage": "https://podman-desktop.io/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "RedHat.Podman-Desktop"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.podman_desktop.PodmanDesktop"
+        }
+      ]
+    },
+    {
+      "name": "Vagrant",
+      "summary": "HashiCorp tool for building and managing reproducible virtual machine development environments via providers like VirtualBox.",
+      "homepage": "https://www.vagrantup.com/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Hashicorp.Vagrant"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "vagrant"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "vagrant"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "vagrant"
+        }
+      ]
+    },
+    {
+      "name": "Multipass",
+      "summary": "Canonical's lightweight VM manager that spins up on-demand Ubuntu instances using the host hypervisor.",
+      "homepage": "https://canonical.com/multipass",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Canonical.Multipass"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "snap",
+          "identifier": "multipass"
+        }
+      ]
+    }
+  ]
+}

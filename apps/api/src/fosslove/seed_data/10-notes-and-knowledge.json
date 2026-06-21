@@ -1,0 +1,124 @@
+{
+  "category": "Notes & Knowledge",
+  "description": "Note-taking and personal knowledge bases",
+  "apps": [
+    {
+      "name": "Obsidian",
+      "summary": "Knowledge base and note-taking app working on a local folder of plain-text Markdown files, with linking, graph view, and plugins.",
+      "homepage": "https://obsidian.md",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Obsidian.Obsidian"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "md.obsidian.Obsidian"
+        }
+      ]
+    },
+    {
+      "name": "Logseq",
+      "summary": "Local-first, open-source outliner notebook for organizing your personal knowledge base over plain-text Markdown and Org-mode files.",
+      "homepage": "https://logseq.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Logseq.Logseq"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.logseq.Logseq"
+        }
+      ]
+    },
+    {
+      "name": "Standard Notes",
+      "summary": "End-to-end encrypted, open-source note-taking app focused on privacy and long-term data longevity.",
+      "homepage": "https://standardnotes.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "StandardNotes.StandardNotes"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.standardnotes.standardnotes"
+        }
+      ]
+    },
+    {
+      "name": "Zettlr",
+      "summary": "Open-source Markdown editor for writers and researchers with citation, footnote, and Zettelkasten note-linking support.",
+      "homepage": "https://www.zettlr.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Zettlr.Zettlr"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.zettlr.Zettlr"
+        }
+      ]
+    },
+    {
+      "name": "QOwnNotes",
+      "summary": "Open-source plain-text Markdown notepad and to-do manager with Nextcloud/ownCloud integration.",
+      "homepage": "https://www.qownnotes.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "pbek.QOwnNotes"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.qownnotes.QOwnNotes"
+        }
+      ]
+    },
+    {
+      "name": "Anytype",
+      "summary": "Local-first, end-to-end encrypted, open-source app for notes, documents, and personal knowledge graphs.",
+      "homepage": "https://anytype.io",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.anytype.anytype"
+        }
+      ]
+    },
+    {
+      "name": "Trilium Notes",
+      "summary": "Open-source hierarchical note-taking application for building large personal knowledge bases (TriliumNext).",
+      "homepage": "https://triliumnotes.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "TriliumNext.Notes"
+        }
+      ]
+    },
+    {
+      "name": "Notion",
+      "summary": "Freeware all-in-one workspace for notes, documents, wikis, and databases (closed-source, free personal tier).",
+      "homepage": "https://www.notion.so",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Notion.Notion"
+        }
+      ]
+    }
+  ]
+}

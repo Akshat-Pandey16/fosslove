@@ -1,0 +1,171 @@
+{
+  "category": "File Management",
+  "description": "File managers, sync and search",
+  "apps": [
+    {
+      "name": "Czkawka",
+      "summary": "Fast, open-source tool to find and remove duplicate files, empty folders, similar images and other junk.",
+      "homepage": "https://github.com/qarmin/czkawka",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "qarmin.czkawka.gui"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.github.qarmin.czkawka"
+        }
+      ]
+    },
+    {
+      "name": "Double Commander",
+      "summary": "Free, open-source cross-platform twin-panel (orthodox) file manager inspired by Total Commander.",
+      "homepage": "https://doublecmd.sourceforge.io/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "alexx2000.DoubleCommander"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "doublecmd-gtk"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "doublecmd-gtk"
+        }
+      ]
+    },
+    {
+      "name": "Krusader",
+      "summary": "Advanced open-source twin-panel file manager for KDE Plasma and other Linux desktops with extensive archive and FTP support.",
+      "homepage": "https://krusader.org/",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.kde.krusader"
+        },
+        {
+          "manager": "apt",
+          "identifier": "krusader"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "krusader"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "krusader"
+        }
+      ]
+    },
+    {
+      "name": "FreeFileSync",
+      "summary": "Open-source folder comparison and synchronization tool with mirror, two-way and backup modes.",
+      "homepage": "https://freefilesync.org/",
+      "windows": [
+        {
+          "manager": "direct",
+          "identifier": "https://freefilesync.org/download.php"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.freefilesync.FreeFileSync"
+        }
+      ]
+    },
+    {
+      "name": "Syncthing",
+      "summary": "Open-source, decentralized continuous file synchronization that syncs files peer-to-peer between devices without a cloud server.",
+      "homepage": "https://syncthing.net/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Syncthing.Syncthing"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "syncthing"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "syncthing"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "syncthing"
+        }
+      ]
+    },
+    {
+      "name": "Syncthing Tray",
+      "summary": "Open-source system tray application and desktop integration for managing Syncthing.",
+      "homepage": "https://github.com/Martchus/syncthingtray",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.github.martchus.syncthingtray"
+        }
+      ]
+    },
+    {
+      "name": "Nextcloud Desktop",
+      "summary": "Open-source desktop sync client for Nextcloud servers, keeping local folders in sync with self-hosted cloud storage.",
+      "homepage": "https://nextcloud.com/install/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Nextcloud.NextcloudDesktop"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.nextcloud.desktopclient.nextcloud"
+        }
+      ]
+    },
+    {
+      "name": "Everything",
+      "summary": "Free instant file and folder search tool for Windows that locates files by name across NTFS volumes in real time.",
+      "homepage": "https://www.voidtools.com/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "voidtools.Everything"
+        }
+      ]
+    },
+    {
+      "name": "Filelight",
+      "summary": "Open-source KDE disk usage analyzer that visualizes folder sizes as interactive concentric rings.",
+      "homepage": "https://apps.kde.org/filelight/",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.kde.filelight"
+        },
+        {
+          "manager": "apt",
+          "identifier": "filelight"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "filelight"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "filelight"
+        }
+      ]
+    }
+  ]
+}

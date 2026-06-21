@@ -1,0 +1,162 @@
+{
+  "category": "Photography",
+  "description": "Photo management and RAW editing",
+  "apps": [
+    {
+      "name": "RawTherapee",
+      "summary": "Open-source cross-platform RAW photo processing program with advanced demosaicing and color management.",
+      "homepage": "https://www.rawtherapee.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "RawTherapee.RawTherapee"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.rawtherapee.RawTherapee"
+        },
+        {
+          "manager": "apt",
+          "identifier": "rawtherapee"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "rawtherapee"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "rawtherapee"
+        }
+      ]
+    },
+    {
+      "name": "digiKam",
+      "summary": "Open-source professional photo management application for organizing, tagging, and editing large photo collections including RAW files.",
+      "homepage": "https://www.digikam.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "KDE.digikam"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.kde.digikam"
+        },
+        {
+          "manager": "apt",
+          "identifier": "digikam"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "digikam"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "digikam"
+        }
+      ]
+    },
+    {
+      "name": "Shotwell",
+      "summary": "Open-source photo organizer for the GNOME desktop that imports, organizes, and lightly edits photos including RAW.",
+      "homepage": "https://shotwell-project.org",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.gnome.Shotwell"
+        },
+        {
+          "manager": "apt",
+          "identifier": "shotwell"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "shotwell"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "shotwell"
+        }
+      ]
+    },
+    {
+      "name": "nomacs",
+      "summary": "Open-source lightweight image viewer supporting RAW and PSD with metadata, histogram, and image comparison tools.",
+      "homepage": "https://nomacs.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "nomacs.nomacs"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.nomacs.ImageLounge"
+        },
+        {
+          "manager": "apt",
+          "identifier": "nomacs"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "nomacs"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "nomacs"
+        }
+      ]
+    },
+    {
+      "name": "XnView MP",
+      "summary": "Free cross-platform photo viewer, browser, and converter supporting more than 500 image formats including RAW.",
+      "homepage": "https://www.xnview.com/en/xnviewmp/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "XnSoft.XnViewMP"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.xnview.XnViewMP"
+        }
+      ]
+    },
+    {
+      "name": "Hugin",
+      "summary": "Open-source panorama photo stitcher for combining overlapping images into wide-angle and high-resolution panoramas.",
+      "homepage": "https://hugin.sourceforge.io",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Hugin.Hugin"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "net.sourceforge.Hugin"
+        },
+        {
+          "manager": "apt",
+          "identifier": "hugin"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "hugin"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "hugin"
+        }
+      ]
+    }
+  ]
+}

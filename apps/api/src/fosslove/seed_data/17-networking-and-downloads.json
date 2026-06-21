@@ -1,0 +1,209 @@
+{
+  "category": "Networking & Downloads",
+  "description": "Download managers, torrent and transfer tools",
+  "apps": [
+    {
+      "name": "qBittorrent",
+      "summary": "Open-source, ads-free BitTorrent client with a built-in search engine, RSS, and web UI, built on Qt and libtorrent.",
+      "homepage": "https://www.qbittorrent.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "qBittorrent.qBittorrent"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.qbittorrent.qBittorrent"
+        },
+        {
+          "manager": "apt",
+          "identifier": "qbittorrent"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "qbittorrent"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "qbittorrent"
+        }
+      ]
+    },
+    {
+      "name": "Transmission",
+      "summary": "Lightweight, open-source BitTorrent client with a simple GTK interface and a cross-platform daemon and web frontend.",
+      "homepage": "https://transmissionbt.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Transmission.Transmission"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.transmissionbt.Transmission"
+        },
+        {
+          "manager": "apt",
+          "identifier": "transmission-gtk"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "transmission-gtk"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "transmission-gtk"
+        }
+      ]
+    },
+    {
+      "name": "Deluge",
+      "summary": "Lightweight, open-source BitTorrent client with a plugin system and separate daemon, GTK, console, and web interfaces.",
+      "homepage": "https://deluge-torrent.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "DelugeTeam.Deluge"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.deluge_torrent.deluge"
+        },
+        {
+          "manager": "apt",
+          "identifier": "deluge"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "deluge"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "deluge"
+        }
+      ]
+    },
+    {
+      "name": "Free Download Manager",
+      "summary": "Freeware download accelerator supporting HTTP, FTP, and BitTorrent with file segmentation and scheduling.",
+      "homepage": "https://www.freedownloadmanager.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "SoftDeluxe.FreeDownloadManager"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.freedownloadmanager.Manager"
+        }
+      ]
+    },
+    {
+      "name": "Motrix",
+      "summary": "Open-source, full-featured download manager built on aria2 supporting HTTP, FTP, BitTorrent, and Magnet links.",
+      "homepage": "https://motrix.app",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "agalwood.Motrix"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "net.agalwood.Motrix"
+        }
+      ]
+    },
+    {
+      "name": "JDownloader",
+      "summary": "Free, Java-based download manager that handles one-click hosters, link grabbing, and automatic extraction.",
+      "homepage": "https://jdownloader.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "AppWork.JDownloader"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.jdownloader.JDownloader"
+        }
+      ]
+    },
+    {
+      "name": "aria2",
+      "summary": "Lightweight command-line download utility supporting HTTP/HTTPS, FTP, SFTP, BitTorrent, and Metalink with multi-source downloads.",
+      "homepage": "https://aria2.github.io",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "aria2.aria2"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "aria2"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "aria2"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "aria2"
+        }
+      ]
+    },
+    {
+      "name": "FileZilla",
+      "summary": "Open-source cross-platform FTP, FTPS, and SFTP client for transferring files to and from servers.",
+      "homepage": "https://filezilla-project.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "TimKosse.FileZilla.Client"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.filezillaproject.Filezilla"
+        },
+        {
+          "manager": "apt",
+          "identifier": "filezilla"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "filezilla"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "filezilla"
+        }
+      ]
+    },
+    {
+      "name": "WinSCP",
+      "summary": "Free, open-source SFTP, FTP, WebDAV, S3, and SCP client for Windows with a dual-pane file manager.",
+      "homepage": "https://winscp.net",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "WinSCP.WinSCP"
+        }
+      ]
+    }
+  ]
+}

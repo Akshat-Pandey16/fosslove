@@ -1,0 +1,164 @@
+{
+  "category": "Audio & Music",
+  "description": "Music players, audio editors and streaming",
+  "apps": [
+    {
+      "name": "Audacity",
+      "summary": "Free, open-source multi-track audio editor and recorder for recording, cutting, mixing and applying effects to sound.",
+      "homepage": "https://www.audacityteam.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Audacity.Audacity"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.audacityteam.Audacity"
+        },
+        {
+          "manager": "apt",
+          "identifier": "audacity"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "audacity"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "audacity"
+        }
+      ]
+    },
+    {
+      "name": "Spotify",
+      "summary": "Freeware desktop client for the Spotify music and podcast streaming service.",
+      "homepage": "https://www.spotify.com/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Spotify.Spotify"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.spotify.Client"
+        }
+      ]
+    },
+    {
+      "name": "Strawberry Music Player",
+      "summary": "Open-source music player and collection organizer aimed at music collectors and audiophiles; a fork of Clementine.",
+      "homepage": "https://www.strawberrymusicplayer.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "StrawberryMusicPlayer.Strawberry"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.strawberrymusicplayer.strawberry"
+        },
+        {
+          "manager": "apt",
+          "identifier": "strawberry"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "strawberry"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "strawberry"
+        }
+      ]
+    },
+    {
+      "name": "LMMS",
+      "summary": "Free, open-source digital audio workstation for producing music with synths, samples and a MIDI keyboard.",
+      "homepage": "https://lmms.io/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "LMMS.LMMS"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.lmms.LMMS"
+        },
+        {
+          "manager": "apt",
+          "identifier": "lmms"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "lmms"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "lmms"
+        }
+      ]
+    },
+    {
+      "name": "MuseScore",
+      "summary": "Free, open-source music notation software to create, play back and print sheet music.",
+      "homepage": "https://musescore.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Musescore.Musescore"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.musescore.MuseScore"
+        },
+        {
+          "manager": "apt",
+          "identifier": "musescore"
+        }
+      ]
+    },
+    {
+      "name": "Tenacity",
+      "summary": "Free, open-source multi-track audio editor and recorder forked from Audacity, without telemetry.",
+      "homepage": "https://tenacityaudio.org/",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.tenacityaudio.Tenacity"
+        }
+      ]
+    },
+    {
+      "name": "foobar2000",
+      "summary": "Advanced, lightweight freeware audio player for Windows with extensive customization and format support.",
+      "homepage": "https://www.foobar2000.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "PeterPawlowski.foobar2000"
+        }
+      ]
+    },
+    {
+      "name": "MusicBee",
+      "summary": "Freeware music manager and player for Windows with library organization, podcasts and web radio support.",
+      "homepage": "https://www.getmusicbee.com/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "StevenMayall.MusicBee"
+        }
+      ]
+    }
+  ]
+}

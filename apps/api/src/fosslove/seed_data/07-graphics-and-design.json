@@ -1,0 +1,239 @@
+{
+  "category": "Graphics & Design",
+  "description": "Image editing, vector and illustration tools",
+  "apps": [
+    {
+      "name": "GIMP",
+      "summary": "Free and open-source raster graphics editor for photo retouching, image composition, and authoring.",
+      "homepage": "https://www.gimp.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "GIMP.GIMP"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.gimp.GIMP"
+        },
+        {
+          "manager": "apt",
+          "identifier": "gimp"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "gimp"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "gimp"
+        }
+      ]
+    },
+    {
+      "name": "Inkscape",
+      "summary": "Free and open-source vector graphics editor using the SVG format for illustration and design.",
+      "homepage": "https://inkscape.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Inkscape.Inkscape"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.inkscape.Inkscape"
+        },
+        {
+          "manager": "apt",
+          "identifier": "inkscape"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "inkscape"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "inkscape"
+        }
+      ]
+    },
+    {
+      "name": "Krita",
+      "summary": "Free and open-source digital painting studio for concept art, illustration, and texture work.",
+      "homepage": "https://krita.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "KDE.Krita"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.kde.krita"
+        },
+        {
+          "manager": "apt",
+          "identifier": "krita"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "krita"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "krita"
+        }
+      ]
+    },
+    {
+      "name": "Blender",
+      "summary": "Free and open-source 3D creation suite covering modeling, sculpting, animation, rendering, and compositing.",
+      "homepage": "https://www.blender.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "BlenderFoundation.Blender"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.blender.Blender"
+        },
+        {
+          "manager": "apt",
+          "identifier": "blender"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "blender"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "blender"
+        }
+      ]
+    },
+    {
+      "name": "darktable",
+      "summary": "Free and open-source RAW photo workflow application for non-destructive editing and library management.",
+      "homepage": "https://www.darktable.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "darktable.darktable"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.darktable.Darktable"
+        },
+        {
+          "manager": "apt",
+          "identifier": "darktable"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "darktable"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "darktable"
+        }
+      ]
+    },
+    {
+      "name": "Scribus",
+      "summary": "Free and open-source desktop publishing and page-layout tool for press-ready output.",
+      "homepage": "https://www.scribus.net",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Scribus.Scribus"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "net.scribus.Scribus"
+        },
+        {
+          "manager": "apt",
+          "identifier": "scribus"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "scribus"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "scribus"
+        }
+      ]
+    },
+    {
+      "name": "Pinta",
+      "summary": "Free and open-source lightweight image editing and drawing application inspired by Paint.NET.",
+      "homepage": "https://www.pinta-project.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Pinta.Pinta"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.github.PintaProject.Pinta"
+        },
+        {
+          "manager": "apt",
+          "identifier": "pinta"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "pinta"
+        }
+      ]
+    },
+    {
+      "name": "gThumb",
+      "summary": "Image viewer, editor, browser, and organizer for the GNOME desktop with basic color and crop tools.",
+      "homepage": "https://wiki.gnome.org/Apps/gThumb",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.gnome.gThumb"
+        },
+        {
+          "manager": "apt",
+          "identifier": "gthumb"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "gthumb"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "gthumb"
+        }
+      ]
+    },
+    {
+      "name": "ImageGlass",
+      "summary": "Lightweight open-source image viewer for Windows supporting a wide range of image formats.",
+      "homepage": "https://imageglass.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "DuongDieuPhap.ImageGlass"
+        }
+      ]
+    }
+  ]
+}

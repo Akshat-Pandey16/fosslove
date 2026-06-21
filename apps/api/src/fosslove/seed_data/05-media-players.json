@@ -1,0 +1,198 @@
+{
+  "category": "Media Players",
+  "description": "Video and media playback",
+  "apps": [
+    {
+      "name": "VLC media player",
+      "summary": "Free and open-source cross-platform multimedia player that plays most audio and video formats, DVDs, CDs, and network streams.",
+      "homepage": "https://www.videolan.org/vlc/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "VideoLAN.VLC"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.videolan.VLC"
+        },
+        {
+          "manager": "apt",
+          "identifier": "vlc"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "vlc"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "vlc"
+        }
+      ]
+    },
+    {
+      "name": "mpv",
+      "summary": "Free, open-source, command-line-driven media player based on MPlayer/mpv2, known for high-quality video output and scripting.",
+      "homepage": "https://mpv.io/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "mpv.net"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.mpv.Mpv"
+        },
+        {
+          "manager": "apt",
+          "identifier": "mpv"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "mpv"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "mpv"
+        }
+      ]
+    },
+    {
+      "name": "Kodi",
+      "summary": "Free and open-source home-theater media center for playing and organizing video, music, podcasts, and other digital media.",
+      "homepage": "https://kodi.tv/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "XBMCFoundation.Kodi"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "tv.kodi.Kodi"
+        },
+        {
+          "manager": "apt",
+          "identifier": "kodi"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "kodi"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "kodi"
+        }
+      ]
+    },
+    {
+      "name": "MPC-HC",
+      "summary": "Lightweight open-source media player for Windows (clsid2 fork of Media Player Classic - Home Cinema) supporting common video and audio formats.",
+      "homepage": "https://github.com/clsid2/mpc-hc",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "clsid2.mpc-hc"
+        }
+      ]
+    },
+    {
+      "name": "SMPlayer",
+      "summary": "Free, open-source media player with built-in codecs that plays virtually all video and audio formats and remembers playback settings per file.",
+      "homepage": "https://www.smplayer.info/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "SMPlayer.SMPlayer"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "info.smplayer.SMPlayer"
+        },
+        {
+          "manager": "apt",
+          "identifier": "smplayer"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "smplayer"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "smplayer"
+        }
+      ]
+    },
+    {
+      "name": "Jellyfin Media Player",
+      "summary": "Free, open-source desktop client for the Jellyfin media server, built on Qt WebEngine and libmpv with hardware decoding and direct play.",
+      "homepage": "https://jellyfin.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Jellyfin.JellyfinMediaPlayer"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.github.iwalton3.jellyfin-media-player"
+        }
+      ]
+    },
+    {
+      "name": "Audacious",
+      "summary": "Free, open-source audio player with a lightweight interface, Winamp-classic skin support, equalizer, and playlist management.",
+      "homepage": "https://audacious-media-player.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Audacious.MediaPlayer"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.atheme.audacious"
+        },
+        {
+          "manager": "apt",
+          "identifier": "audacious"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "audacious"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "audacious"
+        }
+      ]
+    },
+    {
+      "name": "Strawberry",
+      "summary": "Free, open-source music player and collection organizer for audiophiles, a Qt-based fork of Clementine with broad audio-format support.",
+      "homepage": "https://www.strawberrymusicplayer.org/",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.strawberrymusicplayer.strawberry"
+        },
+        {
+          "manager": "apt",
+          "identifier": "strawberry"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "strawberry"
+        }
+      ]
+    }
+  ]
+}

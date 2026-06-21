@@ -1,0 +1,160 @@
+{
+  "category": "Terminals & Shells",
+  "description": "Terminal emulators, shells and multiplexers",
+  "apps": [
+    {
+      "name": "Windows Terminal",
+      "summary": "Microsoft's modern, tabbed terminal host for command-line shells like PowerShell, Command Prompt, and WSL on Windows.",
+      "homepage": "https://github.com/microsoft/terminal",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Microsoft.WindowsTerminal"
+        }
+      ]
+    },
+    {
+      "name": "WezTerm",
+      "summary": "GPU-accelerated, cross-platform terminal emulator and multiplexer configured with Lua, supporting tabs, splits, and ligatures.",
+      "homepage": "https://wezterm.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "wez.wezterm"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.wezfurlong.wezterm"
+        }
+      ]
+    },
+    {
+      "name": "Alacritty",
+      "summary": "Cross-platform, OpenGL/GPU-accelerated terminal emulator focused on simplicity and performance.",
+      "homepage": "https://alacritty.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Alacritty.Alacritty"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "alacritty"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "alacritty"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "alacritty"
+        }
+      ]
+    },
+    {
+      "name": "kitty",
+      "summary": "Fast, feature-rich, GPU-based terminal emulator with tabs, splits, and a graphics protocol.",
+      "homepage": "https://sw.kovidgoyal.net/kitty/",
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "kitty"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "kitty"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "kitty"
+        }
+      ]
+    },
+    {
+      "name": "Tabby",
+      "summary": "Highly configurable, open-source terminal emulator with built-in SSH and serial clients for Windows, macOS, and Linux.",
+      "homepage": "https://tabby.sh",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Eugeny.Tabby"
+        }
+      ]
+    },
+    {
+      "name": "PowerShell",
+      "summary": "Cross-platform automation shell and scripting language from Microsoft (PowerShell 7+, the pwsh successor to Windows PowerShell).",
+      "homepage": "https://github.com/PowerShell/PowerShell",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Microsoft.PowerShell"
+        }
+      ]
+    },
+    {
+      "name": "Black Box",
+      "summary": "Native GTK4 terminal emulator for GNOME with strong theming, Sixel rendering, and a clean modern interface.",
+      "homepage": "https://gitlab.gnome.org/raggesilver/blackbox",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.raggesilver.BlackBox"
+        }
+      ]
+    },
+    {
+      "name": "Ptyxis",
+      "summary": "Container-focused GNOME terminal emulator with podman, toolbox, and distrobox integration, tabs, and profiles.",
+      "homepage": "https://gitlab.gnome.org/chergert/ptyxis",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "app.devsuite.Ptyxis"
+        }
+      ]
+    },
+    {
+      "name": "fish",
+      "summary": "User-friendly interactive Unix shell with autosuggestions, syntax highlighting, and sane defaults out of the box.",
+      "homepage": "https://fishshell.com",
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "fish"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "fish"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "fish"
+        }
+      ]
+    },
+    {
+      "name": "tmux",
+      "summary": "Terminal multiplexer that lets you run multiple persistent terminal sessions, windows, and panes from one screen.",
+      "homepage": "https://github.com/tmux/tmux",
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "tmux"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "tmux"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "tmux"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+{
+  "category": "System Utilities",
+  "description": "Archivers, monitors and system tweaks",
+  "apps": [
+    {
+      "name": "7-Zip",
+      "summary": "Open-source file archiver with a high compression ratio, supporting 7z, ZIP, RAR extraction, TAR, GZip and many more formats.",
+      "homepage": "https://www.7-zip.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "7zip.7zip"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "p7zip-full"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "p7zip"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "p7zip"
+        }
+      ]
+    },
+    {
+      "name": "PeaZip",
+      "summary": "Free, open-source archive manager that creates and extracts 7z, ZIP, TAR, RAR, ZPAQ and 200+ archive formats with strong encryption.",
+      "homepage": "https://peazip.github.io/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Giorgiotani.Peazip"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.github.peazip.PeaZip"
+        }
+      ]
+    },
+    {
+      "name": "WizTree",
+      "summary": "Fast disk space analyzer that scans drives via the MFT to show which files and folders use the most space as an interactive tree map.",
+      "homepage": "https://diskanalyzer.com/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "AntibodySoftware.WizTree"
+        }
+      ]
+    },
+    {
+      "name": "Disk Usage Analyzer",
+      "summary": "GNOME tool (baobab) that scans folders and drives and shows storage usage as ring or treemap charts to find what consumes disk space.",
+      "homepage": "https://apps.gnome.org/Baobab/",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.gnome.baobab"
+        },
+        {
+          "manager": "apt",
+          "identifier": "baobab"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "baobab"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "baobab"
+        }
+      ]
+    },
+    {
+      "name": "CPU-Z",
+      "summary": "Freeware utility that reports detailed information on the processor, motherboard, chipset, memory modules and SPD, with a benchmark.",
+      "homepage": "https://www.cpuid.com/softwares/cpu-z.html",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "CPUID.CPU-Z"
+        }
+      ]
+    },
+    {
+      "name": "HWiNFO",
+      "summary": "Comprehensive freeware hardware analysis, monitoring and reporting tool covering sensors, temperatures, voltages, fans and clocks.",
+      "homepage": "https://www.hwinfo.com/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "REALiX.HWiNFO"
+        }
+      ]
+    },
+    {
+      "name": "CrystalDiskInfo",
+      "summary": "Open-source HDD/SSD health monitor that reads S.M.A.R.T. attributes, temperature and status for SATA, NVMe, USB and RAID drives.",
+      "homepage": "https://crystalmark.info/en/software/crystaldiskinfo/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "CrystalDewWorld.CrystalDiskInfo"
+        }
+      ]
+    },
+    {
+      "name": "BleachBit",
+      "summary": "Free, open-source disk cleaner and privacy tool that removes cache, cookies, history, temporary files and logs to free space.",
+      "homepage": "https://www.bleachbit.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "BleachBit.BleachBit"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.bleachbit.BleachBit"
+        },
+        {
+          "manager": "apt",
+          "identifier": "bleachbit"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "bleachbit"
+        }
+      ]
+    },
+    {
+      "name": "GParted",
+      "summary": "Free GNOME partition editor for graphically creating, resizing, moving, deleting and checking disk partitions and file systems.",
+      "homepage": "https://gparted.org/",
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "gparted"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "gparted"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "gparted"
+        }
+      ]
+    },
+    {
+      "name": "Mission Center",
+      "summary": "Modern GTK4 system monitor showing CPU, memory, disk, network and GPU usage with a per-app and per-process breakdown.",
+      "homepage": "https://missioncenter.io/",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.missioncenter.MissionCenter"
+        }
+      ]
+    }
+  ]
+}

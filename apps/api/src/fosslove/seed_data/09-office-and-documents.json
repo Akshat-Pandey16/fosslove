@@ -1,0 +1,197 @@
+{
+  "category": "Office & Documents",
+  "description": "Office suites, PDF and document tools",
+  "apps": [
+    {
+      "name": "LibreOffice",
+      "summary": "Free and open-source office suite with word processor, spreadsheet, presentation, drawing, and database tools.",
+      "homepage": "https://www.libreoffice.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "TheDocumentFoundation.LibreOffice"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.libreoffice.LibreOffice"
+        },
+        {
+          "manager": "apt",
+          "identifier": "libreoffice"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "libreoffice"
+        }
+      ]
+    },
+    {
+      "name": "ONLYOFFICE Desktop Editors",
+      "summary": "Open-source office suite for documents, spreadsheets, presentations, and PDF forms, compatible with Office formats.",
+      "homepage": "https://www.onlyoffice.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "ONLYOFFICE.DesktopEditors"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.onlyoffice.desktopeditors"
+        }
+      ]
+    },
+    {
+      "name": "Okular",
+      "summary": "KDE universal document viewer supporting PDF, EPub, comic books, and images with annotation support.",
+      "homepage": "https://okular.kde.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "KDE.Okular"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.kde.okular"
+        },
+        {
+          "manager": "apt",
+          "identifier": "okular"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "okular"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "okular"
+        }
+      ]
+    },
+    {
+      "name": "Sumatra PDF",
+      "summary": "Lightweight, fast PDF, ePub, MOBI, XPS, DjVu, CBZ, and CBR reader for Windows.",
+      "homepage": "https://www.sumatrapdfreader.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "SumatraPDF.SumatraPDF"
+        }
+      ]
+    },
+    {
+      "name": "PDF Arranger",
+      "summary": "Tool to merge, split, rotate, crop, and rearrange pages of PDF documents via a graphical interface.",
+      "homepage": "https://github.com/pdfarranger/pdfarranger",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "PDFArranger.PDFArranger"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.github.jeromerobert.pdfarranger"
+        }
+      ]
+    },
+    {
+      "name": "Xournal++",
+      "summary": "Handwriting notetaking software with PDF annotation support and pen/tablet input.",
+      "homepage": "https://xournalpp.github.io",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Xournal++.Xournal++"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.github.xournalpp.xournalpp"
+        },
+        {
+          "manager": "apt",
+          "identifier": "xournalpp"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "xournalpp"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "xournalpp"
+        }
+      ]
+    },
+    {
+      "name": "Calibre",
+      "summary": "E-book library manager that catalogs, converts, edits, and syncs e-books across formats and devices.",
+      "homepage": "https://calibre-ebook.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "calibre.calibre"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.calibre_ebook.calibre"
+        },
+        {
+          "manager": "apt",
+          "identifier": "calibre"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "calibre"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "calibre"
+        }
+      ]
+    },
+    {
+      "name": "Zotero",
+      "summary": "Free reference manager to collect, organize, annotate, cite, and share research sources.",
+      "homepage": "https://www.zotero.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "DigitalScholar.Zotero"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.zotero.Zotero"
+        }
+      ]
+    },
+    {
+      "name": "Joplin",
+      "summary": "Open-source, privacy-focused Markdown note-taking and to-do app with sync across services and devices.",
+      "homepage": "https://joplinapp.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Joplin.Joplin"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "net.cozic.joplin_desktop"
+        }
+      ]
+    }
+  ]
+}

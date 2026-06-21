@@ -1,0 +1,137 @@
+{
+  "category": "Security & Privacy",
+  "description": "Password managers, VPNs and encryption",
+  "apps": [
+    {
+      "name": "Bitwarden",
+      "summary": "Open-source password manager that securely stores and syncs logins, secrets, and notes across devices.",
+      "homepage": "https://bitwarden.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Bitwarden.Bitwarden"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.bitwarden.desktop"
+        }
+      ]
+    },
+    {
+      "name": "KeePassXC",
+      "summary": "Offline, open-source password manager storing credentials in a locally encrypted KDBX database.",
+      "homepage": "https://keepassxc.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "KeePassXCTeam.KeePassXC"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.keepassxc.KeePassXC"
+        },
+        {
+          "manager": "apt",
+          "identifier": "keepassxc"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "keepassxc"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "keepassxc"
+        }
+      ]
+    },
+    {
+      "name": "Cryptomator",
+      "summary": "Open-source client-side encryption tool that creates encrypted vaults for files stored in cloud storage.",
+      "homepage": "https://cryptomator.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Cryptomator.Cryptomator"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.cryptomator.Cryptomator"
+        }
+      ]
+    },
+    {
+      "name": "VeraCrypt",
+      "summary": "Open-source disk encryption software that creates encrypted volumes and full-disk encryption, based on TrueCrypt.",
+      "homepage": "https://veracrypt.io",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "IDRIX.VeraCrypt"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "direct",
+          "identifier": "https://veracrypt.io/en/Downloads.html"
+        }
+      ]
+    },
+    {
+      "name": "Mullvad Browser",
+      "summary": "Privacy-focused browser by Mullvad and the Tor Project, designed to minimize tracking and fingerprinting.",
+      "homepage": "https://mullvad.net/en/browser",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "MullvadVPN.MullvadBrowser"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "net.mullvad.MullvadBrowser"
+        }
+      ]
+    },
+    {
+      "name": "Proton VPN",
+      "summary": "Privacy-focused VPN from Proton with open-source clients and a free tier for encrypted browsing.",
+      "homepage": "https://protonvpn.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Proton.ProtonVPN"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.protonvpn.www"
+        }
+      ]
+    },
+    {
+      "name": "Mullvad VPN",
+      "summary": "Privacy-focused VPN with anonymous account numbers and an open-source client; no email or personal data required.",
+      "homepage": "https://mullvad.net",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "MullvadVPN.MullvadVPN"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "direct",
+          "identifier": "https://mullvad.net/en/download/vpn/linux"
+        }
+      ]
+    }
+  ]
+}

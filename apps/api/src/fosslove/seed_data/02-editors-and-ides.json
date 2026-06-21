@@ -1,0 +1,222 @@
+{
+  "category": "Editors & IDEs",
+  "description": "Code and text editors and IDEs",
+  "apps": [
+    {
+      "name": "Visual Studio Code",
+      "summary": "Microsoft's free, cross-platform source-code editor with debugging, Git integration, and a large extension marketplace.",
+      "homepage": "https://code.visualstudio.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Microsoft.VisualStudioCode"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.visualstudio.code"
+        },
+        {
+          "manager": "snap",
+          "identifier": "code"
+        }
+      ]
+    },
+    {
+      "name": "VSCodium",
+      "summary": "Community-driven, telemetry-free binary builds of Visual Studio Code under a free license.",
+      "homepage": "https://vscodium.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "VSCodium.VSCodium"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.vscodium.codium"
+        }
+      ]
+    },
+    {
+      "name": "Neovim",
+      "summary": "Hyperextensible, Vim-based terminal text editor with Lua scripting and a built-in LSP client.",
+      "homepage": "https://neovim.io",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Neovim.Neovim"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.neovim.nvim"
+        },
+        {
+          "manager": "apt",
+          "identifier": "neovim"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "neovim"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "neovim"
+        }
+      ]
+    },
+    {
+      "name": "Vim",
+      "summary": "Highly configurable, modal terminal text editor descended from vi, ubiquitous on Unix-like systems.",
+      "homepage": "https://www.vim.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "vim.vim"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "vim"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "vim"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "vim"
+        }
+      ]
+    },
+    {
+      "name": "Notepad++",
+      "summary": "Free Windows source-code editor and Notepad replacement with syntax highlighting for many languages.",
+      "homepage": "https://notepad-plus-plus.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Notepad++.Notepad++"
+        }
+      ]
+    },
+    {
+      "name": "Sublime Text",
+      "summary": "Fast, cross-platform text and code editor; freely evaluable proprietary software with a paid license for continued use.",
+      "homepage": "https://www.sublimetext.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "SublimeHQ.SublimeText.4"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "snap",
+          "identifier": "sublime-text"
+        }
+      ]
+    },
+    {
+      "name": "Zed",
+      "summary": "Open-source, high-performance multiplayer code editor written in Rust with built-in AI and collaboration.",
+      "homepage": "https://zed.dev",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Zed.Zed"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "dev.zed.Zed"
+        }
+      ]
+    },
+    {
+      "name": "IntelliJ IDEA Community Edition",
+      "summary": "Free, open-source JetBrains IDE for Java and Kotlin development with refactoring, debugging, and build-tool support.",
+      "homepage": "https://www.jetbrains.com/idea/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "JetBrains.IntelliJIDEA.Community"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.jetbrains.IntelliJ-IDEA-Community"
+        },
+        {
+          "manager": "snap",
+          "identifier": "intellij-idea-community"
+        }
+      ]
+    },
+    {
+      "name": "Kate",
+      "summary": "KDE's fast multi-document, multi-view text editor with LSP support, Git integration, and 300+ language syntaxes.",
+      "homepage": "https://kate-editor.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "KDE.Kate"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.kde.kate"
+        },
+        {
+          "manager": "apt",
+          "identifier": "kate"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "kate"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "kate"
+        }
+      ]
+    },
+    {
+      "name": "Geany",
+      "summary": "Lightweight cross-platform IDE built on GTK with basic features and broad language support.",
+      "homepage": "https://www.geany.org",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "GeanyProject.Geany"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.geany.Geany"
+        },
+        {
+          "manager": "apt",
+          "identifier": "geany"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "geany"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "geany"
+        }
+      ]
+    }
+  ]
+}

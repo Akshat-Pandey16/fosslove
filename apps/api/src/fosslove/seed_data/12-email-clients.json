@@ -1,0 +1,143 @@
+{
+  "category": "Email Clients",
+  "description": "Desktop email clients",
+  "apps": [
+    {
+      "name": "Betterbird",
+      "summary": "A free, open-source Thunderbird fork with additional features, fixes, and customization options.",
+      "homepage": "https://www.betterbird.eu",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Betterbird.Betterbird"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "eu.betterbird.Betterbird"
+        }
+      ]
+    },
+    {
+      "name": "Mailspring",
+      "summary": "A fast, open-source desktop mail client with unified inbox, snooze, and send-later built on Electron.",
+      "homepage": "https://getmailspring.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Foundry376.Mailspring"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.getmailspring.Mailspring"
+        }
+      ]
+    },
+    {
+      "name": "GNOME Evolution",
+      "summary": "Open-source GNOME personal information manager combining email, calendar, contacts, and tasks.",
+      "homepage": "https://gitlab.gnome.org/GNOME/evolution",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.gnome.Evolution"
+        },
+        {
+          "manager": "apt",
+          "identifier": "evolution"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "evolution"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "evolution"
+        }
+      ]
+    },
+    {
+      "name": "Geary",
+      "summary": "A lightweight open-source email client for the GNOME desktop built around conversations.",
+      "homepage": "https://wiki.gnome.org/Apps/Geary",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.gnome.Geary"
+        },
+        {
+          "manager": "apt",
+          "identifier": "geary"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "geary"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "geary"
+        }
+      ]
+    },
+    {
+      "name": "Claws Mail",
+      "summary": "A fast, lightweight, open-source GTK-based email client and news reader with a plugin architecture.",
+      "homepage": "https://www.claws-mail.org",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.claws_mail.Claws-Mail"
+        },
+        {
+          "manager": "apt",
+          "identifier": "claws-mail"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "claws-mail"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "claws-mail"
+        }
+      ]
+    },
+    {
+      "name": "KMail",
+      "summary": "KDE's open-source email client, part of the Kontact personal information suite.",
+      "homepage": "https://apps.kde.org/kmail2/",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.kde.kmail2"
+        },
+        {
+          "manager": "apt",
+          "identifier": "kmail"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "kmail"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "kmail"
+        }
+      ]
+    },
+    {
+      "name": "eM Client",
+      "summary": "Freeware email, calendar, and contacts client for Windows; free tier limited to personal use.",
+      "homepage": "https://www.emclient.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "eMClient.eMClient"
+        }
+      ]
+    }
+  ]
+}

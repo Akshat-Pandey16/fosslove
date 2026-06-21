@@ -1,0 +1,160 @@
+{
+  "category": "Browsers",
+  "description": "Web browsers",
+  "apps": [
+    {
+      "name": "Firefox",
+      "summary": "Mozilla's free and open-source web browser built on the Gecko engine, focused on privacy and open web standards.",
+      "homepage": "https://www.mozilla.org/firefox/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Mozilla.Firefox"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.mozilla.firefox"
+        },
+        {
+          "manager": "apt",
+          "identifier": "firefox"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "firefox"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "firefox"
+        }
+      ]
+    },
+    {
+      "name": "Chromium",
+      "summary": "The open-source browser project that forms the basis of Google Chrome, without proprietary Google components.",
+      "homepage": "https://www.chromium.org/chromium-projects/",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.chromium.Chromium"
+        },
+        {
+          "manager": "apt",
+          "identifier": "chromium"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "chromium"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "chromium"
+        }
+      ]
+    },
+    {
+      "name": "Brave",
+      "summary": "Open-source Chromium-based browser that blocks ads and trackers by default and offers built-in privacy features.",
+      "homepage": "https://brave.com/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Brave.Brave"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.brave.Browser"
+        }
+      ]
+    },
+    {
+      "name": "Vivaldi",
+      "summary": "Highly customizable Chromium-based browser with built-in tab management, notes, and productivity tools; free but not open source.",
+      "homepage": "https://vivaldi.com/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Vivaldi.Vivaldi"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.vivaldi.Vivaldi"
+        }
+      ]
+    },
+    {
+      "name": "LibreWolf",
+      "summary": "Independent, privacy-focused fork of Firefox that removes telemetry and ships hardened privacy defaults.",
+      "homepage": "https://librewolf.net/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "LibreWolf.LibreWolf"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.gitlab.librewolf-community"
+        }
+      ]
+    },
+    {
+      "name": "Tor Browser",
+      "summary": "Firefox-based browser that routes traffic through the Tor network for anonymity and censorship circumvention.",
+      "homepage": "https://www.torproject.org/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "TorProject.TorBrowser"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.torproject.torbrowser-launcher"
+        }
+      ]
+    },
+    {
+      "name": "Google Chrome",
+      "summary": "Google's fast, widely used Chromium-based web browser; free but not open source.",
+      "homepage": "https://www.google.com/chrome/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Google.Chrome"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.google.Chrome"
+        }
+      ]
+    },
+    {
+      "name": "Opera",
+      "summary": "Chromium-based browser with a built-in free VPN, ad blocker, and sidebar messengers; free but not open source.",
+      "homepage": "https://www.opera.com/",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Opera.Opera"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.opera.Opera"
+        }
+      ]
+    }
+  ]
+}

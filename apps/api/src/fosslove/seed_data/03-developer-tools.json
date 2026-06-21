@@ -1,0 +1,150 @@
+{
+  "category": "Developer Tools",
+  "description": "Version control, API clients, databases, build tools",
+  "apps": [
+    {
+      "name": "Git",
+      "summary": "Distributed version control system for tracking source code changes across projects of any size.",
+      "homepage": "https://git-scm.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Git.Git"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "apt",
+          "identifier": "git"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "git"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "git"
+        }
+      ]
+    },
+    {
+      "name": "GitHub Desktop",
+      "summary": "GUI client for managing Git repositories and GitHub workflows; the Linux build is a community fork.",
+      "homepage": "https://desktop.github.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "GitHub.GitHubDesktop"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.github.shiftey.Desktop"
+        }
+      ]
+    },
+    {
+      "name": "Meld",
+      "summary": "Visual diff and merge tool for comparing files, directories, and version-controlled projects.",
+      "homepage": "https://meldmerge.org",
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "org.gnome.meld"
+        },
+        {
+          "manager": "apt",
+          "identifier": "meld"
+        },
+        {
+          "manager": "dnf",
+          "identifier": "meld"
+        },
+        {
+          "manager": "pacman",
+          "identifier": "meld"
+        }
+      ]
+    },
+    {
+      "name": "DBeaver Community",
+      "summary": "Free multi-platform database tool supporting MySQL, PostgreSQL, SQLite, Oracle, SQL Server, and many more.",
+      "homepage": "https://dbeaver.io",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "dbeaver.dbeaver"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "io.dbeaver.DBeaverCommunity"
+        }
+      ]
+    },
+    {
+      "name": "HeidiSQL",
+      "summary": "Lightweight Windows client for managing MariaDB, MySQL, SQL Server, PostgreSQL, and SQLite databases.",
+      "homepage": "https://www.heidisql.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "HeidiSQL.HeidiSQL"
+        }
+      ]
+    },
+    {
+      "name": "Postman",
+      "summary": "API platform for building, testing, and documenting HTTP and other APIs (freeware, free tier).",
+      "homepage": "https://www.postman.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Postman.Postman"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.getpostman.Postman"
+        }
+      ]
+    },
+    {
+      "name": "Insomnia",
+      "summary": "Open-source API client for REST, GraphQL, gRPC, WebSockets, and SSE.",
+      "homepage": "https://insomnia.rest",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Insomnia.Insomnia"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "rest.insomnia.Insomnia"
+        }
+      ]
+    },
+    {
+      "name": "Bruno",
+      "summary": "Open-source, Git-friendly API client that stores collections as plain-text files on the filesystem.",
+      "homepage": "https://www.usebruno.com",
+      "windows": [
+        {
+          "manager": "winget",
+          "identifier": "Bruno.Bruno"
+        }
+      ],
+      "linux": [
+        {
+          "manager": "flatpak",
+          "identifier": "com.usebruno.Bruno"
+        }
+      ]
+    }
+  ]
+}

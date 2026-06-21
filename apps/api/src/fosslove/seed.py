@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass
+from pathlib import Path
 
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,101 +18,36 @@ from fosslove.services import catalog_service
 
 logger = get_logger(__name__)
 
-Refs = tuple[tuple[PackageManager, str], ...]
+SEED_DIR = Path(__file__).parent / "seed_data"
 
 
-@dataclass(frozen=True, slots=True)
-class SeedApp:
-    category: str
-    name: str
-    summary: str
-    homepage: str
-    windows: Refs = ()
-    linux: Refs = ()
+class SeedPackageRef(BaseModel):
+    manager: PackageManager
+    identifier: str = Field(min_length=1)
 
 
-CATEGORIES: dict[str, str] = {
-    "Browsers": "Web browsers",
-    "Editors & IDEs": "Code and text editors",
-    "Media": "Audio and video players",
-    "Productivity": "Office, notes and productivity",
-    "Utilities": "System and developer utilities",
-}
-
-APPS: list[SeedApp] = [
-    SeedApp(
-        "Browsers",
-        "Firefox",
-        "Fast, private and open-source web browser",
-        "https://www.mozilla.org/firefox/",
-        windows=((PackageManager.WINGET, "Mozilla.Firefox"),),
-        linux=((PackageManager.FLATPAK, "org.mozilla.firefox"), (PackageManager.APT, "firefox")),
-    ),
-    SeedApp(
-        "Editors & IDEs",
-        "VS Code",
-        "Lightweight but powerful source code editor",
-        "https://code.visualstudio.com/",
-        windows=((PackageManager.WINGET, "Microsoft.VisualStudioCode"),),
-        linux=((PackageManager.FLATPAK, "com.visualstudio.code"),),
-    ),
-    SeedApp(
-        "Media",
-        "VLC",
-        "Free and open-source cross-platform media player",
-        "https://www.videolan.org/vlc/",
-        windows=((PackageManager.WINGET, "VideoLAN.VLC"),),
-        linux=((PackageManager.FLATPAK, "org.videolan.VLC"), (PackageManager.APT, "vlc")),
-    ),
-    SeedApp(
-        "Media",
-        "GIMP",
-        "GNU Image Manipulation Program",
-        "https://www.gimp.org/",
-        windows=((PackageManager.WINGET, "GIMP.GIMP"),),
-        linux=((PackageManager.FLATPAK, "org.gimp.GIMP"), (PackageManager.APT, "gimp")),
-    ),
-    SeedApp(
-        "Productivity",
-        "LibreOffice",
-        "Free and powerful office suite",
-        "https://www.libreoffice.org/",
-        windows=((PackageManager.WINGET, "TheDocumentFoundation.LibreOffice"),),
-        linux=(
-            (PackageManager.FLATPAK, "org.libreoffice.LibreOffice"),
-            (PackageManager.APT, "libreoffice"),
-        ),
-    ),
-    SeedApp(
-        "Productivity",
-        "Obsidian",
-        "Knowledge base on local Markdown files",
-        "https://obsidian.md/",
-        windows=((PackageManager.WINGET, "Obsidian.Obsidian"),),
-        linux=((PackageManager.FLATPAK, "md.obsidian.Obsidian"),),
-    ),
-    SeedApp(
-        "Utilities",
-        "7-Zip",
-        "High-ratio file archiver",
-        "https://www.7-zip.org/",
-        windows=((PackageManager.WINGET, "7zip.7zip"),),
-    ),
-    SeedApp(
-        "Utilities",
-        "htop",
-        "Interactive process viewer",
-        "https://htop.dev/",
-        linux=(
-            (PackageManager.APT, "htop"),
-            (PackageManager.DNF, "htop"),
-            (PackageManager.PACMAN, "htop"),
-        ),
-    ),
-]
+class SeedApp(BaseModel):
+    name: str = Field(min_length=1)
+    summary: str | None = None
+    homepage: str | None = None
+    windows: list[SeedPackageRef] = Field(default_factory=list)
+    linux: list[SeedPackageRef] = Field(default_factory=list)
 
 
-async def _get_or_create_category(session: AsyncSession, name: str, description: str) -> int:
+class SeedCategory(BaseModel):
+    category: str = Field(min_length=1)
+    description: str | None = None
+    apps: list[SeedApp] = Field(default_factory=list)
+
+
+def load_fixtures() -> list[SeedCategory]:
+    return [
+        SeedCategory.model_validate_json(path.read_text("utf-8"))
+        for path in sorted(SEED_DIR.glob("*.json"))
+    ]
+
+
+async def _get_or_create_category(session: AsyncSession, name: str, description: str | None) -> int:
     existing = await session.scalar(select(Category.id).where(Category.name == name))
     if existing is not None:
         return int(existing)
@@ -121,43 +57,49 @@ async def _get_or_create_category(session: AsyncSession, name: str, description:
     return category.id
 
 
+async def _seed_app(session: AsyncSession, category_id: int, app: SeedApp) -> int:
+    created = 0
+    for platform, refs in ((Platform.WINDOWS, app.windows), (Platform.LINUX, app.linux)):
+        if not refs:
+            continue
+        package_refs = [
+            PackageReferenceCreate(manager=ref.manager, identifier=ref.identifier, priority=index)
+            for index, ref in enumerate(refs)
+        ]
+        try:
+            await catalog_service.create_app(
+                session,
+                AppCreate(
+                    category_id=category_id,
+                    platform=platform,
+                    name=app.name,
+                    summary=app.summary,
+                    homepage_url=app.homepage,
+                    package_refs=package_refs,
+                ),
+            )
+            created += 1
+        except ConflictError:
+            continue
+    return created
+
+
 async def _seed() -> None:
     configure_logging(get_settings())
+    fixtures = load_fixtures()
     factory = get_sessionmaker()
     created = 0
     async with factory() as session:
-        category_ids = {
-            name: await _get_or_create_category(session, name, description)
-            for name, description in CATEGORIES.items()
-        }
-        for entry in APPS:
-            for platform, refs in (
-                (Platform.WINDOWS, entry.windows),
-                (Platform.LINUX, entry.linux),
-            ):
-                if not refs:
-                    continue
-                package_refs = [
-                    PackageReferenceCreate(manager=manager, identifier=identifier, priority=index)
-                    for index, (manager, identifier) in enumerate(refs)
-                ]
-                try:
-                    await catalog_service.create_app(
-                        session,
-                        AppCreate(
-                            category_id=category_ids[entry.category],
-                            platform=platform,
-                            name=entry.name,
-                            summary=entry.summary,
-                            homepage_url=entry.homepage,
-                            package_refs=package_refs,
-                        ),
-                    )
-                    created += 1
-                except ConflictError:
-                    continue
+        for fixture in fixtures:
+            category_id = await _get_or_create_category(
+                session, fixture.category, fixture.description
+            )
+            for app in fixture.apps:
+                created += await _seed_app(session, category_id, app)
     await dispose_engine()
-    logger.info("seed_complete", apps_created=created)
+    logger.info(
+        "seed_complete", categories=len(fixtures), apps_created=created, source=str(SEED_DIR)
+    )
 
 
 def main() -> None:
