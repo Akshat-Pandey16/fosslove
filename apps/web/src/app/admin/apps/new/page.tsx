@@ -10,7 +10,7 @@ import { api } from "@/lib/api/client"
 export default function NewAppPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "categories"],
-    queryFn: () => api.catalog.listCategories({ size: 200 }),
+    queryFn: () => api.catalog.listCategories({ size: 100 }),
   })
 
   return (

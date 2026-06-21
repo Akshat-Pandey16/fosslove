@@ -20,7 +20,7 @@ export default function EditAppPage() {
   })
   const categories = useQuery({
     queryKey: ["admin", "categories"],
-    queryFn: () => api.catalog.listCategories({ size: 200 }),
+    queryFn: () => api.catalog.listCategories({ size: 100 }),
   })
 
   const loading = app.isLoading || categories.isLoading

@@ -42,7 +42,7 @@ import type { Category } from "@/lib/api/types"
 export default function AdminCategoriesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "categories"],
-    queryFn: () => api.catalog.listCategories({ size: 200 }),
+    queryFn: () => api.catalog.listCategories({ size: 100 }),
   })
 
   return (

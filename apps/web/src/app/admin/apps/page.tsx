@@ -31,10 +31,13 @@ import { errorMessage } from "@/lib/api/errors"
 import type { AppListItem } from "@/lib/api/types"
 
 export default function AdminAppsPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin", "apps"],
-    queryFn: () => api.admin.listApps({ size: 200 }),
+  const [page, setPage] = useState(1)
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["admin", "apps", page],
+    queryFn: () => api.admin.listApps({ page, size: 100 }),
+    placeholderData: (previous) => previous,
   })
+  const meta = data?.meta
 
   return (
     <div className="space-y-6">
@@ -70,6 +73,12 @@ export default function AdminAppsPage() {
               <TableRow>
                 <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
                   Loading…
+                </TableCell>
+              </TableRow>
+            ) : isError ? (
+              <TableRow>
+                <TableCell colSpan={5} className="py-10 text-center text-destructive">
+                  Failed to load apps. Please retry.
                 </TableCell>
               </TableRow>
             ) : data && data.items.length > 0 ? (
@@ -118,6 +127,30 @@ export default function AdminAppsPage() {
           </TableBody>
         </Table>
       </div>
+
+      {meta && meta.pages > 1 ? (
+        <div className="flex items-center justify-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Prev
+          </Button>
+          <span className="font-mono text-sm text-muted-foreground">
+            {page} / {meta.pages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= meta.pages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      ) : null}
     </div>
   )
 }
