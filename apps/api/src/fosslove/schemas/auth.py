@@ -90,3 +90,16 @@ class ChangePasswordRequest(StrictModel):
     new_password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH)
 
     _check_password = field_validator("new_password")(_validate_password)
+
+
+class EmailChangeRequest(StrictModel):
+    new_email: EmailStr
+
+    @field_validator("new_email")
+    @classmethod
+    def _email(cls, value: str) -> str:
+        return _normalize_email(value)
+
+
+class EmailChangeConfirm(StrictModel):
+    token: str

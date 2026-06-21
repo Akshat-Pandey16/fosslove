@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, Query, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from fosslove.core.cache import Cache
 from fosslove.core.config import Settings, get_settings
 from fosslove.core.exceptions import AuthenticationError, PermissionDeniedError, RateLimitError
 from fosslove.core.middleware import get_client_ip
@@ -17,8 +18,42 @@ from fosslove.core.security import TokenType, decode_token
 from fosslove.db.models.enums import UserRole
 from fosslove.db.models.user import User
 from fosslove.db.session import get_session
-from fosslove.services import user_service
+from fosslove.services import activity_service, user_service
 from fosslove.services.email import EmailSender
+
+
+class ActivityRecorder:
+    def __init__(self, request: Request) -> None:
+        self._request = request
+
+    async def record(
+        self,
+        action: str,
+        *,
+        actor_id: uuid.UUID | None = None,
+        status: str = "ok",
+        target_type: str | None = None,
+        target_id: str | None = None,
+        detail: dict[str, Any] | None = None,
+    ) -> None:
+        await activity_service.record(
+            action=action,
+            user_id=actor_id,
+            status=status,
+            target_type=target_type,
+            target_id=target_id,
+            client_ip=get_client_ip(self._request),
+            request_id=getattr(self._request.state, "request_id", None),
+            user_agent=self._request.headers.get("user-agent"),
+            detail=detail,
+        )
+
+
+def get_activity_recorder(request: Request) -> ActivityRecorder:
+    return ActivityRecorder(request)
+
+
+ActivityDep = Annotated[ActivityRecorder, Depends(get_activity_recorder)]
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -32,6 +67,14 @@ def get_email_sender(request: Request) -> EmailSender:
 
 
 EmailDep = Annotated[EmailSender, Depends(get_email_sender)]
+
+
+def get_cache(request: Request) -> Cache:
+    cache: Cache = request.app.state.cache
+    return cache
+
+
+CacheDep = Annotated[Cache, Depends(get_cache)]
 
 
 def get_runtime_settings(request: Request) -> RuntimeSettings:
@@ -97,7 +140,7 @@ async def enforce_auth_rate_limit(request: Request) -> None:
     if not runtime.rate_limit_enabled:
         return
     item = limiter.parse_spec(runtime.rate_limit_auth)
-    result = await limiter.hit(f"auth:{get_client_ip(request)}", item)
+    result = await limiter.hit(f"auth:{get_client_ip(request)}", item, fail_open=False)
     if not result.allowed:
         raise RateLimitError(
             "Too many authentication attempts. Please wait.",

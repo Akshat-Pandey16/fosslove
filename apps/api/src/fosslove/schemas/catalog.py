@@ -3,10 +3,10 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from fosslove.db.models.enums import PackageManager, Platform
-from fosslove.schemas.common import APIModel, StrictModel
+from fosslove.schemas.common import APIModel, StrictModel, validate_http_url
 
 
 class PackageReferenceCreate(StrictModel):
@@ -20,6 +20,12 @@ class PackageReferenceCreate(StrictModel):
     @classmethod
     def _strip(cls, value: str) -> str:
         return value.strip()
+
+    @model_validator(mode="after")
+    def _validate_direct_url(self) -> PackageReferenceCreate:
+        if self.manager is PackageManager.DIRECT:
+            validate_http_url(self.identifier)
+        return self
 
 
 class PackageReferenceRead(APIModel):
@@ -41,6 +47,8 @@ class CategoryCreate(StrictModel):
     def _strip_name(cls, value: str) -> str:
         return value.strip()
 
+    _validate_icon = field_validator("icon_url")(validate_http_url)
+
 
 class CategoryUpdate(StrictModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
@@ -51,6 +59,8 @@ class CategoryUpdate(StrictModel):
     @classmethod
     def _strip_name(cls, value: str | None) -> str | None:
         return value.strip() if value else None
+
+    _validate_icon = field_validator("icon_url")(validate_http_url)
 
 
 class CategoryRead(APIModel):
@@ -79,6 +89,8 @@ class AppCreate(StrictModel):
     def _strip_name(cls, value: str) -> str:
         return value.strip()
 
+    _validate_homepage = field_validator("homepage_url")(validate_http_url)
+
 
 class AppUpdate(StrictModel):
     category_id: int | None = Field(default=None, gt=0)
@@ -94,6 +106,8 @@ class AppUpdate(StrictModel):
     @classmethod
     def _strip_name(cls, value: str | None) -> str | None:
         return value.strip() if value else None
+
+    _validate_homepage = field_validator("homepage_url")(validate_http_url)
 
 
 class AppListItem(APIModel):
@@ -114,3 +128,15 @@ class AppRead(AppListItem):
     package_refs: list[PackageReferenceRead]
     created_at: datetime
     updated_at: datetime
+
+
+MAX_IMPORT_APPS = 500
+
+
+class AppImport(StrictModel):
+    apps: list[AppCreate] = Field(min_length=1, max_length=MAX_IMPORT_APPS)
+
+
+class CatalogExport(APIModel):
+    categories: list[CategoryRead]
+    apps: list[AppRead]

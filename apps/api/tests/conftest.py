@@ -48,6 +48,7 @@ async def _engine() -> AsyncIterator[AsyncEngine]:
     engine = init_engine(settings)
     async with engine.begin() as conn:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS citext"))
         await conn.run_sync(Base.metadata.create_all)
     yield engine
     async with engine.begin() as conn:
@@ -76,7 +77,7 @@ async def client(_engine: AsyncEngine) -> AsyncIterator[AsyncClient]:
     app = create_app()
     app.state.redis = None
     app.state.cache = Cache(None)
-    app.state.rate_limiter = RateLimiter(None, enabled=False)
+    app.state.rate_limiter = RateLimiter(None)
     runtime = RuntimeSettings(get_settings())
     await runtime.load()
     app.state.runtime_settings = runtime

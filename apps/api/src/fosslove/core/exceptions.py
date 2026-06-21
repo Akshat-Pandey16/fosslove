@@ -6,12 +6,30 @@ from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from fosslove.core.config import get_settings
 from fosslove.core.logging import get_logger
 
 logger = get_logger(__name__)
+
+_INTEGRITY_STATUS: dict[str, tuple[int, str, str]] = {
+    "23505": (status.HTTP_409_CONFLICT, "conflict", "This resource already exists."),
+    "23503": (status.HTTP_409_CONFLICT, "conflict", "A referenced resource does not exist."),
+    "23514": (
+        status.HTTP_400_BAD_REQUEST,
+        "bad_request",
+        "The request violates a data constraint.",
+    ),
+    "23502": (status.HTTP_400_BAD_REQUEST, "bad_request", "A required field is missing."),
+}
+
+
+def _sqlstate(exc: SQLAlchemyError) -> str | None:
+    orig = getattr(exc, "orig", None)
+    state = getattr(orig, "sqlstate", None) or getattr(orig, "pgcode", None)
+    return str(state) if state is not None else None
 
 
 class AppError(Exception):
@@ -126,6 +144,26 @@ def register_exception_handlers(app: FastAPI) -> None:
             details=jsonable_encoder(exc.errors()),
             request=request,
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        )
+
+    @app.exception_handler(IntegrityError)
+    async def _integrity(request: Request, exc: IntegrityError) -> JSONResponse:
+        sqlstate = _sqlstate(exc)
+        status_code, code, message = _INTEGRITY_STATUS.get(
+            sqlstate or "",
+            (status.HTTP_409_CONFLICT, "conflict", ConflictError.message),
+        )
+        logger.info("integrity_error", sqlstate=sqlstate, code=code)
+        return _envelope(code=code, message=message, request=request, status_code=status_code)
+
+    @app.exception_handler(SQLAlchemyError)
+    async def _database(request: Request, exc: SQLAlchemyError) -> JSONResponse:
+        logger.error("database_error", exc_info=exc)
+        return _envelope(
+            code="service_unavailable",
+            message=ServiceUnavailableError.message,
+            request=request,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
     @app.exception_handler(StarletteHTTPException)

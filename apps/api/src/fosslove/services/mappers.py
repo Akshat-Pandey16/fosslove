@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from fosslove.db.models.activity import ActivityLog
 from fosslove.db.models.catalog import App, Category, PackageReference
-from fosslove.db.models.user import User
+from fosslove.db.models.user import RefreshToken, User
 from fosslove.db.models.userdata import Collection, ScriptRun
+from fosslove.schemas.activity import ActivityLogRead
 from fosslove.schemas.catalog import (
     AppListItem,
     AppRead,
@@ -11,11 +13,19 @@ from fosslove.schemas.catalog import (
 )
 from fosslove.schemas.collection import CollectionDetail, CollectionItemRead, CollectionRead
 from fosslove.schemas.script import ScriptRunRead
-from fosslove.schemas.user import UserRead
+from fosslove.schemas.user import SessionRead, UserRead
 
 
 def to_user_read(user: User) -> UserRead:
     return UserRead.model_validate(user)
+
+
+def to_session_read(token: RefreshToken) -> SessionRead:
+    return SessionRead.model_validate(token)
+
+
+def to_activity_read(log: ActivityLog) -> ActivityLogRead:
+    return ActivityLogRead.model_validate(log)
 
 
 def to_category_read(category: Category) -> CategoryRead:

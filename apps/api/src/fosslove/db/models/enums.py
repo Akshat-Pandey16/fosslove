@@ -51,6 +51,7 @@ class UserRole(StrEnum):
 class TokenPurpose(StrEnum):
     EMAIL_VERIFY = "email_verify"
     PASSWORD_RESET = "password_reset"
+    EMAIL_CHANGE = "email_change"
 
 
 def enum_column[E: PyEnum](enum_cls: type[E]) -> SAEnum:

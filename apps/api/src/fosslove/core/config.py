@@ -17,6 +17,8 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 from sqlalchemy import URL
 
 _PLACEHOLDER_SECRET = "change-me-to-a-long-random-secret-value-please"
+_DEFAULT_DB_PASSWORD = "fosslove"
+_MIN_SECRET_LENGTH = 43
 
 
 class Environment(StrEnum):
@@ -53,6 +55,7 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: CommaList = Field(default_factory=lambda: ["http://localhost:3000"])
     ALLOWED_HOSTS: CommaList = Field(default_factory=lambda: ["*"])
+    TRUSTED_PROXY_COUNT: int = Field(default=0, ge=0)
 
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
@@ -62,6 +65,9 @@ class Settings(BaseSettings):
     DB_POOL_SIZE: int = Field(default=10, ge=1)
     DB_MAX_OVERFLOW: int = Field(default=20, ge=0)
     DB_POOL_TIMEOUT: int = Field(default=30, ge=1)
+    DB_POOL_RECYCLE: int = Field(default=1800, ge=0)
+    DB_CONNECT_TIMEOUT: int = Field(default=10, ge=1)
+    DB_STATEMENT_TIMEOUT_MS: int = Field(default=30_000, ge=0)
     DB_ECHO: bool = False
 
     REDIS_URL: RedisDsn | None = None
@@ -103,8 +109,16 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _enforce_production_safety(self) -> Settings:
         if self.ENV is Environment.PRODUCTION:
-            if self.SECRET_KEY.get_secret_value() == _PLACEHOLDER_SECRET:
+            secret = self.SECRET_KEY.get_secret_value()
+            if secret == _PLACEHOLDER_SECRET:
                 raise ValueError("FOSSLOVE_SECRET_KEY must be set to a strong value in production")
+            if len(secret) < _MIN_SECRET_LENGTH:
+                raise ValueError(
+                    f"FOSSLOVE_SECRET_KEY must be at least {_MIN_SECRET_LENGTH} characters "
+                    "in production"
+                )
+            if self.POSTGRES_PASSWORD.get_secret_value() == _DEFAULT_DB_PASSWORD:
+                raise ValueError("FOSSLOVE_POSTGRES_PASSWORD must not be the default in production")
             if self.DEBUG:
                 raise ValueError("FOSSLOVE_DEBUG must be false in production")
             if "*" in self.ALLOWED_HOSTS:

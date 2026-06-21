@@ -17,6 +17,8 @@ from fosslove.core.config import get_settings
 from fosslove.core.exceptions import AuthenticationError
 
 _hasher: Final = PasswordHasher()
+_ISSUER: Final = "fosslove"
+DUMMY_PASSWORD_HASH: Final = _hasher.hash("timing-equalization-placeholder")
 
 
 def hash_password(plain: str) -> str:
@@ -55,6 +57,7 @@ def _encode(subject: str, token_type: TokenType, ttl_seconds: int, **claims: Any
     expires_at = now + timedelta(seconds=ttl_seconds)
     jti = uuid.uuid4().hex
     payload: dict[str, Any] = {
+        "iss": _ISSUER,
         "sub": subject,
         "type": token_type.value,
         "jti": jti,
@@ -91,7 +94,8 @@ def decode_token(token: str, *, expected_type: TokenType) -> dict[str, Any]:
             token,
             settings.SECRET_KEY.get_secret_value(),
             algorithms=[settings.JWT_ALGORITHM],
-            options={"require": ["exp", "iat", "sub", "jti"]},
+            issuer=_ISSUER,
+            options={"require": ["exp", "iat", "nbf", "sub", "jti", "iss"]},
         )
     except jwt.ExpiredSignatureError as exc:
         raise AuthenticationError("Token has expired.", code="token_expired") from exc

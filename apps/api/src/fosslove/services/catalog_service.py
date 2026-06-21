@@ -135,17 +135,38 @@ async def get_app(session: AsyncSession, app_id: int) -> App:
     return app
 
 
+async def get_category_by_slug(session: AsyncSession, slug: str) -> Category:
+    category = await session.scalar(select(Category).where(Category.slug == slug))
+    if category is None:
+        raise NotFoundError("Category not found.")
+    return category
+
+
+async def get_app_by_slug(session: AsyncSession, platform: Platform, slug: str) -> App:
+    app = await session.scalar(
+        select(App)
+        .where(App.platform == platform, App.slug == slug)
+        .options(selectinload(App.package_refs))
+    )
+    if app is None:
+        raise NotFoundError("App not found.")
+    return app
+
+
 async def get_apps_for_ids(
     session: AsyncSession, platform: Platform, app_ids: list[int]
-) -> list[App]:
+) -> tuple[list[App], list[int]]:
     if not app_ids:
-        return []
+        return [], []
     rows = await session.scalars(
         select(App)
         .where(App.platform == platform, App.id.in_(app_ids), App.is_active.is_(True))
         .options(selectinload(App.package_refs))
     )
-    return list(rows)
+    by_id = {app.id: app for app in rows}
+    ordered = [by_id[app_id] for app_id in app_ids if app_id in by_id]
+    missing = [app_id for app_id in app_ids if app_id not in by_id]
+    return ordered, missing
 
 
 def _ensure_unique_managers(refs: list[PackageReference]) -> None:
@@ -178,17 +199,7 @@ async def create_app(session: AsyncSession, data: AppCreate) -> App:
         homepage_url=data.homepage_url,
         license=data.license,
     )
-    app.package_refs = [
-        PackageReference(
-            manager=ref.manager,
-            identifier=ref.identifier,
-            install_args=ref.install_args,
-            priority=ref.priority,
-            extra=ref.extra,
-        )
-        for ref in data.package_refs
-    ]
-    _ensure_unique_managers(app.package_refs)
+    app.package_refs = _build_package_refs(data)
     session.add(app)
     await session.commit()
     return await get_app(session, app.id)
@@ -246,6 +257,57 @@ async def update_app(session: AsyncSession, app_id: int, data: AppUpdate) -> App
     return await get_app(session, app.id)
 
 
+def _build_package_refs(data: AppCreate) -> list[PackageReference]:
+    refs = [
+        PackageReference(
+            manager=ref.manager,
+            identifier=ref.identifier,
+            install_args=ref.install_args,
+            priority=ref.priority,
+            extra=ref.extra,
+        )
+        for ref in data.package_refs
+    ]
+    _ensure_unique_managers(refs)
+    return refs
+
+
+async def import_apps(session: AsyncSession, items: list[AppCreate]) -> list[App]:
+    created: list[App] = []
+    for data in items:
+        if await session.get(Category, data.category_id) is None:
+            raise NotFoundError(f"Category {data.category_id} not found.")
+        slug = await _unique_app_slug(session, data.platform, make_slug(data.name), None)
+        app = App(
+            category_id=data.category_id,
+            platform=data.platform,
+            name=data.name,
+            slug=slug,
+            summary=data.summary,
+            description=data.description,
+            homepage_url=data.homepage_url,
+            license=data.license,
+        )
+        app.package_refs = _build_package_refs(data)
+        session.add(app)
+        await session.flush()
+        created.append(app)
+    await session.commit()
+    return [await get_app(session, app.id) for app in created]
+
+
+async def export_categories(session: AsyncSession) -> list[Category]:
+    rows = await session.scalars(select(Category).order_by(Category.name))
+    return list(rows)
+
+
+async def export_apps(session: AsyncSession) -> list[App]:
+    rows = await session.scalars(
+        select(App).options(selectinload(App.package_refs)).order_by(App.platform, App.name)
+    )
+    return list(rows)
+
+
 async def delete_app(session: AsyncSession, app_id: int) -> None:
     app = await get_app(session, app_id)
     await session.delete(app)
@@ -255,12 +317,20 @@ async def delete_app(session: AsyncSession, app_id: int) -> None:
 async def recompute_counts(session: AsyncSession) -> None:
     windows = (
         select(func.count())
-        .where(App.category_id == Category.id, App.platform == Platform.WINDOWS)
+        .where(
+            App.category_id == Category.id,
+            App.platform == Platform.WINDOWS,
+            App.is_active.is_(True),
+        )
         .scalar_subquery()
     )
     linux = (
         select(func.count())
-        .where(App.category_id == Category.id, App.platform == Platform.LINUX)
+        .where(
+            App.category_id == Category.id,
+            App.platform == Platform.LINUX,
+            App.is_active.is_(True),
+        )
         .scalar_subquery()
     )
     await session.execute(update(Category).values(windows_app_count=windows, linux_app_count=linux))

@@ -39,6 +39,18 @@ function Test-Command {
     return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function ConvertTo-Args {
+    param([string]$Text)
+    if (-not $Text) { return @() }
+    $result = @()
+    foreach ($m in [regex]::Matches($Text, '"([^"]*)"|''([^'']*)''|(\S+)')) {
+        if ($m.Groups[1].Success) { $result += $m.Groups[1].Value }
+        elseif ($m.Groups[2].Success) { $result += $m.Groups[2].Value }
+        else { $result += $m.Groups[3].Value }
+    }
+    return ,$result
+}
+
 function Initialize-Winget {
     if (Test-Command 'winget') { return $true }
     Write-Log 'winget not found; attempting to install the App Installer...' 'Yellow'
@@ -60,9 +72,7 @@ function Invoke-Winget {
              '--accept-source-agreements', '--accept-package-agreements',
              '--disable-interactivity')
     if ($Source) { $cmd += @('--source', $Source) }
-    if ($ExtraArgs) {
-        $cmd += $ExtraArgs.Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)
-    }
+    if ($ExtraArgs) { $cmd += ConvertTo-Args $ExtraArgs }
     & winget @cmd | Out-Null
     return ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq -1978335189)
 }
@@ -75,7 +85,7 @@ function Invoke-Direct {
         if (-not $leaf) { $leaf = 'fosslove_installer.exe' }
         $file = Join-Path $env:TEMP $leaf
         Invoke-WebRequest -Uri $Url -OutFile $file -UseBasicParsing
-        $silent = if ($ExtraArgs) { $ExtraArgs } else { '/S' }
+        $silent = if ($ExtraArgs) { ConvertTo-Args $ExtraArgs } else { @('/S') }
         Start-Process -FilePath $file -ArgumentList $silent -Wait -PassThru | Out-Null
         return $true
     } catch {

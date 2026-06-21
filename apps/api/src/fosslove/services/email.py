@@ -61,3 +61,12 @@ class EmailSender:
             "If you did not request this, you can ignore this message."
         )
         await self.send(to=to, subject="Reset your FOSSLove password", body=body)
+
+    async def send_email_change(self, *, to: str, raw_token: str) -> None:
+        link = f"{self._runtime.frontend_base_url}/confirm-email-change?token={raw_token}"
+        body = (
+            "We received a request to change your FOSSLove email address.\n\n"
+            f"Confirm the new address by visiting:\n{link}\n\n"
+            "If you did not request this, you can ignore this message."
+        )
+        await self.send(to=to, subject="Confirm your new FOSSLove email", body=body)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 
 from sqlalchemy import delete, func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fosslove.core.exceptions import NotFoundError
@@ -14,10 +15,12 @@ from fosslove.db.models.userdata import Favorite
 async def add_favorite(session: AsyncSession, user_id: uuid.UUID, app_id: int) -> None:
     if await session.get(App, app_id) is None:
         raise NotFoundError("App not found.")
-    existing = await session.get(Favorite, {"user_id": user_id, "app_id": app_id})
-    if existing is None:
-        session.add(Favorite(user_id=user_id, app_id=app_id))
-        await session.commit()
+    await session.execute(
+        pg_insert(Favorite)
+        .values(user_id=user_id, app_id=app_id)
+        .on_conflict_do_nothing(index_elements=["user_id", "app_id"])
+    )
+    await session.commit()
 
 
 async def remove_favorite(session: AsyncSession, user_id: uuid.UUID, app_id: int) -> None:

@@ -34,6 +34,7 @@ class Collection(Base, TimestampMixin):
     __tablename__ = "collections"
     __table_args__ = (
         UniqueConstraint("user_id", "slug", name="uq_collection_user_slug"),
+        UniqueConstraint("user_id", "name", name="uq_collection_user_name"),
         Index(
             "ix_collections_public_created",
             "created_at",

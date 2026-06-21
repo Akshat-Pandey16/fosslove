@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
-from sqlalchemy import select, update
+from sqlalchemy import CursorResult, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fosslove.core.config import get_settings
@@ -11,10 +12,12 @@ from fosslove.core.exceptions import (
     AuthenticationError,
     BadRequestError,
     ConflictError,
+    NotFoundError,
     PermissionDeniedError,
 )
 from fosslove.core.runtime_settings import RuntimeSettings
 from fosslove.core.security import (
+    DUMMY_PASSWORD_HASH,
     TokenType,
     create_access_token,
     create_refresh_token,
@@ -34,15 +37,17 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
+def _normalize(email: str) -> str:
+    return email.strip().lower()
+
+
 async def get_user_by_email(session: AsyncSession, email: str) -> User | None:
-    result: User | None = await session.scalar(
-        select(User).where(User.email == email.strip().lower())
-    )
+    result: User | None = await session.scalar(select(User).where(User.email == _normalize(email)))
     return result
 
 
 async def _create_verification_token(
-    session: AsyncSession, user: User, purpose: TokenPurpose
+    session: AsyncSession, user: User, purpose: TokenPurpose, *, new_email: str | None = None
 ) -> str:
     raw, token_hash = generate_opaque_token()
     ttl = get_settings().EMAIL_TOKEN_TTL_SECONDS
@@ -51,6 +56,7 @@ async def _create_verification_token(
             user_id=user.id,
             token_hash=token_hash,
             purpose=purpose,
+            new_email=new_email,
             expires_at=_now() + timedelta(seconds=ttl),
         )
     )
@@ -59,17 +65,24 @@ async def _create_verification_token(
 
 async def _consume_token(
     session: AsyncSession, raw_token: str, purpose: TokenPurpose
-) -> VerificationToken:
+) -> tuple[uuid.UUID, str | None]:
     token_hash = hash_opaque_token(raw_token)
-    token = await session.scalar(
-        select(VerificationToken).where(
-            VerificationToken.token_hash == token_hash,
-            VerificationToken.purpose == purpose,
+    row = (
+        await session.execute(
+            update(VerificationToken)
+            .where(
+                VerificationToken.token_hash == token_hash,
+                VerificationToken.purpose == purpose,
+                VerificationToken.used_at.is_(None),
+                VerificationToken.expires_at >= _now(),
+            )
+            .values(used_at=_now())
+            .returning(VerificationToken.user_id, VerificationToken.new_email)
         )
-    )
-    if token is None or token.used_at is not None or token.expires_at < _now():
+    ).first()
+    if row is None:
         raise BadRequestError("This link is invalid or has expired.", code="invalid_token")
-    return token
+    return row.user_id, row.new_email
 
 
 async def _revoke_all_refresh_tokens(session: AsyncSession, user_id: uuid.UUID) -> None:
@@ -111,7 +124,10 @@ async def register(
 
 async def authenticate(session: AsyncSession, email: str, password: str) -> User:
     user = await get_user_by_email(session, email)
-    if user is None or not verify_password(password, user.hashed_password):
+    if user is None:
+        verify_password(password, DUMMY_PASSWORD_HASH)
+        raise AuthenticationError("Invalid email or password.", code="invalid_credentials")
+    if not verify_password(password, user.hashed_password):
         raise AuthenticationError("Invalid email or password.", code="invalid_credentials")
     if not user.is_active:
         raise AuthenticationError("This account is disabled.", code="account_disabled")
@@ -120,42 +136,82 @@ async def authenticate(session: AsyncSession, email: str, password: str) -> User
     return user
 
 
-async def issue_tokens(session: AsyncSession, user: User) -> TokenPair:
+async def issue_tokens(
+    session: AsyncSession,
+    user: User,
+    *,
+    user_agent: str | None = None,
+    client_ip: str | None = None,
+) -> TokenPair:
     settings = get_settings()
     access = create_access_token(str(user.id), role=user.role.value)
-    refresh = create_refresh_token(str(user.id))
-    session.add(RefreshToken(user_id=user.id, jti=refresh.jti, expires_at=refresh.expires_at))
+    refresh_token = create_refresh_token(str(user.id))
+    session.add(
+        RefreshToken(
+            user_id=user.id,
+            jti=refresh_token.jti,
+            expires_at=refresh_token.expires_at,
+            user_agent=(user_agent or None) and user_agent[:400],
+            client_ip=client_ip,
+            last_used_at=_now(),
+        )
+    )
     await session.commit()
     return TokenPair(
         access_token=access.token,
-        refresh_token=refresh.token,
+        refresh_token=refresh_token.token,
         expires_in=settings.ACCESS_TOKEN_TTL_SECONDS,
     )
 
 
-async def login(session: AsyncSession, data: LoginRequest) -> TokenPair:
+async def login(
+    session: AsyncSession,
+    data: LoginRequest,
+    *,
+    user_agent: str | None = None,
+    client_ip: str | None = None,
+) -> TokenPair:
     user = await authenticate(session, data.email, data.password)
-    return await issue_tokens(session, user)
+    return await issue_tokens(session, user, user_agent=user_agent, client_ip=client_ip)
 
 
-async def refresh(session: AsyncSession, refresh_token: str) -> TokenPair:
+async def refresh(
+    session: AsyncSession,
+    refresh_token: str,
+    *,
+    user_agent: str | None = None,
+    client_ip: str | None = None,
+) -> TokenPair:
     payload = decode_token(refresh_token, expected_type=TokenType.REFRESH)
-    stored = await session.scalar(select(RefreshToken).where(RefreshToken.jti == payload["jti"]))
-    if stored is None:
-        raise AuthenticationError("Refresh token is invalid.", code="invalid_token")
-    if stored.revoked_at is not None:
+    jti = payload["jti"]
+    claimed = (
+        await session.execute(
+            update(RefreshToken)
+            .where(RefreshToken.jti == jti, RefreshToken.revoked_at.is_(None))
+            .values(revoked_at=_now())
+            .returning(RefreshToken.user_id, RefreshToken.expires_at)
+        )
+    ).first()
+
+    if claimed is None:
+        stored = await session.scalar(select(RefreshToken).where(RefreshToken.jti == jti))
+        if stored is None:
+            raise AuthenticationError("Refresh token is invalid.", code="invalid_token")
         await _revoke_all_refresh_tokens(session, stored.user_id)
         await session.commit()
         raise AuthenticationError("Refresh token reuse detected.", code="token_reuse")
-    if stored.expires_at < _now():
+
+    user_id, expires_at = claimed
+    if expires_at < _now():
+        await session.commit()
         raise AuthenticationError("Refresh token has expired.", code="token_expired")
 
-    user = await session.get(User, stored.user_id)
+    user = await session.get(User, user_id)
     if user is None or not user.is_active:
+        await session.commit()
         raise AuthenticationError("Account is no longer active.", code="account_disabled")
 
-    stored.revoked_at = _now()
-    return await issue_tokens(session, user)
+    return await issue_tokens(session, user, user_agent=user_agent, client_ip=client_ip)
 
 
 async def logout(session: AsyncSession, refresh_token: str) -> None:
@@ -163,18 +219,50 @@ async def logout(session: AsyncSession, refresh_token: str) -> None:
         payload = decode_token(refresh_token, expected_type=TokenType.REFRESH)
     except AuthenticationError:
         return
-    stored = await session.scalar(select(RefreshToken).where(RefreshToken.jti == payload["jti"]))
-    if stored is not None and stored.revoked_at is None:
-        stored.revoked_at = _now()
-        await session.commit()
+    await session.execute(
+        update(RefreshToken)
+        .where(RefreshToken.jti == payload["jti"], RefreshToken.revoked_at.is_(None))
+        .values(revoked_at=_now())
+    )
+    await session.commit()
+
+
+async def list_sessions(session: AsyncSession, user_id: uuid.UUID) -> list[RefreshToken]:
+    rows = await session.scalars(
+        select(RefreshToken)
+        .where(
+            RefreshToken.user_id == user_id,
+            RefreshToken.revoked_at.is_(None),
+            RefreshToken.expires_at >= _now(),
+        )
+        .order_by(RefreshToken.created_at.desc())
+    )
+    return list(rows)
+
+
+async def revoke_session(session: AsyncSession, user_id: uuid.UUID, token_id: uuid.UUID) -> None:
+    result = cast(
+        "CursorResult[Any]",
+        await session.execute(
+            update(RefreshToken)
+            .where(
+                RefreshToken.id == token_id,
+                RefreshToken.user_id == user_id,
+                RefreshToken.revoked_at.is_(None),
+            )
+            .values(revoked_at=_now())
+        ),
+    )
+    if result.rowcount == 0:
+        raise NotFoundError("Session not found.")
+    await session.commit()
 
 
 async def verify_email(session: AsyncSession, raw_token: str) -> None:
-    token = await _consume_token(session, raw_token, TokenPurpose.EMAIL_VERIFY)
-    user = await session.get(User, token.user_id)
+    user_id, _ = await _consume_token(session, raw_token, TokenPurpose.EMAIL_VERIFY)
+    user = await session.get(User, user_id)
     if user is not None:
         user.is_verified = True
-    token.used_at = _now()
     await session.commit()
 
 
@@ -207,12 +295,11 @@ async def request_password_reset(
 
 
 async def reset_password(session: AsyncSession, raw_token: str, new_password: str) -> None:
-    token = await _consume_token(session, raw_token, TokenPurpose.PASSWORD_RESET)
-    user = await session.get(User, token.user_id)
+    user_id, _ = await _consume_token(session, raw_token, TokenPurpose.PASSWORD_RESET)
+    user = await session.get(User, user_id)
     if user is None:
         raise BadRequestError("This link is invalid or has expired.", code="invalid_token")
     user.hashed_password = hash_password(new_password)
-    token.used_at = _now()
     await _revoke_all_refresh_tokens(session, user.id)
     await session.commit()
 
@@ -227,12 +314,48 @@ async def change_password(
     await session.commit()
 
 
+async def request_email_change(
+    session: AsyncSession, user: User, new_email: str, *, runtime: RuntimeSettings
+) -> str | None:
+    await runtime.ensure_fresh()
+    normalized = _normalize(new_email)
+    if normalized == user.email.lower():
+        raise BadRequestError("This is already your email address.", code="email_unchanged")
+    if await get_user_by_email(session, normalized) is not None:
+        raise ConflictError("An account with this email already exists.", code="email_taken")
+    if not runtime.email_enabled:
+        user.email = normalized
+        user.is_verified = True
+        await session.commit()
+        return None
+    raw_token = await _create_verification_token(
+        session, user, TokenPurpose.EMAIL_CHANGE, new_email=normalized
+    )
+    await session.commit()
+    return raw_token
+
+
+async def confirm_email_change(session: AsyncSession, raw_token: str) -> None:
+    user_id, new_email = await _consume_token(session, raw_token, TokenPurpose.EMAIL_CHANGE)
+    if new_email is None:
+        raise BadRequestError("This link is invalid or has expired.", code="invalid_token")
+    user = await session.get(User, user_id)
+    if user is None:
+        raise BadRequestError("This link is invalid or has expired.", code="invalid_token")
+    if await get_user_by_email(session, new_email) is not None:
+        raise ConflictError("An account with this email already exists.", code="email_taken")
+    user.email = new_email
+    user.is_verified = True
+    await _revoke_all_refresh_tokens(session, user.id)
+    await session.commit()
+
+
 async def ensure_admin(session: AsyncSession, email: str, password: str) -> None:
     if await get_user_by_email(session, email) is not None:
         return
     session.add(
         User(
-            email=email.strip().lower(),
+            email=_normalize(email),
             hashed_password=hash_password(password),
             role=UserRole.ADMIN,
             is_active=True,

@@ -23,6 +23,7 @@ dependencies = [
     "python-slugify>=8.0.4",
     "limits>=5.8.0",
     "redis[hiredis]>=8.0",
+    "prometheus-client>=0.21.0",
     "aiosmtplib>=5.1.2",
     "tenacity>=9.1.4",
     "httpx>=0.28.1",
@@ -75,6 +76,7 @@ ignore = ["PLR0913", "PLR2004", "B008"]
 "src/fosslove/core/config.py" = ["S105"]
 "src/fosslove/db/models/enums.py" = ["S105"]
 "src/fosslove/schemas/auth.py" = ["S105"]
+"src/fosslove/services/activity_service.py" = ["S105"]
 "src/fosslove/__main__.py" = ["S104"]
 
 [tool.ruff.lint.isort]

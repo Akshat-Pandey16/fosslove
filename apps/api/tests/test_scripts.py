@@ -29,7 +29,9 @@ async def test_generate_windows_script(client: AsyncClient, windows_app_id: int)
         json={"platform": "windows", "app_ids": [windows_app_id]},
     )
     assert response.status_code == 200
-    assert response.headers["content-disposition"] == 'attachment; filename="install_apps.ps1"'
+    disposition = response.headers["content-disposition"]
+    assert disposition.startswith('attachment; filename="install_apps_')
+    assert disposition.endswith('.ps1"')
     assert "Mozilla.Firefox" in response.text
 
 

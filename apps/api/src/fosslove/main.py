@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
@@ -18,6 +18,7 @@ from fosslove.core.cache import Cache, build_redis
 from fosslove.core.config import Settings, get_settings
 from fosslove.core.exceptions import register_exception_handlers
 from fosslove.core.logging import configure_logging, get_logger
+from fosslove.core.metrics import render as render_metrics
 from fosslove.core.middleware import RateLimitMiddleware, RequestContextMiddleware
 from fosslove.core.ratelimit import RateLimiter
 from fosslove.core.runtime_settings import RuntimeSettings
@@ -34,20 +35,23 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     redis = await build_redis(settings)
     app.state.redis = redis
     app.state.cache = Cache(redis)
-    app.state.rate_limiter = RateLimiter(redis, enabled=True)
+    app.state.rate_limiter = RateLimiter(redis)
     runtime = RuntimeSettings(settings)
     await runtime.load()
     app.state.runtime_settings = runtime
     app.state.email_sender = EmailSender(runtime)
 
     if settings.FIRST_ADMIN_EMAIL and settings.FIRST_ADMIN_PASSWORD:
-        factory = get_sessionmaker()
-        async with factory() as session:
-            await auth_service.ensure_admin(
-                session,
-                settings.FIRST_ADMIN_EMAIL,
-                settings.FIRST_ADMIN_PASSWORD.get_secret_value(),
-            )
+        try:
+            factory = get_sessionmaker()
+            async with factory() as session:
+                await auth_service.ensure_admin(
+                    session,
+                    settings.FIRST_ADMIN_EMAIL,
+                    settings.FIRST_ADMIN_PASSWORD.get_secret_value(),
+                )
+        except SQLAlchemyError as exc:
+            logger.warning("ensure_admin_failed", error=str(exc))
 
     logger.info(
         "startup",
@@ -70,6 +74,7 @@ def _add_middleware(app: FastAPI, settings: Settings) -> None:
         RateLimitMiddleware,
         exempt_prefixes=(
             "/health",
+            "/metrics",
             "/admin",
             f"{prefix}/docs",
             f"{prefix}/redoc",
@@ -81,9 +86,17 @@ def _add_middleware(app: FastAPI, settings: Settings) -> None:
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["*"],
-        expose_headers=["x-request-id", "content-disposition"],
+        expose_headers=[
+            "x-request-id",
+            "content-disposition",
+            "x-fosslove-skipped",
+            "etag",
+            "x-ratelimit-limit",
+            "x-ratelimit-remaining",
+            "x-ratelimit-reset",
+        ],
         max_age=600,
     )
     app.add_middleware(RequestContextMiddleware)
@@ -97,6 +110,11 @@ def _add_health_routes(app: FastAPI, settings: Settings) -> None:
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/metrics", tags=["Health"], include_in_schema=False)
+    async def metrics() -> Response:
+        body, content_type = render_metrics()
+        return Response(content=body, media_type=content_type)
 
     @app.get("/health/ready", tags=["Health"])
     async def ready(request: Request) -> JSONResponse:

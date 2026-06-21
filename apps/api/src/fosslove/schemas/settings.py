@@ -5,7 +5,7 @@ from typing import Literal
 from limits import parse
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from fosslove.schemas.common import StrictModel
+from fosslove.schemas.common import StrictModel, validate_http_url
 
 
 class SettingsRead(BaseModel):
@@ -47,3 +47,5 @@ class SettingsUpdate(StrictModel):
         if value is not None:
             parse(value)
         return value
+
+    _validate_frontend = field_validator("frontend_base_url")(validate_http_url)

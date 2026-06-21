@@ -9,7 +9,9 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+from fosslove.core.config import get_settings
 from fosslove.core.logging import get_logger
+from fosslove.core.metrics import observe as observe_metrics
 from fosslove.core.ratelimit import RateLimiter
 from fosslove.core.runtime_settings import RuntimeSettings
 
@@ -17,9 +19,13 @@ logger = get_logger(__name__)
 
 
 def get_client_ip(request: Request) -> str:
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    trusted_hops = get_settings().TRUSTED_PROXY_COUNT
+    if trusted_hops > 0:
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            chain = [part.strip() for part in forwarded.split(",") if part.strip()]
+            if len(chain) >= trusted_hops:
+                return chain[-trusted_hops]
     if request.client is not None:
         return request.client.host
     return "unknown"
@@ -40,13 +46,16 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
         except Exception:
-            duration_ms = round((time.perf_counter() - start) * 1000, 2)
-            logger.exception("request_failed", duration_ms=duration_ms)
-            structlog.contextvars.clear_contextvars()
+            duration = time.perf_counter() - start
+            observe_metrics(request.method, request.url.path, 500, duration)
+            logger.warning("request_errored", duration_ms=round(duration * 1000, 2))
             raise
-        duration_ms = round((time.perf_counter() - start) * 1000, 2)
+        duration = time.perf_counter() - start
+        observe_metrics(request.method, request.url.path, response.status_code, duration)
         response.headers["x-request-id"] = request_id
-        logger.info("request", status_code=response.status_code, duration_ms=duration_ms)
+        logger.info(
+            "request", status_code=response.status_code, duration_ms=round(duration * 1000, 2)
+        )
         structlog.contextvars.clear_contextvars()
         return response
 

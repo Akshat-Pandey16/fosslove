@@ -54,6 +54,13 @@ class App(Base, TimestampMixin):
         Index("ix_apps_platform_name", "platform", "name"),
         Index("ix_apps_platform_category_name", "platform", "category_id", "name"),
         Index(
+            "ix_apps_active_platform_category_name",
+            "platform",
+            "category_id",
+            "name",
+            postgresql_where=text("is_active"),
+        ),
+        Index(
             "ix_apps_name_trgm",
             "name",
             postgresql_using="gin",

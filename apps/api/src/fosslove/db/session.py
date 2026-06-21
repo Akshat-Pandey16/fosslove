@@ -16,13 +16,23 @@ _sessionmaker: async_sessionmaker[AsyncSession] | None = None
 
 
 def create_engine(settings: Settings) -> AsyncEngine:
+    timeout_ms = str(settings.DB_STATEMENT_TIMEOUT_MS)
+    server_settings = {"jit": "off"}
+    if settings.DB_STATEMENT_TIMEOUT_MS > 0:
+        server_settings["statement_timeout"] = timeout_ms
+        server_settings["idle_in_transaction_session_timeout"] = timeout_ms
     return create_async_engine(
         settings.database_url,
         echo=settings.DB_ECHO,
         pool_size=settings.DB_POOL_SIZE,
         max_overflow=settings.DB_MAX_OVERFLOW,
         pool_timeout=settings.DB_POOL_TIMEOUT,
+        pool_recycle=settings.DB_POOL_RECYCLE,
         pool_pre_ping=True,
+        connect_args={
+            "timeout": settings.DB_CONNECT_TIMEOUT,
+            "server_settings": server_settings,
+        },
     )
 
 

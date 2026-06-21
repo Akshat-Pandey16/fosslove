@@ -70,9 +70,7 @@ async def test_app_search(client: AsyncClient, admin_headers: dict[str, str]) ->
     assert "GIMP" not in names
 
 
-async def test_update_app_package_refs(
-    client: AsyncClient, admin_headers: dict[str, str]
-) -> None:
+async def test_update_app_package_refs(client: AsyncClient, admin_headers: dict[str, str]) -> None:
     category = await client.post(
         "/api/v1/admin/categories", headers=admin_headers, json={"name": "Editors"}
     )

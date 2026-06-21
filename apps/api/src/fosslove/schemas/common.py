@@ -1,8 +1,20 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, HttpUrl, TypeAdapter
 
 from fosslove.core.pagination import Pagination
+
+_HTTP_URL_ADAPTER = TypeAdapter(HttpUrl)
+
+
+def validate_http_url(value: str | None) -> str | None:
+    if value is None:
+        return None
+    cleaned = value.strip()
+    if not cleaned:
+        return None
+    _HTTP_URL_ADAPTER.validate_python(cleaned)
+    return cleaned
 
 
 class APIModel(BaseModel):
@@ -15,6 +27,11 @@ class StrictModel(BaseModel):
 
 class Message(BaseModel):
     message: str
+
+
+class TokenCleanupResult(BaseModel):
+    refresh_tokens: int
+    verification_tokens: int
 
 
 class PageMeta(BaseModel):

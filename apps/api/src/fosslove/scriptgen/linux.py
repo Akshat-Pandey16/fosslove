@@ -54,17 +54,19 @@ direct_install() {
     dest="$HOME/Downloads"
     mkdir -p "$dest"
     file="$dest/$(basename "$url" | sed 's/?.*//')"
-    if have curl; then curl -fsSL "$url" -o "$file"
-    elif have wget; then wget -q "$url" -O "$file"
+    if have curl; then curl -fsSL "$url" -o "$file" || return 1
+    elif have wget; then wget -q "$url" -O "$file" || return 1
     else return 1
     fi
-    log "  Downloaded $(basename "$file") to $dest (manual install may be required)." "$c_yellow"
-    return 0
+    log "  Downloaded $(basename "$file") to $dest." "$c_yellow"
+    return 2
 }
 
 installed=0
+downloaded=0
 failed=0
 idx=0
+downloaded_names=''
 failed_names=''
 script_start=$(date +%s)
 
@@ -86,9 +88,16 @@ install_app() {
     log "[$idx/$TOTAL] Installing $name..." "$c_cyan"
     start=$(date +%s)
     for cand in "$@"; do
-        if try_candidate "$cand"; then
+        try_candidate "$cand"
+        rc=$?
+        if [ "$rc" -eq 0 ]; then
             installed=$((installed + 1))
             log "  OK  $name ($(( $(date +%s) - start ))s)" "$c_green"
+            return 0
+        elif [ "$rc" -eq 2 ]; then
+            downloaded=$((downloaded + 1))
+            downloaded_names="$downloaded_names $name"
+            log "  DL  $name (downloaded; manual install required)" "$c_yellow"
             return 0
         fi
     done
@@ -101,7 +110,10 @@ install_app() {
 
 _SUMMARY = r"""
 echo ''
-log "Done in $(( $(date +%s) - script_start ))s. Installed: $installed, Failed: $failed" "$c_magenta"
+log "Done in $(( $(date +%s) - script_start ))s. Installed: $installed, Downloaded: $downloaded, Failed: $failed" "$c_magenta"
+if [ "$downloaded" -gt 0 ]; then
+    log "Downloaded (manual install required):$downloaded_names" "$c_yellow"
+fi
 if [ "$failed" -gt 0 ]; then
     log "Failed apps:$failed_names" "$c_yellow"
 fi
