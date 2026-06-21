@@ -82,10 +82,10 @@ async def update_category(
     return to_category_read(category)
 
 
-@router.delete("/categories/{category_id}", response_model=Message)
+@router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_category(
     category_id: int, session: SessionDep, cache: CacheDep, admin: AdminUser, activity: ActivityDep
-) -> Message:
+) -> None:
     await catalog_service.delete_category(session, category_id)
     await cache.delete_prefix(CATALOG_PREFIX)
     await activity.record(
@@ -94,7 +94,6 @@ async def delete_category(
         target_type="category",
         target_id=str(category_id),
     )
-    return Message(message="Category deleted.")
 
 
 @router.get("/apps", response_model=Page[AppListItem])
@@ -165,16 +164,15 @@ async def update_app(
     return to_app_read(app)
 
 
-@router.delete("/apps/{app_id}", response_model=Message)
+@router.delete("/apps/{app_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_app(
     app_id: int, session: SessionDep, cache: CacheDep, admin: AdminUser, activity: ActivityDep
-) -> Message:
+) -> None:
     await catalog_service.delete_app(session, app_id)
     await cache.delete_prefix(CATALOG_PREFIX)
     await activity.record(
         Action.APP_DELETE, actor_id=admin.id, target_type="app", target_id=str(app_id)
     )
-    return Message(message="App deleted.")
 
 
 @router.post("/recompute-counts", response_model=Message)

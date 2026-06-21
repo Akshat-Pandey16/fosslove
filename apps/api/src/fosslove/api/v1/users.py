@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, status
 
 from fosslove.api.deps import (
     ActivityDep,
@@ -71,15 +71,14 @@ async def list_sessions(user: CurrentUser, session: SessionDep) -> list[SessionR
     return [to_session_read(token) for token in tokens]
 
 
-@router.delete("/me/sessions/{token_id}", response_model=Message)
+@router.delete("/me/sessions/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def revoke_session(
     token_id: uuid.UUID, user: CurrentUser, session: SessionDep, activity: ActivityDep
-) -> Message:
+) -> None:
     await auth_service.revoke_session(session, user.id, token_id)
     await activity.record(
         Action.SESSION_REVOKE, actor_id=user.id, target_type="session", target_id=str(token_id)
     )
-    return Message(message="Session revoked.")
 
 
 @router.get("/me/export", response_model=UserDataExport)
@@ -91,11 +90,10 @@ async def export_my_data(
     return UserDataExport(user=to_user_read(user), **data)
 
 
-@router.delete("/me", response_model=Message)
-async def delete_me(user: CurrentUser, session: SessionDep, activity: ActivityDep) -> Message:
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_me(user: CurrentUser, session: SessionDep, activity: ActivityDep) -> None:
     user_id = user.id
     await user_service.delete_account(session, user)
     await activity.record(
         Action.ACCOUNT_DELETE, actor_id=None, target_type="user", target_id=str(user_id)
     )
-    return Message(message="Account deleted.")

@@ -42,7 +42,7 @@ async def test_category_and_app_count_lifecycle(
     assert detail.json()["windows_app_count"] == 1
 
     deleted = await client.delete(f"/api/v1/admin/apps/{app.json()['id']}", headers=admin_headers)
-    assert deleted.status_code == 200
+    assert deleted.status_code == 204
 
     detail_after = await client.get(f"/api/v1/categories/{category_id}")
     assert detail_after.json()["windows_app_count"] == 0

@@ -122,6 +122,17 @@ async def get_current_user(
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
+async def require_verified(user: CurrentUser) -> User:
+    if not user.is_verified:
+        raise PermissionDeniedError(
+            "Please verify your email address to use this feature.", code="email_unverified"
+        )
+    return user
+
+
+VerifiedUser = Annotated[User, Depends(require_verified)]
+
+
 async def require_admin(user: CurrentUser) -> User:
     if user.role is not UserRole.ADMIN:
         raise PermissionDeniedError()

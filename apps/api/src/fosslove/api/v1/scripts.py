@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
-from fosslove.api.deps import ActivityDep, CurrentUser, OptionalUser, PaginationDep, SessionDep
+from fosslove.api.deps import ActivityDep, OptionalUser, PaginationDep, SessionDep, VerifiedUser
 from fosslove.core.middleware import get_client_ip
 from fosslove.schemas.common import Page, paginate
 from fosslove.schemas.script import ScriptGenerateRequest, ScriptRunRead
@@ -62,7 +62,7 @@ async def generate_script(
 
 @router.get("/history", response_model=Page[ScriptRunRead])
 async def list_history(
-    user: CurrentUser, pagination: PaginationDep, session: SessionDep
+    user: VerifiedUser, pagination: PaginationDep, session: SessionDep
 ) -> Page[ScriptRunRead]:
     runs, total = await script_service.list_history(session, user.id, pagination)
     return paginate([to_script_run_read(run) for run in runs], total, pagination)

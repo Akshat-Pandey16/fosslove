@@ -49,7 +49,7 @@ async def test_sessions_list_and_revoke(client: AsyncClient, auth_headers: dict[
     token_id = sessions.json()[0]["id"]
 
     revoke = await client.delete(f"/api/v1/users/me/sessions/{token_id}", headers=auth_headers)
-    assert revoke.status_code == 200
+    assert revoke.status_code == 204
 
     after = await client.get("/api/v1/users/me/sessions", headers=auth_headers)
     assert all(item["id"] != token_id for item in after.json())
@@ -71,10 +71,10 @@ async def test_email_change_immediate_when_email_disabled(
 async def test_favorites_put_is_idempotent(
     client: AsyncClient, auth_headers: dict[str, str], app_id: int
 ) -> None:
-    first = await client.put(f"/api/v1/favorites/{app_id}", headers=auth_headers)
-    second = await client.put(f"/api/v1/favorites/{app_id}", headers=auth_headers)
-    assert first.status_code == 200
-    assert second.status_code == 200
+    first = await client.post(f"/api/v1/favorites/{app_id}", headers=auth_headers)
+    second = await client.post(f"/api/v1/favorites/{app_id}", headers=auth_headers)
+    assert first.status_code == 204
+    assert second.status_code == 204
     listing = await client.get("/api/v1/favorites", headers=auth_headers)
     assert listing.json()["meta"]["total"] == 1
 
@@ -166,6 +166,24 @@ async def test_admin_activity_log_with_filter(
     assert activity.status_code == 200
     assert activity.json()["meta"]["total"] >= 1
     assert all(item["action"] == "auth.login" for item in activity.json()["items"])
+
+
+async def test_unverified_user_blocked_from_features(
+    client: AsyncClient, admin_headers: dict[str, str]
+) -> None:
+    await client.patch(
+        "/api/v1/admin/settings", headers=admin_headers, json={"email_enabled": True}
+    )
+    await client.post(
+        "/api/v1/auth/register", json={"email": "unverified@test.io", "password": "Unverif123"}
+    )
+    login = await client.post(
+        "/api/v1/auth/login", json={"email": "unverified@test.io", "password": "Unverif123"}
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+    response = await client.get("/api/v1/favorites", headers=headers)
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "email_unverified"
 
 
 async def test_invalid_homepage_url_rejected(

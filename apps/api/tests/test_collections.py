@@ -59,7 +59,7 @@ async def test_collection_lifecycle(
     assert any(item["id"] == collection_id for item in public.json()["items"])
 
     deleted = await client.delete(f"/api/v1/collections/{collection_id}", headers=auth_headers)
-    assert deleted.status_code == 200
+    assert deleted.status_code == 204
 
 
 async def test_private_collection_hidden_from_anonymous(
