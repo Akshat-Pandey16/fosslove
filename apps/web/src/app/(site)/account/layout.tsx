@@ -20,7 +20,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
             </span>
           </div>
           <div className="grid gap-8 lg:grid-cols-[230px_1fr]">
-            <aside className="lg:sticky lg:top-24 lg:self-start">
+            <aside className="lg:sticky lg:top-6 lg:self-start">
               <Window label="~/account" bodyClassName="p-2">
                 <AccountNav />
               </Window>

@@ -161,7 +161,7 @@ export default async function AppDetailPage({
           ) : null}
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+        <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
           <div className="panel space-y-3 rounded-xl p-5">
             <span className="font-mono text-[11px] text-muted-foreground">
               $ deck add {app.slug}
