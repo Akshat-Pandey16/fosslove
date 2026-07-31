@@ -85,8 +85,26 @@ make test        Vitest
 make check       lint + typecheck + test + build
 ```
 
+## Styling
+
+Tailwind CSS 4 via the `@tailwindcss/vite` plugin. v4 is **CSS-first**: there is no
+`tailwind.config.js` and no PostCSS config, and source files are discovered from the Vite
+module graph rather than `content` globs. Everything is configured in `src/styles/base.css`:
+
+```css
+@import "tailwindcss";          /* preflight + utility engine */
+@theme { --font-sans: …; }      /* tokens → CSS variables AND utility classes */
+@layer base { … }               /* only what preflight does not cover */
+```
+
+Preflight *is* the reset — do not add another one on top of it.
+
 ## Design status
 
-The visual design is deliberately unbuilt. The pages are semantic HTML with a minimal reset so
-the data layer, routing and auth can be verified end to end; the design language is a separate
-piece of work and nothing here is meant to survive it.
+The visual design is deliberately unbuilt: no utility classes are applied to the pages yet, and
+`@theme` declares only font stacks. The pages are semantic HTML so the data, routing and auth
+layers could be verified end to end; nothing here is meant to survive the design pass.
+
+When that pass happens, define the colour, spacing and type scales as `@theme` tokens rather
+than hard-coding values in components — that is what makes the palette themeable and keeps the
+utilities semantic.

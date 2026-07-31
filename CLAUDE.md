@@ -69,8 +69,8 @@ There is **no Docker in this repository** — deployment will be addressed separ
 
 ## Frontend
 
-React 19.2 + Vite 8 (Rolldown) + React Router 8 + TanStack Query 5, Bun as package manager and
-toolchain. Nothing from the previous Next.js frontend was carried over.
+React 19.2 + Vite 8 (Rolldown) + React Router 8 + TanStack Query 5 + Tailwind CSS 4, Bun as
+package manager and toolchain. Nothing from the previous Next.js frontend was carried over.
 
 ### Two TypeScript versions, deliberately
 
@@ -103,11 +103,26 @@ once and replays the request. The refresh is **single-flight** — this is a cor
 requirement, not an optimisation, because the API rotates refresh tokens and blacklists the
 previous one, so parallel refreshes would invalidate each other.
 
+### Styling
+
+**Tailwind CSS 4**, wired through the `@tailwindcss/vite` plugin. There is no
+`tailwind.config.js` and no PostCSS config — v4 is CSS-first, so all configuration lives in
+`src/styles/base.css`:
+
+- `@import "tailwindcss";` pulls in preflight plus the utility engine.
+- `@theme { ... }` declares design tokens, which become both CSS variables and utility classes
+  (a `--color-*` token generates `bg-*`, `text-*`, `border-*` automatically).
+- `@layer base { ... }` holds only what preflight does not already cover.
+
+Do not add a second CSS reset — preflight is the reset. Sources are auto-detected from the
+Vite module graph; no `content` globs to maintain.
+
 ### Design status
 
-The design language is **not built yet**. Pages are semantic HTML over a minimal CSS reset,
-present only to prove the data, routing and auth layers work end to end. No styling system has
-been chosen — that is a deliberate open decision, not an oversight.
+The design language is **not built yet** — pages are semantic HTML with no utility classes
+applied, present only to prove the data, routing and auth layers work end to end. The `@theme`
+block currently declares only font stacks; the colour, spacing and type scales are the next
+piece of work and should be defined there rather than scattered across components.
 
 ## App layout
 

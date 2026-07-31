@@ -10,7 +10,7 @@ This is a two-app monorepo:
 | App | Path | Stack |
 | --- | --- | --- |
 | **API** | [`apps/api`](apps/api) | Python 3.14 · Django 6 · Django REST Framework · PostgreSQL · Redis (optional) · `uv` |
-| **Web** | [`apps/web`](apps/web) | React 19 · Vite 8 · TypeScript 7 · React Router 8 · TanStack Query · Bun |
+| **Web** | [`apps/web`](apps/web) | React 19 · Vite 8 · TypeScript 7 · React Router 8 · TanStack Query · Tailwind 4 · Bun |
 
 See [CLAUDE.md](CLAUDE.md) for the full engineering guide and conventions.
 
@@ -50,8 +50,9 @@ The frontend's API client is **generated** from the backend's OpenAPI schema, so
 in sync by construction. After changing a serializer, view or route, run `make schema` — CI
 fails if the committed schema or the generated client is stale.
 
-> The web UI has no design language yet. Pages are semantic HTML over a minimal reset, built to
-> prove the data, routing and auth layers work end to end.
+> The web UI has no design language yet. Tailwind 4 is wired up, but no utility classes are
+> applied — the pages are semantic HTML, built to prove the data, routing and auth layers work
+> end to end.
 
 If port 5432 is already taken, run the local cluster elsewhere:
 
