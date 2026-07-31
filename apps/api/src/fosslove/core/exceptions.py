@@ -2,19 +2,20 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import FastAPI, Request, status
-from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from starlette.exceptions import HTTPException as StarletteHTTPException
+from django.core.exceptions import PermissionDenied as DjangoPermissionDenied
+from django.db import IntegrityError
+from django.http import Http404
+from rest_framework import status
+from rest_framework.exceptions import APIException, ValidationError
+from rest_framework.response import Response
+from rest_framework.views import exception_handler as drf_exception_handler
 
-from fosslove.core.config import get_settings
 from fosslove.core.logging import get_logger
+from fosslove.core.request import request_id
 
 logger = get_logger(__name__)
 
-_INTEGRITY_STATUS: dict[str, tuple[int, str, str]] = {
+SQLSTATE_MAP: dict[str, tuple[int, str, str]] = {
     "23505": (status.HTTP_409_CONFLICT, "conflict", "This resource already exists."),
     "23503": (status.HTTP_409_CONFLICT, "conflict", "A referenced resource does not exist."),
     "23514": (
@@ -26,167 +27,110 @@ _INTEGRITY_STATUS: dict[str, tuple[int, str, str]] = {
 }
 
 
-def _sqlstate(exc: SQLAlchemyError) -> str | None:
-    orig = getattr(exc, "orig", None)
-    state = getattr(orig, "sqlstate", None) or getattr(orig, "pgcode", None)
-    return str(state) if state is not None else None
-
-
-class AppError(Exception):
+class AppError(APIException):
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
-    code: str = "internal_error"
-    message: str = "An unexpected error occurred."
-
-    def __init__(
-        self,
-        message: str | None = None,
-        *,
-        code: str | None = None,
-        details: dict[str, Any] | None = None,
-    ) -> None:
-        self.message = message or self.message
-        self.code = code or self.code
-        self.details = details
-        super().__init__(self.message)
+    default_detail: str = "An unexpected error occurred."
+    default_code: str = "internal_error"
 
 
 class BadRequestError(AppError):
     status_code = status.HTTP_400_BAD_REQUEST
-    code = "bad_request"
-    message = "The request could not be processed."
-
-
-class AuthenticationError(AppError):
-    status_code = status.HTTP_401_UNAUTHORIZED
-    code = "unauthenticated"
-    message = "Authentication is required or has failed."
-
-
-class PermissionDeniedError(AppError):
-    status_code = status.HTTP_403_FORBIDDEN
-    code = "permission_denied"
-    message = "You do not have permission to perform this action."
-
-
-class NotFoundError(AppError):
-    status_code = status.HTTP_404_NOT_FOUND
-    code = "not_found"
-    message = "The requested resource was not found."
+    default_detail = "The request could not be processed."
+    default_code = "bad_request"
 
 
 class ConflictError(AppError):
     status_code = status.HTTP_409_CONFLICT
-    code = "conflict"
-    message = "The resource already exists or conflicts with current state."
+    default_detail = "The resource already exists or conflicts with current state."
+    default_code = "conflict"
 
 
-class ValidationAppError(AppError):
-    status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
-    code = "validation_error"
-    message = "The request payload failed validation."
+class PermissionDeniedError(AppError):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = "You do not have permission to perform this action."
+    default_code = "permission_denied"
 
 
-class RateLimitError(AppError):
-    status_code = status.HTTP_429_TOO_MANY_REQUESTS
-    code = "rate_limited"
-    message = "Too many requests. Please slow down."
-
-
-class ServiceUnavailableError(AppError):
-    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-    code = "service_unavailable"
-    message = "A dependency is temporarily unavailable."
-
-
-def _request_id(request: Request) -> str | None:
-    return getattr(request.state, "request_id", None)
+def _sqlstate(exc: BaseException) -> str | None:
+    cause = getattr(exc, "__cause__", None)
+    state = getattr(cause, "sqlstate", None)
+    return str(state) if state else None
 
 
 def _envelope(
-    *,
-    code: str,
-    message: str,
-    request: Request,
-    status_code: int,
-    details: Any = None,
-    headers: dict[str, str] | None = None,
-) -> JSONResponse:
+    *, code: str, message: str, status_code: int, details: Any, context: dict[str, Any]
+) -> Response:
     body: dict[str, Any] = {"error": {"code": code, "message": message}}
     if details is not None:
         body["error"]["details"] = details
-    if rid := _request_id(request):
-        body["request_id"] = rid
-    return JSONResponse(status_code=status_code, content=body, headers=headers)
+    request = context.get("request")
+    identifier = request_id(request._request) if request is not None else None
+    if identifier:
+        body["request_id"] = identifier
+    return Response(body, status=status_code)
 
 
-def register_exception_handlers(app: FastAPI) -> None:
-    settings = get_settings()
+def _code_for(exc: APIException) -> str:
+    code = exc.get_codes()
+    if isinstance(code, str):
+        return code
+    return getattr(exc, "default_code", "error")
 
-    @app.exception_handler(AppError)
-    async def _app_error(request: Request, exc: AppError) -> JSONResponse:
-        if exc.status_code >= 500:
-            logger.error("app_error", code=exc.code, message=exc.message, exc_info=exc)
-        else:
-            logger.info("app_error", code=exc.code, message=exc.message)
-        return _envelope(
-            code=exc.code,
-            message=exc.message,
-            details=exc.details,
-            request=request,
-            status_code=exc.status_code,
-        )
 
-    @app.exception_handler(RequestValidationError)
-    async def _validation(request: Request, exc: RequestValidationError) -> JSONResponse:
+def exception_handler(exc: Exception, context: dict[str, Any]) -> Response | None:
+    if isinstance(exc, ValidationError):
         return _envelope(
             code="validation_error",
             message="The request payload failed validation.",
-            details=jsonable_encoder(exc.errors()),
-            request=request,
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            details=exc.detail,
+            context=context,
         )
 
-    @app.exception_handler(IntegrityError)
-    async def _integrity(request: Request, exc: IntegrityError) -> JSONResponse:
-        sqlstate = _sqlstate(exc)
-        status_code, code, message = _INTEGRITY_STATUS.get(
-            sqlstate or "",
-            (status.HTTP_409_CONFLICT, "conflict", ConflictError.message),
+    if isinstance(exc, IntegrityError):
+        status_code, code, message = SQLSTATE_MAP.get(
+            _sqlstate(exc) or "",
+            (status.HTTP_409_CONFLICT, "conflict", ConflictError.default_detail),
         )
-        logger.info("integrity_error", sqlstate=sqlstate, code=code)
-        return _envelope(code=code, message=message, request=request, status_code=status_code)
-
-    @app.exception_handler(SQLAlchemyError)
-    async def _database(request: Request, exc: SQLAlchemyError) -> JSONResponse:
-        logger.error("database_error", exc_info=exc)
+        logger.info("integrity_error", sqlstate=_sqlstate(exc), code=code)
         return _envelope(
-            code="service_unavailable",
-            message=ServiceUnavailableError.message,
-            request=request,
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            code=code, message=message, status_code=status_code, details=None, context=context
         )
 
-    @app.exception_handler(StarletteHTTPException)
-    async def _http(request: Request, exc: StarletteHTTPException) -> JSONResponse:
-        return _envelope(
-            code="http_error",
-            message=str(exc.detail),
-            request=request,
-            status_code=exc.status_code,
-            headers=getattr(exc, "headers", None),
-        )
+    if isinstance(exc, Http404 | DjangoPermissionDenied):
+        response = drf_exception_handler(exc, context)
+        if response is not None:
+            code = "not_found" if isinstance(exc, Http404) else "permission_denied"
+            message = (
+                "The requested resource was not found."
+                if isinstance(exc, Http404)
+                else PermissionDeniedError.default_detail
+            )
+            return _envelope(
+                code=code,
+                message=message,
+                status_code=response.status_code,
+                details=None,
+                context=context,
+            )
 
-    @app.exception_handler(Exception)
-    async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
-        logger.error("unhandled_exception", exc_info=exc)
-        message = (
-            "An unexpected error occurred."
-            if settings.is_production
-            else f"{type(exc).__name__}: {exc}"
-        )
-        return _envelope(
-            code="internal_error",
+    if isinstance(exc, APIException):
+        detail = exc.detail
+        message = detail if isinstance(detail, str) else str(exc.default_detail)
+        details = None if isinstance(detail, str) else detail
+        if exc.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR:
+            logger.error("app_error", code=_code_for(exc), exc_info=exc)
+        response = _envelope(
+            code=_code_for(exc),
             message=message,
-            request=request,
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=exc.status_code,
+            details=details,
+            context=context,
         )
+        wait = getattr(exc, "wait", None)
+        if wait:
+            response["Retry-After"] = str(int(wait))
+        return response
+
+    logger.error("unhandled_exception", exc_info=exc)
+    return None

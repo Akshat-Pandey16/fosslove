@@ -1,23 +1,29 @@
 from __future__ import annotations
 
-from httpx import AsyncClient
+from typing import Any
+
+import pytest
+from rest_framework.test import APIClient
 
 
-async def test_root(client: AsyncClient) -> None:
-    response = await client.get("/")
+def test_root(api: APIClient) -> None:
+    response = api.get("/")
     assert response.status_code == 200
-    assert response.json()["service"] == "FOSSLove"
+    assert response.data["status"] == "ok"
 
 
-async def test_health(client: AsyncClient) -> None:
-    response = await client.get("/health")
+def test_health(api: APIClient) -> None:
+    assert api.get("/health").status_code == 200
+
+
+@pytest.mark.django_db
+def test_readiness(api: APIClient) -> None:
+    response = api.get("/health/ready")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.data["status"]["database"] == "ok"
 
 
-async def test_readiness(client: AsyncClient) -> None:
-    response = await client.get("/health/ready")
+@pytest.mark.django_db
+def test_openapi_schema(api: APIClient, settings: Any) -> None:
+    response = api.get("/api/v1/schema")
     assert response.status_code == 200
-    checks = response.json()["status"]
-    assert checks["database"] == "ok"
-    assert checks["redis"] == "disabled"

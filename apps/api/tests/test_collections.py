@@ -1,87 +1,80 @@
 from __future__ import annotations
 
-import pytest_asyncio
-from httpx import AsyncClient
+from typing import Any
+
+import pytest
+from rest_framework.test import APIClient
+
+pytestmark = pytest.mark.django_db
+
+COLLECTIONS = "/api/v1/collections"
 
 
-@pytest_asyncio.fixture
-async def app_ids(client: AsyncClient, admin_headers: dict[str, str]) -> list[int]:
-    category = await client.post(
-        "/api/v1/admin/categories", headers=admin_headers, json={"name": "Tools"}
+@pytest.fixture
+def app_ids(make_app: Any) -> list[int]:
+    first = make_app(
+        name="AppA", platform="linux", slug="app-a", manager="flatpak", identifier="org.a"
     )
-    category_id = category.json()["id"]
-    ids: list[int] = []
-    for name in ("AppA", "AppB"):
-        response = await client.post(
-            "/api/v1/admin/apps",
-            headers=admin_headers,
-            json={
-                "category_id": category_id,
-                "platform": "linux",
-                "name": name,
-                "package_refs": [{"manager": "flatpak", "identifier": f"org.{name}"}],
-            },
-        )
-        ids.append(response.json()["id"])
-    return ids
+    second = make_app(
+        name="AppB", platform="linux", slug="app-b", manager="flatpak", identifier="org.b"
+    )
+    return [first.pk, second.pk]
 
 
-async def test_collection_lifecycle(
-    client: AsyncClient, auth_headers: dict[str, str], app_ids: list[int]
+def test_collection_lifecycle(auth_api: APIClient, app_ids: list[int]) -> None:
+    created = auth_api.post(COLLECTIONS, {"name": "My Setup", "app_ids": app_ids}, format="json")
+    assert created.status_code == 201, created.data
+    assert created.data["item_count"] == 2
+    collection_id = created.data["id"]
+
+    assert auth_api.get(COLLECTIONS).data["meta"]["total"] == 1
+
+    renamed = auth_api.patch(
+        f"{COLLECTIONS}/{collection_id}", {"name": "Renamed", "is_public": True}, format="json"
+    )
+    assert renamed.status_code == 200
+    assert renamed.data["name"] == "Renamed"
+    assert renamed.data["slug"] == "renamed"
+
+    trimmed = auth_api.patch(
+        f"{COLLECTIONS}/{collection_id}/apps", {"app_ids": [app_ids[0]]}, format="json"
+    )
+    assert trimmed.status_code == 200
+    assert trimmed.data["item_count"] == 1
+
+    public = auth_api.get(f"{COLLECTIONS}/public")
+    assert any(item["id"] == collection_id for item in public.data["items"])
+
+    assert auth_api.delete(f"{COLLECTIONS}/{collection_id}").status_code == 204
+
+
+def test_duplicate_name_rejected(auth_api: APIClient) -> None:
+    auth_api.post(COLLECTIONS, {"name": "Setup"}, format="json")
+    dup = auth_api.post(COLLECTIONS, {"name": "setup"}, format="json")
+    assert dup.status_code == 422
+
+
+def test_private_collection_hidden_from_anonymous(
+    auth_api: APIClient, api: APIClient, app_ids: list[int]
 ) -> None:
-    created = await client.post(
-        "/api/v1/collections",
-        headers=auth_headers,
-        json={"name": "My Setup", "app_ids": app_ids},
+    created = auth_api.post(COLLECTIONS, {"name": "Private", "app_ids": app_ids}, format="json")
+    anonymous = APIClient()
+    assert anonymous.get(f"{COLLECTIONS}/{created.data['id']}").status_code == 400
+
+
+def test_unknown_app_rejected(auth_api: APIClient) -> None:
+    response = auth_api.post(COLLECTIONS, {"name": "Bad", "app_ids": [999999]}, format="json")
+    assert response.status_code == 422
+
+
+def test_app_ids_deduplicated(auth_api: APIClient, app_ids: list[int]) -> None:
+    created = auth_api.post(
+        COLLECTIONS,
+        {"name": "Dupes", "app_ids": [app_ids[0], app_ids[0], app_ids[1]]},
+        format="json",
     )
-    assert created.status_code == 201
-    assert created.json()["item_count"] == 2
-    collection_id = created.json()["id"]
-
-    listed = await client.get("/api/v1/collections", headers=auth_headers)
-    assert listed.json()["meta"]["total"] == 1
-
-    updated = await client.patch(
-        f"/api/v1/collections/{collection_id}",
-        headers=auth_headers,
-        json={"name": "Renamed", "is_public": True},
-    )
-    assert updated.json()["name"] == "Renamed"
-
-    set_apps = await client.patch(
-        f"/api/v1/collections/{collection_id}/apps",
-        headers=auth_headers,
-        json={"app_ids": [app_ids[0]]},
-    )
-    assert set_apps.json()["item_count"] == 1
-
-    public = await client.get("/api/v1/collections/public")
-    assert any(item["id"] == collection_id for item in public.json()["items"])
-
-    deleted = await client.delete(f"/api/v1/collections/{collection_id}", headers=auth_headers)
-    assert deleted.status_code == 204
+    assert created.data["item_count"] == 2
 
 
-async def test_private_collection_hidden_from_anonymous(
-    client: AsyncClient, auth_headers: dict[str, str], app_ids: list[int]
-) -> None:
-    created = await client.post(
-        "/api/v1/collections",
-        headers=auth_headers,
-        json={"name": "Private", "app_ids": app_ids},
-    )
-    collection_id = created.json()["id"]
-    anonymous = await client.get(f"/api/v1/collections/{collection_id}")
-    assert anonymous.status_code == 404
-
-
-async def test_collection_rejects_unknown_app(
-    client: AsyncClient, auth_headers: dict[str, str]
-) -> None:
-    response = await client.post(
-        "/api/v1/collections",
-        headers=auth_headers,
-        json={"name": "Bad", "app_ids": [999999]},
-    )
-    assert response.status_code == 400
-    assert response.json()["error"]["code"] == "unknown_apps"
+def test_collections_require_authentication(api: APIClient) -> None:
+    assert api.get(COLLECTIONS).status_code == 401

@@ -1,66 +1,89 @@
 from __future__ import annotations
 
-import pytest_asyncio
-from httpx import AsyncClient
+from typing import Any
+
+import pytest
+from rest_framework.test import APIClient
+
+from fosslove.userdata.models import ScriptRun
+
+pytestmark = pytest.mark.django_db
+
+GENERATE = "/api/v1/scripts/generate"
 
 
-@pytest_asyncio.fixture
-async def windows_app_id(client: AsyncClient, admin_headers: dict[str, str]) -> int:
-    category = await client.post(
-        "/api/v1/admin/categories", headers=admin_headers, json={"name": "Browsers"}
-    )
-    response = await client.post(
-        "/api/v1/admin/apps",
-        headers=admin_headers,
-        json={
-            "category_id": category.json()["id"],
-            "platform": "windows",
-            "name": "Firefox",
-            "package_refs": [{"manager": "winget", "identifier": "Mozilla.Firefox"}],
-        },
-    )
-    app_id: int = response.json()["id"]
-    return app_id
-
-
-async def test_generate_windows_script(client: AsyncClient, windows_app_id: int) -> None:
-    response = await client.post(
-        "/api/v1/scripts/generate",
-        json={"platform": "windows", "app_ids": [windows_app_id]},
-    )
+def test_generate_windows_script(api: APIClient, make_app: Any) -> None:
+    app = make_app(name="Firefox", platform="windows")
+    response = api.post(GENERATE, {"platform": "windows", "app_ids": [app.pk]}, format="json")
     assert response.status_code == 200
-    disposition = response.headers["content-disposition"]
+    disposition = response["Content-Disposition"]
     assert disposition.startswith('attachment; filename="install_apps_')
     assert disposition.endswith('.ps1"')
-    assert "Mozilla.Firefox" in response.text
+    body = response.content.decode()
+    assert "Mozilla.Firefox" in body
+    assert body.startswith("#requires -Version")
 
 
-async def test_generate_with_no_matching_apps(client: AsyncClient) -> None:
-    response = await client.post(
-        "/api/v1/scripts/generate", json={"platform": "windows", "app_ids": [999999]}
+def test_generate_linux_script(api: APIClient, make_app: Any) -> None:
+    app = make_app(
+        name="VLC", platform="linux", slug="vlc", manager="flatpak", identifier="org.videolan.VLC"
     )
+    response = api.post(GENERATE, {"platform": "linux", "app_ids": [app.pk]}, format="json")
+    assert response.status_code == 200
+    body = response.content.decode()
+    assert body.startswith("#!/usr/bin/env bash")
+    assert "flatpak:org.videolan.VLC" in body
+
+
+def test_generate_reports_skipped_apps(api: APIClient, make_app: Any) -> None:
+    windows_app = make_app(name="Firefox", platform="windows")
+    linux_app = make_app(
+        name="VLC", platform="linux", slug="vlc", manager="flatpak", identifier="org.videolan.VLC"
+    )
+    response = api.post(
+        GENERATE, {"platform": "windows", "app_ids": [windows_app.pk, linux_app.pk]}, format="json"
+    )
+    assert response.status_code == 200
+    assert response["X-Fosslove-Skipped"] == str(linux_app.pk)
+
+
+def test_generate_requires_selection(api: APIClient) -> None:
+    assert api.post(GENERATE, {"platform": "windows"}, format="json").status_code == 422
+
+
+def test_generate_with_no_matching_apps(api: APIClient) -> None:
+    response = api.post(GENERATE, {"platform": "windows", "app_ids": [999999]}, format="json")
     assert response.status_code == 400
-    assert response.json()["error"]["code"] == "no_apps"
+    assert response.data["error"]["code"] == "no_apps"
 
 
-async def test_generate_requires_app_ids_or_collection(client: AsyncClient) -> None:
-    response = await client.post("/api/v1/scripts/generate", json={"platform": "windows"})
-    assert response.status_code == 422
+def test_anonymous_run_is_recorded_without_user(api: APIClient, make_app: Any) -> None:
+    app = make_app()
+    api.post(GENERATE, {"platform": "windows", "app_ids": [app.pk]}, format="json")
+    run = ScriptRun.objects.get()
+    assert run.user is None
+    assert run.app_ids == [app.pk]
 
 
-async def test_history_requires_auth(client: AsyncClient) -> None:
-    response = await client.get("/api/v1/scripts/history")
-    assert response.status_code == 401
+def test_history_records_authenticated_runs(auth_api: APIClient, make_app: Any) -> None:
+    app = make_app()
+    auth_api.post(GENERATE, {"platform": "windows", "app_ids": [app.pk]}, format="json")
+    history = auth_api.get("/api/v1/scripts/history")
+    assert history.data["meta"]["total"] == 1
+    assert history.data["items"][0]["platform"] == "windows"
 
 
-async def test_history_records_runs(
-    client: AsyncClient, auth_headers: dict[str, str], windows_app_id: int
-) -> None:
-    await client.post(
-        "/api/v1/scripts/generate",
-        headers=auth_headers,
-        json={"platform": "windows", "app_ids": [windows_app_id]},
+def test_history_requires_authentication(api: APIClient) -> None:
+    assert api.get("/api/v1/scripts/history").status_code == 401
+
+
+def test_generate_from_collection(auth_api: APIClient, make_app: Any) -> None:
+    app = make_app()
+    collection = auth_api.post(
+        "/api/v1/collections", {"name": "Bundle", "app_ids": [app.pk]}, format="json"
     )
-    history = await client.get("/api/v1/scripts/history", headers=auth_headers)
-    assert history.json()["meta"]["total"] == 1
-    assert history.json()["items"][0]["platform"] == "windows"
+    response = auth_api.post(
+        GENERATE, {"platform": "windows", "collection_id": collection.data["id"]}, format="json"
+    )
+    assert response.status_code == 200
+    assert "Mozilla.Firefox" in response.content.decode()

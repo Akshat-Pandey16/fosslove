@@ -9,62 +9,74 @@ This is a two-app monorepo:
 
 | App | Path | Stack |
 | --- | --- | --- |
-| **API** | [`apps/api`](apps/api) | Python 3.14 · FastAPI · Pydantic v2 · SQLAlchemy 2 (async) · PostgreSQL 18 · Redis · `uv` |
-| **Web** | [`apps/web`](apps/web) | Next.js 16 · React 19 · TypeScript · Tailwind v4 · shadcn/ui · TanStack Query · Bun |
+| **API** | [`apps/api`](apps/api) | Python 3.14 · Django 6 · Django REST Framework · PostgreSQL · Redis (optional) · `uv` |
+| **Web** | [`apps/web`](apps/web) | React 19 · Vite 8 · TypeScript 7 · React Router 8 · TanStack Query · Bun |
 
 See [CLAUDE.md](CLAUDE.md) for the full engineering guide and conventions.
 
 ## Features
 
-- **Catalog** — search + filter apps by platform and category, per-app package sources.
+- **Catalog** — fuzzy search and filtering by platform and category, per-app package sources.
 - **Script builder** — collect apps across the catalog, generate one install script per platform.
 - **Accounts** — favorites, named collections (public or private), and script history.
 - **Public collections** — share a setup; anyone can install it in one go.
-- **Admin panel** — full CRUD for categories and apps (with package references) plus
-  **runtime settings** (feature flags, rate limits, email/SMTP, branding) editable without a redeploy.
-- **Auth** — JWT access + rotating/revocable refresh tokens, Argon2id, optional email verification.
+- **Admin** — full CRUD for categories and apps plus **runtime settings** (feature flags,
+  rate limits, email/SMTP, branding) editable without a redeploy.
+- **Auth** — JWT access + rotating/revocable refresh tokens, Argon2id, optional email
+  verification.
 
-## Quick start (local dev)
+## Requirements
 
-Requires Docker, [`uv`](https://docs.astral.sh/uv/), and [Bun](https://bun.sh/).
+[`uv`](https://docs.astral.sh/uv/), PostgreSQL 16+, and [Bun](https://bun.sh/) for the
+frontend. There is **no Docker** in this repo — `make db-*` manages a project-local
+PostgreSQL cluster for you.
+
+## Quick start
 
 ```bash
-make infra            # start postgres + redis in Docker (shared by the dev servers)
-
-make api-install      # backend deps
-make api-migrate      # create the schema
-make api-seed         # load a sample catalog
-make api-dev          # API on http://localhost:8001
-
-make web-install      # frontend deps
-make web-env          # create apps/web/.env.local
-make web-dev          # web on http://localhost:3000
+make bootstrap        # env files + local Postgres + install + migrate + seed + admin user
+make run-api          # API on http://localhost:8000
 ```
 
-The backend's API docs live at `http://localhost:8001/api/v1/docs`.
+```bash
+make run-web          # web on http://localhost:5173
+make run-all          # both servers together
+```
 
-## Quick start (full Docker stack)
+API docs are at `http://localhost:8000/api/v1/docs`, Django admin at
+`http://localhost:8000/django-admin/`.
+
+The frontend's API client is **generated** from the backend's OpenAPI schema, so the two stay
+in sync by construction. After changing a serializer, view or route, run `make schema` — CI
+fails if the committed schema or the generated client is stale.
+
+> The web UI has no design language yet. Pages are semantic HTML over a minimal reset, built to
+> prove the data, routing and auth layers work end to end.
+
+If port 5432 is already taken, run the local cluster elsewhere:
 
 ```bash
-make up               # postgres + redis + api (:8000) + web (:3000), migrations auto-run
-make logs             # tail everything
-make down             # stop
+make db-start PGPORT=5433      # then set FOSSLOVE_POSTGRES_PORT=5433 in apps/api/.env
 ```
 
 ## Common commands
 
-Run `make` for the full list. Backend targets are `api-<target>`, frontend `web-<target>`.
+Run `make` for the full list. Any backend target is available as `api-<target>`, any
+frontend target as `web-<target>`.
 
 ```bash
-make api-check        # ruff + mypy + pytest
-make web-check        # biome (lint + format) + tsc
-make api-reset-db     # DESTRUCTIVE: drop schema, re-migrate, reset identities
-make api-upgrade / make web-upgrade   # bump dependencies to latest
+make run-api / run-web / run-all / run-api-prod
+make db-init / db-start / db-stop / db-status / db-psql / db-logs / db-destroy
+make api-migrate / api-migrations / api-seed / api-reseed / api-superuser
+make web-install / web-build / web-test / web-codegen
+make check            # lint + format check + typecheck + tests for both apps
+make schema           # regenerate openapi.json and the typed frontend client
+make upgrade          # raise every dependency to the latest published version
 ```
 
 ## Configuration
 
-Backend config is env vars prefixed `FOSSLOVE_` (see [`apps/api/.env.example`](apps/api/.env.example)).
-The frontend reads `NEXT_PUBLIC_API_BASE_URL` / `API_INTERNAL_URL` (see
-[`apps/web/.env.example`](apps/web/.env.example)). A subset of backend settings is also
-editable at runtime from the admin panel.
+Backend config is env vars prefixed `FOSSLOVE_` (see
+[`apps/api/.env.example`](apps/api/.env.example)). A subset is also editable at runtime
+from the admin API or the Django admin. Production startup is blocked by system checks if
+insecure defaults are left in place.

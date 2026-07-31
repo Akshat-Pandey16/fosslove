@@ -24,10 +24,9 @@ sqlcommand.sql
 .DS_Store
 
 node_modules/
-.next/
-out/
-.turbo/
-next-env.d.ts
+dist/
+.vite/
 *.tsbuildinfo
-.pnpm-store/
-.vercel
+bun.lockb.bak
+
+.pgdata/

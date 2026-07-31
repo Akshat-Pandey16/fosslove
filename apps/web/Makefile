@@ -1,21 +1,24 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
+
 BUN ?= bun
+PORT ?= 5173
 
 .PHONY: help
 help:
-	@echo "FOSSLove web — make targets:"
-	@echo "  install     Install dependencies"
-	@echo "  upgrade     Upgrade every dependency to latest"
-	@echo "  env         Create .env.local from .env.example if missing"
-	@echo "  dev         Run the dev server (:3000)"
-	@echo "  build       Production build"
-	@echo "  start       Run the production server"
-	@echo "  lint        Lint + format check (biome)"
-	@echo "  format      Auto-format and fix (biome)"
-	@echo "  typecheck   Type-check (tsc)"
-	@echo "  check       lint + typecheck"
-	@echo "  clean       Remove build artifacts"
+	@echo "install      Install dependencies"
+	@echo "upgrade      Update every dependency to the latest published version"
+	@echo "env          Create .env from .env.example if missing"
+	@echo "dev          Run the Vite dev server"
+	@echo "build        Type-check and build for production"
+	@echo "preview      Serve the production build"
+	@echo "codegen      Regenerate the API types from apps/api/openapi.json"
+	@echo "lint         Lint with ESLint"
+	@echo "format       Lint and autofix with ESLint"
+	@echo "typecheck    Type-check with TypeScript 7"
+	@echo "test         Run the test suite"
+	@echo "check        lint + typecheck + test + build"
+	@echo "clean        Remove build output and caches"
 
 .PHONY: install
 install:
@@ -27,19 +30,23 @@ upgrade:
 
 .PHONY: env
 env:
-	@test -f .env.local || (cp .env.example .env.local && echo "Created .env.local")
+	@test -f .env || (cp .env.example .env && echo "Created apps/web/.env")
 
 .PHONY: dev
 dev:
-	$(BUN) run dev
+	$(BUN) run dev --port $(PORT)
 
 .PHONY: build
 build:
 	$(BUN) run build
 
-.PHONY: start
-start:
-	$(BUN) run start
+.PHONY: preview
+preview:
+	$(BUN) run preview
+
+.PHONY: codegen
+codegen:
+	$(BUN) run codegen
 
 .PHONY: lint
 lint:
@@ -53,9 +60,13 @@ format:
 typecheck:
 	$(BUN) run typecheck
 
+.PHONY: test
+test:
+	$(BUN) run test
+
 .PHONY: check
-check: lint typecheck
+check: lint typecheck test build
 
 .PHONY: clean
 clean:
-	rm -rf .next out node_modules/.cache
+	@rm -rf dist coverage node_modules/.vite

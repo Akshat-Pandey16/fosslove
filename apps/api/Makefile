@@ -1,32 +1,35 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
 UV ?= uv
+PORT ?= 8000
 
 .PHONY: help
 help:
-	@echo "FOSSLove — make targets:"
-	@echo "  install     Create venv and install all (incl. dev) dependencies"
-	@echo "  upgrade     Upgrade every dependency to its latest compatible version"
-	@echo "  lock        Resolve and pin the dependency tree into uv.lock"
-	@echo "  env         Create .env from .env.example if missing"
-	@echo "  run         Run the API (no reload)"
-	@echo "  dev         Run the API with autoreload"
-	@echo "  lint        Lint with ruff"
-	@echo "  format      Auto-format and fix with ruff"
-	@echo "  typecheck   Static type-check with mypy"
-	@echo "  test        Run the test suite"
-	@echo "  test-cov    Run tests with coverage"
-	@echo "  check       Run lint + typecheck + tests"
-	@echo "  migrate     Apply all migrations"
-	@echo "  downgrade   Roll back the last migration"
-	@echo "  revision    Autogenerate a migration: make revision m=\"message\""
-	@echo "  reset-db    DESTRUCTIVE: drop schema, re-apply migrations, reset identities"
-	@echo "  reseed      DESTRUCTIVE: reset-db then load sample catalog data"
-	@echo "  seed        Seed sample catalog data"
-	@echo "  up          Start the full docker stack"
-	@echo "  down        Stop the docker stack"
-	@echo "  logs        Tail api logs"
-	@echo "  clean       Remove caches and build artifacts"
+	@echo "FOSSLove API (Django) — targets:"
+	@echo "  install      Create the venv and install all dependencies"
+	@echo "  upgrade      Raise every dependency floor to the latest on PyPI, relock, sync"
+	@echo "  lock         Re-resolve uv.lock without changing floors"
+	@echo "  env          Create .env from .env.example if missing"
+	@echo "  dev          Run the development server (:$(PORT))"
+	@echo "  run          Run the production server via gunicorn"
+	@echo "  shell        Django shell"
+	@echo "  dbshell      Database shell"
+	@echo "  migrate      Apply migrations"
+	@echo "  migrations   Create migrations for model changes"
+	@echo "  check-migrations  Fail if models drift from migrations"
+	@echo "  seed         Load the bundled catalog fixtures"
+	@echo "  reseed       Flush the catalog and reload fixtures"
+	@echo "  admin        Create the bootstrap admin from .env"
+	@echo "  superuser    Create a superuser interactively"
+	@echo "  reset-db     DESTRUCTIVE: flush the database and re-migrate"
+	@echo "  static       Collect static files"
+	@echo "  lint         Lint with ruff"
+	@echo "  format       Format and autofix with ruff"
+	@echo "  typecheck    Type-check with mypy --strict"
+	@echo "  test         Run the test suite"
+	@echo "  test-cov     Run the test suite with coverage"
+	@echo "  check        lint + format check + typecheck + test"
+	@echo "  clean        Remove caches and build artifacts"
 
 .PHONY: install
 install:
@@ -34,6 +37,7 @@ install:
 
 .PHONY: upgrade
 upgrade:
+	$(UV) run python scripts/upgrade_deps.py
 	$(UV) lock --upgrade
 	$(UV) sync --all-extras
 
@@ -45,13 +49,63 @@ lock:
 env:
 	@test -f .env || (cp .env.example .env && echo "Created .env — edit the secrets!")
 
-.PHONY: run
-run:
-	$(UV) run uvicorn fosslove.main:app --host 0.0.0.0 --port 8001
-
 .PHONY: dev
 dev:
-	$(UV) run uvicorn fosslove.main:app --host 0.0.0.0 --port 8001 --reload
+	$(UV) run python manage.py runserver 0.0.0.0:$(PORT)
+
+.PHONY: run
+run:
+	$(UV) run gunicorn fosslove.conf.wsgi:application --bind 0.0.0.0:$(PORT) --workers 4
+
+.PHONY: shell
+shell:
+	$(UV) run python manage.py shell
+
+.PHONY: dbshell
+dbshell:
+	$(UV) run python manage.py dbshell
+
+.PHONY: migrate
+migrate:
+	$(UV) run python manage.py migrate
+
+.PHONY: migrations
+migrations:
+	$(UV) run python manage.py makemigrations
+
+.PHONY: check-migrations
+check-migrations:
+	$(UV) run python manage.py makemigrations --check --dry-run
+
+.PHONY: seed
+seed:
+	$(UV) run python manage.py seed_catalog
+
+.PHONY: reseed
+reseed:
+	$(UV) run python manage.py seed_catalog --flush
+
+.PHONY: admin
+admin:
+	$(UV) run python manage.py ensure_admin
+
+.PHONY: superuser
+superuser:
+	$(UV) run python manage.py createsuperuser
+
+.PHONY: reset-db
+reset-db:
+	$(UV) run python manage.py flush --no-input
+	$(UV) run python manage.py migrate
+
+.PHONY: schema
+schema:
+	$(UV) run python manage.py spectacular --format openapi-json --validate --fail-on-warn --file openapi.json
+	@echo "Wrote apps/api/openapi.json"
+
+.PHONY: static
+static:
+	$(UV) run python manage.py collectstatic --no-input
 
 .PHONY: lint
 lint:
@@ -75,45 +129,13 @@ test-cov:
 	$(UV) run pytest --cov --cov-report=term-missing --cov-report=xml
 
 .PHONY: check
-check: lint typecheck test
-
-.PHONY: migrate
-migrate:
-	$(UV) run alembic upgrade head
-
-.PHONY: downgrade
-downgrade:
-	$(UV) run alembic downgrade -1
-
-.PHONY: revision
-revision:
-	$(UV) run alembic revision --autogenerate -m "$(m)"
-
-.PHONY: reset-db
-reset-db:
-	$(UV) run python -m fosslove.db.reset
-	$(UV) run alembic upgrade head
-
-.PHONY: reseed
-reseed: reset-db seed
-
-.PHONY: seed
-seed:
-	$(UV) run python -m fosslove.seed
-
-.PHONY: up
-up:
-	docker compose up --build -d
-
-.PHONY: down
-down:
-	docker compose down
-
-.PHONY: logs
-logs:
-	docker compose logs -f api
+check:
+	$(UV) run ruff check src tests
+	$(UV) run ruff format --check src tests
+	$(UV) run mypy src
+	$(UV) run pytest
 
 .PHONY: clean
 clean:
-	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage coverage.xml dist build
+	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage coverage.xml dist build staticfiles
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +

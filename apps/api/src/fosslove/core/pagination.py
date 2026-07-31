@@ -1,28 +1,56 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections import OrderedDict
+from typing import Any, cast
 
-DEFAULT_PAGE_SIZE = 20
+from django.core.paginator import Page
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+
 MAX_PAGE_SIZE = 100
-MAX_RESULT_WINDOW = 50_000
 
 
-@dataclass(frozen=True, slots=True)
-class Pagination:
-    page: int
-    size: int
+class PageNumberMetaPagination(PageNumberPagination):
+    page_size_query_param = "size"
+    page_query_param = "page"
+    max_page_size = MAX_PAGE_SIZE
 
-    @property
-    def limit(self) -> int:
-        return self.size
+    def get_paginated_response(self, data: Any) -> Response:
+        page = cast("Page[Any]", self.page)
+        return Response(
+            OrderedDict(
+                [
+                    ("items", data),
+                    (
+                        "meta",
+                        OrderedDict(
+                            [
+                                ("page", page.number),
+                                ("size", page.paginator.per_page),
+                                ("total", page.paginator.count),
+                                ("pages", page.paginator.num_pages),
+                            ]
+                        ),
+                    ),
+                ]
+            )
+        )
 
-    @property
-    def offset(self) -> int:
-        return (self.page - 1) * self.size
-
-
-def build_pagination(page: int, size: int) -> Pagination:
-    size = min(max(1, size), MAX_PAGE_SIZE)
-    max_page = MAX_RESULT_WINDOW // size + 1
-    page = min(max(1, page), max_page)
-    return Pagination(page=page, size=size)
+    def get_paginated_response_schema(self, schema: Any) -> dict[str, Any]:
+        return {
+            "type": "object",
+            "required": ["items", "meta"],
+            "properties": {
+                "items": schema,
+                "meta": {
+                    "type": "object",
+                    "required": ["page", "size", "total", "pages"],
+                    "properties": {
+                        "page": {"type": "integer"},
+                        "size": {"type": "integer"},
+                        "total": {"type": "integer"},
+                        "pages": {"type": "integer"},
+                    },
+                },
+            },
+        }

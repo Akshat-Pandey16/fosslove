@@ -45,11 +45,14 @@ jobs:
           enable-cache: true
           working-directory: apps/api
       - run: uv sync --all-extras --frozen
-      - run: uv run ruff check src tests
-      - run: uv run ruff format --check src tests
+      - run: uv run ruff check src tests scripts
+      - run: uv run ruff format --check src tests scripts
       - run: uv run mypy src
-      - run: uv run alembic upgrade head
+      - run: uv run python manage.py makemigrations --check --dry-run
       - run: uv run pytest --cov --cov-report=term-missing
+      - run: uv run python manage.py spectacular --format openapi-json --validate --fail-on-warn --file openapi.json
+      - name: Fail if the committed OpenAPI schema is stale
+        run: git diff --exit-code -- openapi.json
 
   frontend:
     runs-on: ubuntu-latest
@@ -64,4 +67,8 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
+      - run: bun run test
       - run: bun run build
+      - run: bun run codegen
+      - name: Fail if the generated API client is stale
+        run: git diff --exit-code -- src/api/schema.d.ts

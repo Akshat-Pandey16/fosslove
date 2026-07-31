@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fosslove.scriptgen.common import AppPlan, sh_quote
+from fosslove.scriptgen.plans import AppPlan, sh_quote
 
 _PRELUDE = r"""#!/usr/bin/env bash
 set -u
@@ -125,7 +125,7 @@ def _emit_calls(plans: list[AppPlan]) -> str:
     for plan in plans:
         parts = [sh_quote(plan.name)]
         parts.extend(
-            sh_quote(candidate.manager.value + ":" + candidate.identifier)
+            sh_quote(candidate.manager + ":" + candidate.identifier)
             for candidate in plan.candidates
         )
         lines.append("install_app " + " ".join(parts))

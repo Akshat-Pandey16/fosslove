@@ -1,52 +1,44 @@
 [project]
 name = "fosslove"
-version = "1.0.0"
-description = "FOSSLove — one-stop catalog of FOSS apps with one-click install-script generation for Windows and Linux."
+version = "2.0.0"
+description = "FOSSLove — catalog of FOSS apps with one-click install-script generation for Windows and Linux."
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "FOSSLove" }]
-keywords = ["fastapi", "foss", "catalog", "winget", "flatpak", "installer"]
+keywords = ["django", "foss", "catalog", "winget", "flatpak", "installer"]
 
 dependencies = [
-    "fastapi>=0.138.0",
-    "uvicorn[standard]>=0.49.0",
-    "pydantic[email]>=2.13.4",
-    "pydantic-settings>=2.14.2",
-    "sqlalchemy[asyncio]>=2.0.51",
-    "asyncpg>=0.31.0",
-    "alembic>=1.18.4",
-    "pyjwt>=2.13.0",
+    "django>=6.0.7",
+    "djangorestframework>=3.17.1",
+    "djangorestframework-simplejwt>=5.5.1",
+    "drf-spectacular>=0.30.0",
+    "django-filter>=26.1",
+    "django-cors-headers>=4.9.0",
+    "django-pgtrigger>=4.17.0",
+    "django-solo>=2.5.1",
+    "django-prometheus>=2.5.0",
+    "django-environ>=0.14.0",
+    "psycopg[binary,pool]>=3.3.4",
+    "redis[hiredis]>=8.1.0",
     "argon2-cffi>=25.1.0",
     "structlog>=26.1.0",
-    "python-multipart>=0.0.32",
     "python-slugify>=8.0.4",
-    "limits>=5.8.0",
-    "redis[hiredis]>=8.0",
-    "prometheus-client>=0.21.0",
-    "aiosmtplib>=5.1.2",
-    "tenacity>=9.1.4",
-    "httpx>=0.28.1",
-    "sqladmin>=0.27.2",
-    "itsdangerous>=2.2.0",
+    "whitenoise[brotli]>=6.12.0",
+    "gunicorn>=26.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "ruff>=0.15.18",
-    "mypy>=2.1.0",
+    "ruff>=0.16.1",
+    "mypy>=2.3.0",
+    "django-stubs[compatible-mypy]>=6.0.7",
+    "djangorestframework-stubs>=3.17.1",
     "pytest>=9.1.1",
-    "pytest-asyncio>=1.4.0",
+    "pytest-django>=4.12.0",
     "pytest-cov>=7.1.0",
-    "pytest-mock>=3.15.1",
-    "asgi-lifespan>=2.1.0",
-    "faker>=40.23.0",
-    "factory-boy>=3.3.3",
-    "types-python-slugify>=8.0.2",
+    "model-bakery>=1.24.0",
 ]
-
-[project.scripts]
-fosslove = "fosslove.__main__:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -58,26 +50,26 @@ packages = ["src/fosslove"]
 [tool.ruff]
 line-length = 100
 target-version = "py313"
-src = ["src", "tests"]
-extend-exclude = ["migrations/versions"]
+src = ["src", "tests", "scripts"]
+extend-exclude = ["**/migrations/*"]
 
 [tool.ruff.lint]
-select = [
-    "E", "W", "F", "I", "N", "UP", "B", "C4", "ASYNC",
-    "S", "T20", "SIM", "RUF", "PL", "TID",
-]
-ignore = ["PLR0913", "PLR2004", "B008"]
+select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "DJ", "S", "T20", "SIM", "RUF", "PL", "TID"]
+ignore = ["PLR0913", "PLR2004"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106", "PLR2004", "PLR0913", "PLC0415"]
-"src/fosslove/scriptgen/**" = ["S608", "E501"]
-"src/fosslove/admin/views.py" = ["RUF012"]
-"src/fosslove/db/session.py" = ["PLW0603"]
-"src/fosslove/core/config.py" = ["S105"]
-"src/fosslove/db/models/enums.py" = ["S105"]
-"src/fosslove/schemas/auth.py" = ["S105"]
-"src/fosslove/services/activity_service.py" = ["S105"]
-"src/fosslove/__main__.py" = ["S104"]
+"src/fosslove/scriptgen/**" = ["E501"]
+"src/fosslove/conf/settings.py" = ["S105", "E501"]
+"scripts/**" = ["T201", "S310", "BLE001"]
+"**/models.py" = ["RUF012"]
+"**/admin.py" = ["RUF012"]
+"**/admin_views.py" = ["RUF012"]
+"**/serializers.py" = ["RUF012"]
+"**/views.py" = ["RUF012"]
+"**/filters.py" = ["RUF012"]
+"src/fosslove/siteconfig/models.py" = ["RUF012", "DJ001"]
+"src/fosslove/core/apps.py" = ["PLC0415"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["fosslove"]
@@ -85,36 +77,47 @@ known-first-party = ["fosslove"]
 [tool.mypy]
 python_version = "3.13"
 strict = true
-plugins = ["pydantic.mypy"]
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
 warn_unreachable = true
 warn_redundant_casts = true
 warn_unused_ignores = true
-disallow_untyped_defs = true
 mypy_path = "src"
 explicit_package_bases = true
 namespace_packages = true
+exclude = ["migrations"]
 
 [[tool.mypy.overrides]]
-module = ["slugify.*", "factory.*", "limits.*"]
+module = ["slugify.*", "solo.*", "django_prometheus.*", "environ.*"]
 ignore_missing_imports = true
 
-[tool.pydantic-mypy]
-init_forbid_extra = true
-init_typed = true
-warn_required_dynamic_aliases = true
+[[tool.mypy.overrides]]
+module = ["fosslove.*.admin"]
+disallow_any_generics = false
+
+[[tool.mypy.overrides]]
+module = ["django_filters.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["fosslove.*.filters"]
+disallow_subclassing_any = false
+
+[tool.django-stubs]
+django_settings_module = "fosslove.conf.settings"
 
 [tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "fosslove.conf.settings"
 testpaths = ["tests"]
-asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "session"
-asyncio_default_test_loop_scope = "session"
 addopts = "-ra -q --strict-markers --strict-config"
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    "ignore:No directory at:UserWarning",
+]
 
 [tool.coverage.run]
 source = ["src/fosslove"]
 branch = true
-omit = ["src/fosslove/__main__.py", "src/fosslove/seed.py"]
+omit = ["*/migrations/*", "*/conf/wsgi.py", "*/conf/asgi.py"]
 
 [tool.coverage.report]
 show_missing = true

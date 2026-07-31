@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fosslove.scriptgen.common import AppPlan, ps_quote
+from fosslove.scriptgen.plans import AppPlan, ps_quote
 
 _PRELUDE = r"""#requires -Version 5.1
 $ErrorActionPreference = 'Continue'
@@ -154,7 +154,7 @@ def _emit_data(plans: list[AppPlan]) -> str:
     for plan in plans:
         candidate_lines = [
             "      [pscustomobject]@{ Manager="
-            + ps_quote(candidate.manager.value)
+            + ps_quote(candidate.manager)
             + "; Id="
             + ps_quote(candidate.identifier)
             + "; Args="

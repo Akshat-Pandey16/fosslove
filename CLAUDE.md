@@ -7,191 +7,254 @@ Guidance for working in this repository. Read this first.
 A production-grade **monorepo** for a catalog of free/open-source apps (Windows + Linux),
 grouped into categories. Users browse the catalog, select apps, and the API generates a
 ready-to-run **install script** (PowerShell for Windows, POSIX shell for Linux) that
-installs everything via the right package manager. This is a full ground-up rewrite of an
-older, poorly-structured FastAPI prototype.
+installs everything via the right package manager.
 
 It is a two-app monorepo:
 
-- **`apps/api`** — the FastAPI backend (Python).
-- **`apps/web`** — the Next.js 16 frontend (TypeScript, Bun).
+- **`apps/api`** — the Django + DRF backend (Python 3.14, uv).
+- **`apps/web`** — the React + Vite frontend (TypeScript 7, Bun).
 
-A root `Makefile` orchestrates both, and `docker-compose.yml` runs the full stack
-(postgres + redis + api + web). A `packages/` dir can be added later for shared code.
+A root `Makefile` orchestrates both and manages a project-local PostgreSQL cluster.
+There is **no Docker in this repository** — deployment will be addressed separately.
 
 ## Hard project conventions (do not violate)
 
 - **No comments. No docstrings. Anywhere.** Code must be self-explanatory through naming
   and structure. The only exception is load-bearing tooling pragmas (`# type: ignore`,
   `# noqa`, `# pragma: no cover`) and they should be avoided where the code can be
-  restructured to not need them. This applies to Python, config files, Dockerfiles, YAML —
-  everything. (Markdown docs like this file are documentation, not comments.)
+  restructured to not need them. This applies to Python, config files, YAML — everything.
+  (Markdown docs like this file are documentation, not comments.)
+- **Use framework and library idioms, never hand-rolled equivalents.** If Django, DRF, or a
+  library already solves it, use their helper. Do not reimplement pagination, throttling,
+  password hashing, token rotation, email delivery, filtering, or validation.
+- **`APIView` only.** Every endpoint is a `rest_framework.views.APIView` subclass with
+  explicit `get` / `post` / `patch` / `delete` methods. **No ViewSets, no routers, no
+  generic views.** URLs are declared explicitly with `path()`.
+- **No `PUT` endpoints.** Partial updates use `PATCH`.
 - **Always latest dependencies.** `pyproject.toml` uses `>=` lower-bound floors only — never
-  exact `==` pins. The resolved tree lives in `uv.lock`. Run `make upgrade` to pull the
-  newest compatible versions of everything. When adding a dep, set the floor to the current
-  latest from PyPI.
-- **Strict everything.** `ruff` (lint + format) and `mypy --strict` must pass. Tests
-  (`pytest`) treat warnings as errors.
-- **Async end to end.** SQLAlchemy 2.0 async + asyncpg. No sync DB calls in request paths.
+  exact `==` pins. `make api-upgrade` raises every floor to the newest release on PyPI,
+  relocks, and syncs. The resolved tree lives in `uv.lock`.
+- **Strict everything.** `ruff` (lint + format) and `mypy --strict` must pass with zero
+  findings. Tests (`pytest`) treat warnings as errors. Adhere to what the linters say —
+  fix the code rather than blanket-ignoring rules; scope any ignore to the narrowest path.
+- **The database is the source of truth for invariants.** Constraints, partial and
+  functional indexes, and triggers live in the schema, not only in Python.
 - **src layout.** Backend code under `apps/api/src/fosslove/`. First-party import root is
-  `fosslove`. The on-disk depth is cosmetic — imports stay `import fosslove`.
-- **Frontend conventions mirror the backend.** No comments (same rule), always-latest deps
-  (caret ranges, `make web-upgrade`), Biome (lint+format) and `tsc` must pass. Bun is the
-  package manager + toolchain. JSONB is a last resort on the DB — prefer typed columns
-  (e.g. `app_settings` is a typed single-row table, not a JSONB blob).
+  `fosslove`.
 
-## Tech stack (June 2026)
+## Tech stack (backend, July 2026)
 
-- **Runtime:** Python 3.14 (floor 3.13). `uv` manages the interpreter + venv + lockfile.
-- **Web:** FastAPI 0.138 on Starlette 1.x, Uvicorn (uvloop + httptools).
-- **Validation/serialization:** Pydantic v2.13. We rely on FastAPI's native Pydantic-v2
-  JSON serialization (Rust `pydantic-core`) via return-type annotations / `response_model`.
-  **No orjson** — `ORJSONResponse`/`UJSONResponse` are deprecated as of FastAPI 0.131, and
-  adding orjson forces a slower `pydantic→dict→orjson→bytes` detour.
-- **DB:** PostgreSQL 18, SQLAlchemy 2.0.51 (async), Alembic migrations. `pg_trgm` for
-  fuzzy app search; `JSONB` for flexible per-manager package metadata.
-- **Cache / rate-limit store:** Redis (server 8; redis-py 8.x — latest). **Optional**, with
-  a graceful in-memory fallback so the API runs without it (single-process only).
-- **Background jobs / scheduler:** none currently — deliberately. Category counts are kept
-  correct by a `before_flush` DB event (every write path), and transactional emails
-  (verify/reset) use FastAPI `BackgroundTasks`, so nothing needs a broker today. Periodic
-  maintenance (recompute counts, expired-token cleanup) is exposed as on-demand admin
-  endpoints (`POST /admin/recompute-counts`, `POST /admin/cleanup-tokens`), which a
-  cron/k8s-CronJob can call. **If a queue or scheduler becomes necessary** (durable email
-  delivery, bulk imports, webhooks, periodic dead-link/package-availability checks), pick
-  the option that best fits the scenario at that time — evaluate the field (e.g. arq, saq,
-  taskiq, dramatiq, Celery, or a Postgres-backed queue) rather than defaulting to one.
-  Note: saq/arq cap redis-py `<8`, so adding one may require lowering the redis floor.
-- **Auth:** PyJWT (access + rotating/revocable refresh tokens) + argon2-cffi (Argon2id).
-- **Admin:** two surfaces — the **Next.js admin panel** at `/admin` on the frontend (custom
-  CRUD for categories, apps + package refs, and runtime settings), and **SQLAdmin** on the
-  API host (a Django-admin-style fallback on the SQLAlchemy models). Both are admin-gated.
-- **Logging:** structlog (JSON in prod, console in dev), request-id bound per request.
-- **Email:** aiosmtplib (pluggable `console` / `smtp` backends).
-- **Tooling:** ruff, mypy, pytest (+asyncio/cov/mock), httpx, faker, factory-boy.
+- **Runtime:** Python 3.14 (floor 3.13). `uv` manages the interpreter, venv, and lockfile.
+- **Web:** Django 6.0 + Django REST Framework 3.17, served by gunicorn (WSGI).
+- **DB:** PostgreSQL, `psycopg` 3 with a connection pool. `pg_trgm` + `btree_gin` extensions.
+- **Auth:** `djangorestframework-simplejwt` with rotating refresh tokens and
+  `token_blacklist` (rotation + reuse rejection come from the library, not custom code).
+  Passwords use Django's `Argon2PasswordHasher`.
+- **Email tokens:** Django's `PasswordResetTokenGenerator` and `django.core.signing`. There
+  is **no verification-token table** — single use is enforced by hashing mutable user state
+  (a used link dies because `is_verified` / the password hash / the email changed).
+- **Cache + throttling:** Django's cache framework (Redis when `FOSSLOVE_REDIS_URL` is set,
+  in-memory otherwise). Rate limiting is DRF throttling with runtime-editable rates.
+- **Filtering/search:** `django-filter`, with real trigram fuzzy search via
+  `TrigramWordSimilarity` ranked by similarity (a typo like `firefx` matches `Firefox`).
+- **Triggers:** `django-pgtrigger` maintains the denormalized category counters in the
+  database, so bulk `.update()` / `.delete()` / `bulk_create()` can never cause drift.
+- **Singleton config:** `django-solo` for the runtime-editable settings row.
+- **Admin:** Django admin at `/django-admin/`.
+- **OpenAPI:** `drf-spectacular` at `/api/v1/schema`, `/api/v1/docs`, `/api/v1/redoc`.
+- **Logging:** `structlog` (JSON in prod, console in dev), request-id bound per request.
+- **Metrics:** `django-prometheus` at `/metrics`.
+- **Tooling:** ruff, mypy (+ django-stubs, djangorestframework-stubs), pytest,
+  pytest-django, pytest-cov, model-bakery.
 
-## Frontend stack (`apps/web`, June 2026)
+## Frontend
 
-- **Next.js 16** (App Router, Turbopack) + **React 19** + **TypeScript**, **Bun** toolchain.
-- **SSR/SSG** for the public catalog (SEO + first paint); auth/admin areas are client-rendered.
-- **Tailwind CSS v4** + **shadcn/ui** (built on **Base UI**, style `base-nova`). Compose
-  triggers with the Base UI `render` prop, not Radix `asChild`. `Select` needs an `items` map.
-- **TanStack Query** (server state), **React Hook Form + Zod** (forms), **zustand** (the
-  persistent script-builder selection), **motion** (animations: `Reveal`, route fade,
-  `AnimatePresence`), **sonner** (toasts), **next-themes** (system/dark/light).
-- **Biome** for lint+format (the ruff analog); `tsc --noEmit` for types.
-- Auth tokens (access + rotating refresh) live in `localStorage`; the API client injects the
-  bearer and transparently refreshes on 401. Server components fetch via `API_INTERNAL_URL`.
-- Design identity: violet/indigo accent on warm-charcoal dark, Bricolage Grotesque display,
-  no grid/glow — deliberately distinct from the maintainer's portfolio site.
+React 19.2 + Vite 8 (Rolldown) + React Router 8 + TanStack Query 5, Bun as package manager and
+toolchain. Nothing from the previous Next.js frontend was carried over.
 
-## Why FastAPI, not Django
+### Two TypeScript versions, deliberately
 
-This is an API backend for a separate SPA frontend (CORS to :3000/:5173), the workload is
-async-shaped (async DB + httpx fan-out for package checks), and Pydantic + auto-OpenAPI +
-DI are central. Django's templating/admin/monolith strengths don't apply; its async story
-is still partial. The one thing Django would give free — the admin panel — we get via
-SQLAdmin without adopting Django.
+TypeScript 7 is the native Go compiler and **ships no JavaScript compiler API**, so
+`typescript-eslint` and `openapi-typescript` cannot run under it. TypeScript 6.0.3 is the last
+release that exposes that API. Both are installed:
 
-## Auth & access model
+- `typescript-native` (npm alias of `typescript@7.0.2`) — type-checks the project.
+- `typescript@6.0.3` — what ESLint, `openapi-typescript` and editors resolve.
 
-- **Anonymous** users: browse catalog, generate scripts.
-- **Signed-up** users (extra features): saved app **collections** (named bundles),
-  **favorites**, and script **generation history**.
-- **Admin** role: catalog management (categories, apps, package refs) + the SQLAdmin UI.
-- Email verification on signup; password reset; refresh-token rotation with server-side
-  revocation (a `jti` per refresh token is persisted).
-- **Email is gated by `FOSSLOVE_EMAIL_ENABLED` (default off).** While off: the EmailSender
-  no-ops, new users are auto-verified on registration, and resend/reset short-circuit. Turn
-  it on (with SMTP creds) to activate the full verify/reset flow.
+Do not "fix" this by deleting one of them; the ecosystem needs both until typescript-eslint
+supports TS ≥ 7.1.
 
-## Runtime settings (admin-editable)
+### The API client is generated
 
-A subset of config is editable at runtime from the admin panel (`GET`/`PATCH
-/admin/settings`) without a restart: **feature flags** (registration on/off, email
-verification gating), **rate limiting** (enabled + default/auth limits), **email & SMTP**
-(backend, from, host/port/user/password/TLS), and **branding** (project name, frontend URL).
-These live in a **typed single-row `app_settings` table** that *overlays* the env defaults
-(a NULL column inherits the env value). `RuntimeSettings` (`core/runtime_settings.py`) caches
-the overlay in memory with a short TTL + reload-on-write; consumers (rate-limit middleware,
-auth register, EmailSender) read the effective values per request. Security/startup-bound
-settings stay **env-only**: `SECRET_KEY`, JWT alg, DB connection, `CORS_ORIGINS`,
-`ALLOWED_HOSTS`.
+`apps/api/openapi.json` is committed, and `apps/web/src/api/schema.d.ts` is generated from it
+by `openapi-typescript`. **Never hand-edit either file.** All requests go through
+`openapi-fetch`, so paths, query parameters, bodies and responses are checked against the real
+contract at compile time. After any backend change to a serializer, view or route, run
+`make schema`. CI fails when either file is stale.
 
-## Data model (high level)
+Because of this, DRF views must declare accurate schemas: paginated endpoints use
+`paginated(...)` and `page_parameters(...)` from `fosslove.core.schema`, and no endpoint may
+declare a bare `dict` response — `tests/test_schema.py` enforces both.
 
-- `users`, `refresh_tokens`, `verification_tokens` (email-verify + password-reset).
-- `categories` (with denormalized `windows_app_count` / `linux_app_count`, maintained
-  transactionally + a periodic recompute task to fix drift).
-- `apps` (one table, `platform` enum = windows|linux; unique `(category_id, platform, name)`).
-- `package_references` (per-app rows: `manager` enum = winget|msstore|apt|dnf|pacman|
-  flatpak|snap|direct, `identifier`, optional `extra` JSONB). The script engine picks the
-  best available manager per app, with fallbacks. Direct-download is the last resort.
-- `collections` + `collection_apps` (ordered M2M), `favorites`, `script_runs` (history).
-- `app_settings` (typed single-row overlay for runtime-editable config — see Runtime settings).
+### Auth
+
+Tokens live in `localStorage`; `authFetch` attaches the access token and, on a 401, refreshes
+once and replays the request. The refresh is **single-flight** — this is a correctness
+requirement, not an optimisation, because the API rotates refresh tokens and blacklists the
+previous one, so parallel refreshes would invalidate each other.
+
+### Design status
+
+The design language is **not built yet**. Pages are semantic HTML over a minimal CSS reset,
+present only to prove the data, routing and auth layers work end to end. No styling system has
+been chosen — that is a deliberate open decision, not an oversight.
+
+## App layout
+
+Each Django app owns its models, serializers, views, urls, and admin.
+
+```
+apps/api/
+  manage.py
+  openapi.json                  committed API contract; regenerate with `make schema`
+  pyproject.toml  uv.lock  Makefile  .env.example
+  scripts/upgrade_deps.py       raises dependency floors to the latest on PyPI
+  src/fosslove/
+    conf/         settings, urls, wsgi, asgi
+    core/         cache, auth helpers, exceptions, logging, middleware, pagination,
+                  permissions, request helpers, slugs, throttling, checks, health views
+    accounts/     User, SessionMetadata, auth + profile endpoints, token generators, emails
+    catalog/      Category, App, PackageReference, triggers, filters, public + admin endpoints
+    userdata/     Collection, CollectionApp, Favorite, ScriptRun, script generation
+    siteconfig/   SiteConfiguration singleton (runtime-editable settings)
+    activity/     ActivityLog + audit endpoints
+    scriptgen/    Windows + Linux script builders (framework-agnostic)
+  tests/          pytest-django suite
+
+apps/web/
+  package.json  bun.lock  Makefile  .env.example
+  vite.config.ts  vitest.config.ts  tsconfig.json  eslint.config.js
+  src/
+    api/          generated schema.d.ts, openapi-fetch client, token store, ApiError
+    auth/         AuthProvider, context, useAuth
+    features/     one folder per domain, each exposing typed TanStack Query hooks
+    query/        QueryClient factory, query-key registry
+    routes/       router, layout, auth guard, pages
+    styles/       base reset
+    test/         Vitest setup
+```
+
+## URL surface
+
+Everything is under `/api/v1/`, declared with explicit `path()` entries and namespaced
+`include()`s:
+
+- `auth/` — register, login, refresh, logout, verify-email, resend-verification,
+  password-reset, password-reset/confirm, email-change/confirm
+- `user/` — profile (`GET`/`PATCH`/`DELETE`), change-password, email, sessions,
+  sessions/`<id>`, export
+- `categories`, `categories/<id>`, `categories/by-slug/<slug>`
+- `apps`, `apps/<id>`, `apps/by-slug/<platform>/<slug>`
+- `collections`, `collections/public`, `collections/<id>`, `collections/<id>/apps`
+- `favorites`, `favorites/ids`, `favorites/<app_id>`
+- `scripts/generate`, `scripts/history`
+- `admin/` — categories, apps, apps/import, catalog/export, recompute-counts, activity,
+  settings, cleanup-tokens
+
+Outside the versioned prefix: `/`, `/health`, `/health/ready`, `/metrics`, `/django-admin/`.
+
+## Data model
+
+- `accounts_user` — UUID pk, email with a **functional unique index on `LOWER(email)`**
+  (case-insensitive without a nondeterministic collation, so `LIKE` and admin search still
+  work). `is_staff` is the admin flag; the API exposes it as a computed `role`.
+- `accounts_sessionmetadata` — 1:1 sidecar on simplejwt's `OutstandingToken` holding
+  user agent / IP / last-used. The blacklist remains the single source of truth for
+  whether a session is valid.
+- `catalog_category` — denormalized `windows_app_count` / `linux_app_count`, non-negative
+  check constraints, maintained by **database triggers**.
+- `catalog_app` — `platform` choices, unique `(category, platform, name)` and
+  `(platform, slug)`, a partial index for active rows, and GIN trigram indexes on
+  `name` and `summary`.
+- `catalog_packagereference` — unique `(app, manager)`, non-negative priority.
+- `userdata_collection` / `userdata_collectionapp` / `userdata_favorite` — the join tables
+  use **composite primary keys** (`CompositePrimaryKey`), no surrogate ids.
+- `userdata_scriptrun` — `app_ids` is a typed Postgres **array**, not JSON.
+- `activity_activitylog` — audit trail with indexes for the filters the admin UI exposes.
+- `siteconfig_siteconfiguration` — single row; every column is nullable and `NULL` means
+  "inherit the environment value".
+
+Every paginated query uses an explicit `order_by` ending in a unique tiebreaker so
+pagination is deterministic.
+
+## Auth and access model
+
+- **Anonymous**: browse the catalog, generate scripts.
+- **Signed-up**: collections, favorites, script history (requires a verified email).
+- **Staff**: catalog management, runtime settings, activity log, Django admin.
+- Access + rotating refresh tokens; reusing a rotated refresh token is rejected because
+  rotation blacklists the old one.
+- **Email is gated by `FOSSLOVE_EMAIL_ENABLED` (default off).** While off, new users are
+  auto-verified and the verify/reset/change flows short-circuit.
+
+## Runtime settings
+
+A subset of config is editable at runtime via `GET`/`PATCH /api/v1/admin/settings` and the
+Django admin: feature flags, rate limits, email/SMTP, and branding. These live in the
+typed single-row `siteconfig_siteconfiguration` table that **overlays** the env defaults —
+a `NULL` column inherits from the environment. Security- and startup-bound settings stay
+env-only: `SECRET_KEY`, database connection, `CORS_ORIGINS`, `ALLOWED_HOSTS`.
 
 ## Script generation
 
 - Windows → `install_apps.ps1`: per app try winget → MS Store → direct download (silent).
-- Linux → `install_apps.sh`: detect distro/manager (apt/dnf/pacman) + flatpak/snap; per app
-  try flatpak → native → snap → direct.
-- Output is streamed as a file download. Authenticated runs are recorded to history.
-
-## Layout
-
-```
-apps/
-  api/                       Python FastAPI backend (own pyproject/uv.lock/Dockerfile/Makefile)
-    src/fosslove/
-      core/      config, logging, security, exceptions, cache, ratelimit, middleware,
-                 runtime_settings, pagination
-      db/        engine/session, Base, models/ (incl. app_settings), events, reset
-      schemas/   Pydantic request/response models (incl. settings)
-      services/  business logic (take an AsyncSession)
-      scriptgen/ windows + linux script builders
-      api/       deps + v1 routers (auth, users, catalog, collections, favorites,
-                 scripts, admin) + app factory
-      admin/     SQLAdmin views + auth backend
-      seed.py    idempotent sample-catalog seeding
-    migrations/  Alembic (async env.py)
-    tests/       pytest suite (httpx ASGITransport against a test Postgres)
-  web/                       Next.js 16 frontend (Bun, own Dockerfile/Makefile)
-    src/app/                 routes: (site) public + account, (auth), admin
-    src/components/          ui (shadcn), layout, catalog, builder, admin, motion
-    src/lib/                 api client + types, auth, stores, hooks
-Makefile                     root orchestrator (infra + api-* / web-* delegators)
-docker-compose.yml           postgres + redis + migrate + api + web
-```
+- Linux → `install_apps.sh`: detect distro/manager (apt/dnf/pacman) plus flatpak/snap; per
+  app try flatpak → native → snap → direct.
+- Returned as a file download. Runs are recorded to history for authenticated users, and
+  apps with no installer for the target platform come back in `X-Fosslove-Skipped`.
 
 ## Common commands
 
-Root `Makefile` orchestrates both apps. Backend targets are `api-<t>`, frontend `web-<t>`.
+The root `Makefile` is the full control surface. Any backend target is reachable as
+`api-<target>`, any frontend target as `web-<target>`.
 
 ```
-make infra              # start ONLY postgres + redis (for local dev servers)
-make up / make down     # full docker stack (postgres + redis + api + web)
-make logs               # tail all docker logs
+make bootstrap          # env + local Postgres + install + migrate + seed + admin
 
-make api-install        # uv sync --all-extras           (in apps/api)
-make api-dev            # uvicorn with reload (:8001)
-make api-migrate        # alembic upgrade head
-make api-revision m="…" # autogenerate a migration
-make api-seed           # load sample catalog data
-make api-reset-db       # DESTRUCTIVE: drop schema, re-migrate, reset identities
-make api-check          # ruff + mypy + pytest
-make api-upgrade        # bump every Python dep to latest + re-sync
+make run-api            # Django dev server only (:8000)
+make run-web            # Vite dev server only (:5173)
+make run-all            # both together
+make run-api-prod       # API under gunicorn
 
-make web-install        # bun install                    (in apps/web)
-make web-dev            # next dev (:3000)
-make web-build          # production build
-make web-check          # biome (lint+format) + tsc
-make web-upgrade        # bun update --latest
+make db-init            # create a project-local Postgres cluster in .pgdata
+make db-start / db-stop / db-status / db-psql / db-logs / db-destroy
+
+make api-migrate        # apply migrations
+make api-migrations     # create migrations
+make api-check-migrations   # fail if models drift from migrations
+make api-seed           # load the bundled catalog fixtures (idempotent)
+make api-reseed         # flush the catalog and reload
+make api-admin          # create the bootstrap admin from .env
+make api-superuser      # create a superuser interactively
+
+make check              # lint + format check + typecheck + tests, both apps
+make schema             # regenerate openapi.json AND the typed frontend client
+make upgrade            # raise every dependency to the latest published version
+
+make web-install        # bun install
+make web-build          # typecheck with TS 7, then build
+make web-test           # vitest
+make web-codegen        # regenerate src/api/schema.d.ts only
 ```
 
-Typical local dev: `make infra` once, then `make api-dev` and `make web-dev` in two terminals.
+There is no Docker setup in this repo. `make db-*` manages a project-local PostgreSQL
+cluster under `.pgdata/` (gitignored). If port 5432 is already in use, override it:
+`make db-start PGPORT=5433` and set `FOSSLOVE_POSTGRES_PORT=5433` in `apps/api/.env`.
 
 ## Config
 
-All settings are env vars prefixed `FOSSLOVE_`, loaded via pydantic-settings from `.env`
-(see `.env.example`). Production boot fails fast on insecure defaults (placeholder secret,
-`DEBUG=true`, wildcard hosts). Generate a secret with
+All settings are env vars prefixed `FOSSLOVE_`, loaded from `apps/api/.env` (see
+`.env.example`). Production boot is guarded by Django system checks that fail on insecure
+defaults (placeholder secret, `DEBUG=true`, wildcard hosts, default DB password, unsafe
+email config). Generate a secret with
 `python -c "import secrets; print(secrets.token_urlsafe(64))"`.
