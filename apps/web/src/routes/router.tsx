@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter } from "react-router";
 import { RequireAuth } from "./RequireAuth";
 import { RouteError } from "./RouteError";
 import { RootLayout } from "./RootLayout";
@@ -15,6 +15,7 @@ import { MyCollectionsPage, PublicCollectionsPage } from "./pages/CollectionsPag
 import { ConfirmEmailChangePage } from "./pages/ConfirmEmailChangePage";
 import { FavoritesPage } from "./pages/FavoritesPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
+import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -30,7 +31,7 @@ export const router = createBrowserRouter([
     Component: RootLayout,
     ErrorBoundary: RouteError,
     children: [
-      { index: true, element: <Navigate to="/apps" replace /> },
+      { index: true, Component: LandingPage },
 
       { path: "apps", Component: CatalogPage },
       { path: "apps/:platform/:slug", Component: AppDetailPage },

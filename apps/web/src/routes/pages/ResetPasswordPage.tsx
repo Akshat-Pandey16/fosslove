@@ -1,8 +1,10 @@
 import { type SyntheticEvent } from "react";
-import { Link, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
+import { AuthLayout, AuthLink, AuthSuccess } from "@/components/AuthLayout";
 import { useConfirmPasswordReset } from "@/features/auth/hooks";
 import { messageFor } from "@/lib/errors";
 import { formString } from "@/lib/form";
+import { Alert, Button, Field, Input, KeyIcon, LinkButton } from "@/ui";
 
 export function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -20,44 +22,75 @@ export function ResetPasswordPage() {
 
   if (incomplete) {
     return (
-      <section>
-        <h1>Choose a new password</h1>
-        <p role="alert">
-          This reset link is incomplete. <Link to="/forgot-password">Request a new one</Link>.
-        </p>
-      </section>
+      <AuthLayout
+        eyebrow="account recovery"
+        title="Choose a new password"
+        footer={<AuthLink to="/login">Back to log in</AuthLink>}
+      >
+        <div className="flex flex-col gap-5">
+          <Alert tone="danger" title="This reset link is incomplete">
+            It is missing the code that identifies your account. Request a fresh link and open it
+            straight from your email client.
+          </Alert>
+          <LinkButton to="/forgot-password" variant="secondary" size="lg" block>
+            Request a new one
+          </LinkButton>
+        </div>
+      </AuthLayout>
     );
   }
 
   if (confirm.isSuccess) {
     return (
-      <section>
-        <h1>Password updated</h1>
-        <p>{confirm.data.message}</p>
-        <Link to="/login">Log in</Link>
-      </section>
+      <AuthLayout
+        eyebrow="account recovery"
+        title="Password updated"
+        footer={<AuthLink to="/login">Back to log in</AuthLink>}
+      >
+        <AuthSuccess
+          message={confirm.data.message}
+          action={<LinkButton to="/login">Log in</LinkButton>}
+        />
+      </AuthLayout>
     );
   }
 
   return (
-    <section>
-      <h1>Choose a new password</h1>
-      <form onSubmit={submit}>
-        <label htmlFor="new_password">New password</label>
-        <input
-          id="new_password"
-          name="new_password"
-          type="password"
-          autoComplete="new-password"
+    <AuthLayout
+      eyebrow="account recovery"
+      title="Choose a new password"
+      description="This link works only once. Choose the password you want to use from now on."
+      footer={<AuthLink to="/login">Back to log in</AuthLink>}
+    >
+      <form onSubmit={submit} className="flex flex-col gap-5">
+        <Field
+          label="New password"
+          htmlFor="new_password"
+          hint="Pick something long and unique — a passphrase works well."
           required
-        />
+        >
+          <Input
+            id="new_password"
+            name="new_password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="••••••••"
+            required
+          />
+        </Field>
 
-        {confirm.isError && <p role="alert">{messageFor(confirm.error)}</p>}
+        {confirm.isError && <Alert tone="danger">{messageFor(confirm.error)}</Alert>}
 
-        <button type="submit" disabled={confirm.isPending}>
-          {confirm.isPending ? "Updating…" : "Update password"}
-        </button>
+        <Button
+          type="submit"
+          size="lg"
+          block
+          loading={confirm.isPending}
+          icon={<KeyIcon size={18} />}
+        >
+          Update password
+        </Button>
       </form>
-    </section>
+    </AuthLayout>
   );
 }

@@ -1,12 +1,34 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
-import { isPlatform, PLATFORMS } from "@/api/types";
+import { useSearchParams } from "react-router";
+import { isPlatform } from "@/api/types";
+import { useAuth } from "@/auth/useAuth";
+import { AppCard } from "@/components/AppCard";
+import { AppCardSkeleton } from "@/components/AppCardSkeleton";
+import { CatalogFilters } from "@/components/CatalogFilters";
+import { FavoriteButton } from "@/components/FavoriteButton";
+import { QueryBoundary } from "@/components/QueryBoundary";
 import { useApps, useCategories } from "@/features/catalog/hooks";
-import { messageFor } from "@/lib/errors";
+import { useFavoriteIds } from "@/features/favorites/hooks";
+import { formatCount } from "@/lib/format";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
+import {
+  Button,
+  EmptyState,
+  PageHeader,
+  Pagination,
+  SearchIcon,
+  Section,
+  Skeleton,
+  SkeletonList,
+  SlidersIcon,
+  cx,
+} from "@/ui";
+
+const GRID = "grid gap-5 sm:grid-cols-2 xl:grid-cols-3";
 
 export function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { isVerified } = useAuth();
 
   const platformParam = searchParams.get("platform") ?? "";
   const categoryParam = searchParams.get("category_id");
@@ -14,6 +36,7 @@ export function CatalogPage() {
   const page = Number(searchParams.get("page") ?? "1");
 
   const [search, setSearch] = useState(urlQuery);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const debouncedSearch = useDebouncedValue(search);
 
   const update = (key: string, value: string) => {
@@ -50,99 +73,153 @@ export function CatalogPage() {
     page,
   });
   const categories = useCategories({ size: 100 });
+  const favoriteIds = useFavoriteIds(isVerified);
+
+  const favorites = new Set(favoriteIds.data ?? []);
+  const hasFilters = platformParam !== "" || categoryParam !== null || urlQuery !== "";
+  const total = apps.data?.meta.total;
+
+  const clearFilters = () => {
+    setSearch("");
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.delete("platform");
+        next.delete("category_id");
+        next.delete("q");
+        next.delete("page");
+        return next;
+      },
+      { replace: true },
+    );
+  };
 
   return (
-    <section>
-      <h1>Catalog</h1>
-
-      <form
-        role="search"
-        onSubmit={(event) => {
-          event.preventDefault();
-        }}
-      >
-        <label htmlFor="q">Search</label>
-        <input
-          id="q"
-          type="search"
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-          }}
-        />
-
-        <label htmlFor="platform">Platform</label>
-        <select
-          id="platform"
-          value={platformParam}
-          onChange={(event) => {
-            update("platform", event.target.value);
-          }}
-        >
-          <option value="">All platforms</option>
-          {PLATFORMS.map((platform) => (
-            <option key={platform} value={platform}>
-              {platform}
-            </option>
-          ))}
-        </select>
-
-        <label htmlFor="category">Category</label>
-        <select
-          id="category"
-          value={categoryParam ?? ""}
-          onChange={(event) => {
-            update("category_id", event.target.value);
-          }}
-        >
-          <option value="">All categories</option>
-          {categories.data?.items.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </form>
-
-      {apps.isPending && <p aria-busy="true">Loading apps…</p>}
-      {apps.isError && <p role="alert">{messageFor(apps.error)}</p>}
-      {apps.data?.items.length === 0 && <p>No apps match those filters.</p>}
-
-      <ul>
-        {apps.data?.items.map((app) => (
-          <li key={app.id}>
-            <Link to={`/apps/${app.platform}/${app.slug}`}>{app.name}</Link>
-            <span>{app.category_name}</span>
-            <p>{app.summary}</p>
-          </li>
-        ))}
-      </ul>
-
-      {apps.data && apps.data.meta.pages > 1 && (
-        <nav aria-label="Pagination">
-          <button
-            type="button"
-            disabled={page <= 1}
+    <Section>
+      <PageHeader
+        eyebrow="catalog"
+        title="Catalog"
+        description="Free and open-source apps for Windows and Linux. Pick what you need and FOSSLove writes the install script."
+        actions={
+          <Button
+            variant="secondary"
+            size="sm"
+            className="lg:hidden"
+            icon={<SlidersIcon size={16} />}
+            aria-expanded={filtersOpen}
+            aria-controls="catalog-filters"
             onClick={() => {
-              update("page", String(page - 1));
+              setFiltersOpen((open) => !open);
             }}
           >
-            Previous
-          </button>
-          <span>
-            Page {apps.data.meta.page} of {apps.data.meta.pages} — {apps.data.meta.total} apps
-          </span>
-          <button
-            type="button"
-            disabled={page >= apps.data.meta.pages}
-            onClick={() => {
-              update("page", String(page + 1));
+            Filters
+          </Button>
+        }
+      />
+
+      <div className="grid gap-8 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-14">
+        <aside
+          id="catalog-filters"
+          className={cx(
+            "rounded-xl border border-line bg-surface p-5 shadow-soft lg:sticky lg:top-[calc(var(--header-h)+1.5rem)] lg:self-start lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none",
+            filtersOpen ? "block" : "hidden lg:block",
+          )}
+        >
+          <CatalogFilters
+            search={search}
+            onSearchChange={setSearch}
+            platform={platformParam}
+            onPlatformChange={(value) => {
+              update("platform", value);
             }}
+            categoryId={categoryParam ?? ""}
+            onCategoryChange={(value) => {
+              update("category_id", value);
+            }}
+            categories={categories.data?.items ?? []}
+            categoriesPending={categories.isPending}
+            categoriesError={categories.error}
+            hasFilters={hasFilters}
+            onClear={clearFilters}
+          />
+        </aside>
+
+        <div className="min-w-0">
+          <div className="mb-6 flex items-center justify-between gap-4 border-b border-line pb-4">
+            {total === undefined ? (
+              <Skeleton className="h-3 w-28 rounded-full" />
+            ) : (
+              <p
+                role="status"
+                className="font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-ink-muted"
+              >
+                {formatCount(total)} {total === 1 ? "app" : "apps"}
+                {urlQuery === "" ? "" : ` · “${urlQuery}”`}
+              </p>
+            )}
+          </div>
+
+          <QueryBoundary
+            isPending={apps.isPending}
+            error={apps.error}
+            isEmpty={apps.data?.items.length === 0}
+            skeleton={
+              <div className={GRID}>
+                <SkeletonList count={9}>
+                  <AppCardSkeleton />
+                </SkeletonList>
+              </div>
+            }
+            empty={
+              <EmptyState
+                icon={<SearchIcon size={24} />}
+                title="No apps match those filters"
+                description="Try another platform, a different category, or a shorter search term."
+                action={
+                  hasFilters ? (
+                    <Button variant="secondary" onClick={clearFilters}>
+                      Clear filters
+                    </Button>
+                  ) : undefined
+                }
+              />
+            }
           >
-            Next
-          </button>
-        </nav>
-      )}
-    </section>
+            <div className={GRID}>
+              {apps.data?.items.map((app) => (
+                <AppCard
+                  key={app.id}
+                  app={app}
+                  {...(isVerified
+                    ? {
+                        action: (
+                          <FavoriteButton
+                            appId={app.id}
+                            isFavorite={favorites.has(app.id)}
+                            size="sm"
+                          />
+                        ),
+                      }
+                    : {})}
+                />
+              ))}
+            </div>
+          </QueryBoundary>
+
+          {apps.data === undefined ? null : (
+            <Pagination
+              className="mt-12"
+              page={page}
+              pages={apps.data.meta.pages}
+              total={apps.data.meta.total}
+              unit="apps"
+              onChange={(next) => {
+                update("page", String(next));
+              }}
+            />
+          )}
+        </div>
+      </div>
+    </Section>
   );
 }

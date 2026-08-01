@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
-import { Link, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
+import { AuthLayout, AuthLink, AuthSuccess } from "@/components/AuthLayout";
 import { useVerifyEmail } from "@/features/auth/hooks";
 import { messageFor } from "@/lib/errors";
+import { Alert, LinkButton, Spinner } from "@/ui";
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
@@ -19,33 +21,56 @@ export function VerifyEmailPage() {
   }, [mutate, uid, token]);
 
   const incomplete = uid === "" || token === "";
+  const busy = !incomplete && !verify.isSuccess && !verify.isError;
 
   return (
-    <section>
-      <h1>Verify your email</h1>
-
+    <AuthLayout
+      eyebrow="email verification"
+      title="Verify your email"
+      description={busy ? "Confirming the link you opened from your inbox." : undefined}
+      footer={<AuthLink to="/login">Back to log in</AuthLink>}
+    >
       {incomplete && (
-        <p role="alert">
-          This link is missing its verification code. Request a new one from the{" "}
-          <Link to="/resend-verification">resend page</Link>.
-        </p>
+        <div className="flex flex-col gap-5">
+          <Alert tone="danger" title="This link is missing its verification code">
+            Open the link straight from your email, or ask us to send a new one.
+          </Alert>
+          <LinkButton to="/resend-verification" variant="secondary" size="lg" block>
+            Request a new link
+          </LinkButton>
+        </div>
       )}
 
-      {!incomplete && verify.isPending && <p aria-busy="true">Verifying…</p>}
+      {busy && (
+        <div className="flex flex-col items-center gap-4 py-6" aria-busy="true">
+          <Spinner size="lg" className="text-ember" />
+          <p
+            role="status"
+            className="font-mono text-[0.6875rem] uppercase tracking-[0.2em] text-ink-muted"
+          >
+            Verifying
+          </p>
+        </div>
+      )}
 
       {verify.isSuccess && (
-        <>
-          <p>{verify.data.message}</p>
-          <Link to="/login">Continue to log in</Link>
-        </>
+        <AuthSuccess
+          title="You're verified"
+          message={verify.data.message}
+          action={<LinkButton to="/login">Continue to log in</LinkButton>}
+        />
       )}
 
       {verify.isError && (
-        <>
-          <p role="alert">{messageFor(verify.error)}</p>
-          <Link to="/resend-verification">Request a new link</Link>
-        </>
+        <div className="flex flex-col gap-5">
+          <Alert tone="danger" title="We could not verify this link">
+            {messageFor(verify.error)}
+          </Alert>
+          <LinkButton to="/resend-verification" variant="secondary" size="lg" block>
+            Request a new link
+          </LinkButton>
+        </div>
       )}
-    </section>
+    </AuthLayout>
   );
 }

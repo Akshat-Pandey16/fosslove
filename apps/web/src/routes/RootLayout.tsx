@@ -1,52 +1,33 @@
-import { Link, NavLink, Outlet } from "react-router";
+import { Outlet } from "react-router";
 import { useAuth } from "@/auth/useAuth";
+import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
+import { VerificationBanner } from "@/components/VerificationBanner";
+import { PageTransition } from "@/ui";
 
 export function RootLayout() {
-  const { isAuthenticated, isVerified, isAdmin, user, logout } = useAuth();
+  const { isAuthenticated, isVerified } = useAuth();
 
   return (
-    <>
-      <header>
-        <Link to="/">FOSSLove</Link>
-        <nav>
-          <NavLink to="/apps">Catalog</NavLink>
-          <NavLink to="/collections/public">Public collections</NavLink>
-          <NavLink to="/scripts">Script builder</NavLink>
-          {isAuthenticated && <NavLink to="/favorites">Favorites</NavLink>}
-          {isAuthenticated && <NavLink to="/collections">My collections</NavLink>}
-          {isAdmin && <NavLink to="/admin">Admin</NavLink>}
-        </nav>
-        <div>
-          {isAuthenticated ? (
-            <>
-              <Link to="/account">{user?.email}</Link>
-              <button type="button" onClick={() => void logout()}>
-                Log out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login">Log in</Link>
-              <Link to="/register">Sign up</Link>
-            </>
-          )}
-        </div>
-      </header>
+    <div className="grain flex min-h-dvh flex-col bg-canvas text-ink">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:inline-flex focus:h-11 focus:items-center focus:rounded-full focus:bg-ember focus:px-5 focus:text-sm focus:font-medium focus:text-white focus:shadow-lift"
+      >
+        Skip to content
+      </a>
 
-      {isAuthenticated && !isVerified && (
-        <p role="status">
-          Your email address is not verified yet.{" "}
-          <Link to="/resend-verification">Resend the verification email</Link>.
-        </p>
-      )}
+      <SiteHeader />
 
-      <main>
-        <Outlet />
+      {isAuthenticated && !isVerified && <VerificationBanner />}
+
+      <main id="main" className="flex-1">
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </main>
 
-      <footer>
-        <p>Free and open-source apps for Windows and Linux.</p>
-      </footer>
-    </>
+      <SiteFooter />
+    </div>
   );
 }

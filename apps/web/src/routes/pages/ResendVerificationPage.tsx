@@ -1,8 +1,9 @@
 import { type SyntheticEvent } from "react";
-import { Link } from "react-router";
+import { AuthLayout, AuthLink, AuthSuccess } from "@/components/AuthLayout";
 import { useResendVerification } from "@/features/auth/hooks";
 import { messageFor } from "@/lib/errors";
 import { formString } from "@/lib/form";
+import { Alert, Button, Field, Input, LinkButton, MailIcon } from "@/ui";
 
 export function ResendVerificationPage() {
   const resend = useResendVerification();
@@ -14,27 +15,52 @@ export function ResendVerificationPage() {
   };
 
   return (
-    <section>
-      <h1>Resend verification email</h1>
-
+    <AuthLayout
+      eyebrow="email verification"
+      title="Resend verification email"
+      description={
+        resend.isSuccess
+          ? undefined
+          : "Verification links expire. Tell us your address and a fresh one is on its way."
+      }
+      footer={<AuthLink to="/login">Back to log in</AuthLink>}
+    >
       {resend.isSuccess ? (
-        <p>{resend.data.message}</p>
+        <AuthSuccess
+          title="Check your inbox"
+          message={resend.data.message}
+          action={
+            <LinkButton to="/login" variant="secondary" size="sm">
+              Back to log in
+            </LinkButton>
+          }
+        />
       ) : (
-        <form onSubmit={submit}>
-          <label htmlFor="email">Email</label>
-          <input id="email" name="email" type="email" autoComplete="email" required />
+        <form onSubmit={submit} className="flex flex-col gap-5">
+          <Field label="Email" htmlFor="email" required>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              required
+            />
+          </Field>
 
-          {resend.isError && <p role="alert">{messageFor(resend.error)}</p>}
+          {resend.isError && <Alert tone="danger">{messageFor(resend.error)}</Alert>}
 
-          <button type="submit" disabled={resend.isPending}>
-            {resend.isPending ? "Sending…" : "Resend verification"}
-          </button>
+          <Button
+            type="submit"
+            size="lg"
+            block
+            loading={resend.isPending}
+            icon={<MailIcon size={18} />}
+          >
+            Resend verification
+          </Button>
         </form>
       )}
-
-      <p>
-        <Link to="/login">Back to log in</Link>
-      </p>
-    </section>
+    </AuthLayout>
   );
 }

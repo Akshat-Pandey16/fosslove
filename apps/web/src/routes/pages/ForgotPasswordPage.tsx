@@ -1,8 +1,9 @@
 import { type SyntheticEvent } from "react";
-import { Link } from "react-router";
+import { AuthLayout, AuthLink, AuthSuccess } from "@/components/AuthLayout";
 import { useRequestPasswordReset } from "@/features/auth/hooks";
 import { messageFor } from "@/lib/errors";
 import { formString } from "@/lib/form";
+import { Alert, Button, Field, Input, LinkButton, MailIcon } from "@/ui";
 
 export function ForgotPasswordPage() {
   const request = useRequestPasswordReset();
@@ -14,27 +15,52 @@ export function ForgotPasswordPage() {
   };
 
   return (
-    <section>
-      <h1>Reset your password</h1>
-
+    <AuthLayout
+      eyebrow="account recovery"
+      title="Reset your password"
+      description={
+        request.isSuccess
+          ? undefined
+          : "Give us the email you signed up with and we will send a link to set a new password."
+      }
+      footer={<AuthLink to="/login">Back to log in</AuthLink>}
+    >
       {request.isSuccess ? (
-        <p>{request.data.message}</p>
+        <AuthSuccess
+          title="Check your inbox"
+          message={request.data.message}
+          action={
+            <LinkButton to="/login" variant="secondary" size="sm">
+              Back to log in
+            </LinkButton>
+          }
+        />
       ) : (
-        <form onSubmit={submit}>
-          <label htmlFor="email">Email</label>
-          <input id="email" name="email" type="email" autoComplete="email" required />
+        <form onSubmit={submit} className="flex flex-col gap-5">
+          <Field label="Email" htmlFor="email" required>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              required
+            />
+          </Field>
 
-          {request.isError && <p role="alert">{messageFor(request.error)}</p>}
+          {request.isError && <Alert tone="danger">{messageFor(request.error)}</Alert>}
 
-          <button type="submit" disabled={request.isPending}>
-            {request.isPending ? "Sending…" : "Send reset link"}
-          </button>
+          <Button
+            type="submit"
+            size="lg"
+            block
+            loading={request.isPending}
+            icon={<MailIcon size={18} />}
+          >
+            Send reset link
+          </Button>
         </form>
       )}
-
-      <p>
-        <Link to="/login">Back to log in</Link>
-      </p>
-    </section>
+    </AuthLayout>
   );
 }

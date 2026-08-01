@@ -1,8 +1,10 @@
 import { useState, type SyntheticEvent } from "react";
-import { Link, useNavigate } from "react-router";
-import { isApiError } from "@/api/errors";
-import { formString } from "@/lib/form";
+import { useNavigate } from "react-router";
+import { AuthLayout, AuthLink } from "@/components/AuthLayout";
 import { useAuth } from "@/auth/useAuth";
+import { messageFor } from "@/lib/errors";
+import { formString } from "@/lib/form";
+import { Alert, ArrowRightIcon, Button, Field, Input, Terminal, TerminalLine } from "@/ui";
 
 export function RegisterPage() {
   const { register, login } = useAuth();
@@ -24,44 +26,94 @@ export function RegisterPage() {
       await login(email, password);
       await navigate("/", { replace: true });
     } catch (caught) {
-      setError(
-        isApiError(caught)
-          ? (caught.firstFieldError() ?? caught.message)
-          : "Something went wrong.",
-      );
+      setError(messageFor(caught));
     } finally {
       setPending(false);
     }
   };
 
   return (
-    <section>
-      <h1>Create an account</h1>
-      <form onSubmit={(event) => void submit(event)}>
-        <label htmlFor="full_name">Name</label>
-        <input id="full_name" name="full_name" type="text" autoComplete="name" />
+    <AuthLayout
+      eyebrow="join fosslove"
+      title="Create an account"
+      description="Free, and only an email is required. An account saves your collections, favourites and generated scripts."
+      aside={<RegisterAside />}
+      footer={
+        <p>
+          Already registered? <AuthLink to="/login">Log in</AuthLink>
+        </p>
+      }
+    >
+      <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-5">
+        <Field label="Name" htmlFor="full_name" hint="Optional — used to greet you.">
+          <Input id="full_name" name="full_name" type="text" autoComplete="name" placeholder="Ada Lovelace" />
+        </Field>
 
-        <label htmlFor="email">Email</label>
-        <input id="email" name="email" type="email" autoComplete="email" required />
+        <Field label="Email" htmlFor="email" required>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            required
+          />
+        </Field>
 
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="new-password"
+        <Field
+          label="Password"
+          htmlFor="password"
+          hint="Pick something long and unique — a passphrase works well."
           required
-        />
+        >
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="••••••••"
+            required
+          />
+        </Field>
 
-        {error !== null && <p role="alert">{error}</p>}
+        {error !== null && <Alert tone="danger">{error}</Alert>}
 
-        <button type="submit" disabled={pending}>
-          {pending ? "Creating account…" : "Create account"}
-        </button>
+        <Button
+          type="submit"
+          size="lg"
+          block
+          loading={pending}
+          iconEnd={pending ? undefined : <ArrowRightIcon size={18} />}
+        >
+          Create account
+        </Button>
       </form>
-      <p>
-        Already registered? <Link to="/login">Log in</Link>
+    </AuthLayout>
+  );
+}
+
+function RegisterAside() {
+  return (
+    <div className="flex flex-col gap-7">
+      <Terminal title="install_apps.sh">
+        <TerminalLine>fosslove new-setup</TerminalLine>
+        <TerminalLine prompt="→" muted>
+          pick your apps
+        </TerminalLine>
+        <TerminalLine prompt="→" muted>
+          choose windows or linux
+        </TerminalLine>
+        <TerminalLine prompt="→" muted>
+          run one script
+        </TerminalLine>
+        <TerminalLine prompt="" muted>
+          done <span className="animate-caret">▌</span>
+        </TerminalLine>
+      </Terminal>
+
+      <p className="max-w-[36ch] text-sm leading-relaxed text-ink-muted">
+        Save your picks once, then rebuild any machine from a single script.
       </p>
-    </section>
+    </div>
   );
 }
