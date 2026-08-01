@@ -849,6 +849,7 @@ export interface components {
         EmailChangeRequestRequest: {
             /** Format: email */
             new_email: string;
+            current_password: string;
         };
         EmailRequest: {
             /** Format: email */

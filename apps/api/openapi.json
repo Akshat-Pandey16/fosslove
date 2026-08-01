@@ -2766,9 +2766,14 @@
                         "type": "string",
                         "format": "email",
                         "minLength": 1
+                    },
+                    "current_password": {
+                        "type": "string",
+                        "minLength": 1
                     }
                 },
                 "required": [
+                    "current_password",
                     "new_email"
                 ]
             },

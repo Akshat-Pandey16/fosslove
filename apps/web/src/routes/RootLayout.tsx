@@ -2,7 +2,7 @@ import { Link, NavLink, Outlet } from "react-router";
 import { useAuth } from "@/auth/useAuth";
 
 export function RootLayout() {
-  const { isAuthenticated, isAdmin, user, logout } = useAuth();
+  const { isAuthenticated, isVerified, isAdmin, user, logout } = useAuth();
 
   return (
     <>
@@ -32,6 +32,13 @@ export function RootLayout() {
           )}
         </div>
       </header>
+
+      {isAuthenticated && !isVerified && (
+        <p role="status">
+          Your email address is not verified yet.{" "}
+          <Link to="/resend-verification">Resend the verification email</Link>.
+        </p>
+      )}
 
       <main>
         <Outlet />

@@ -11,7 +11,8 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  const from = (location.state as { from?: string } | null)?.from ?? "/";
+  const state = location.state as { from?: string; notice?: string } | null;
+  const from = state?.from ?? "/";
 
   const submit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -35,6 +36,7 @@ export function LoginPage() {
   return (
     <section>
       <h1>Log in</h1>
+      {state?.notice !== undefined && <p role="status">{state.notice}</p>}
       <form onSubmit={(event) => void submit(event)}>
         <label htmlFor="email">Email</label>
         <input id="email" name="email" type="email" autoComplete="email" required />
@@ -54,6 +56,9 @@ export function LoginPage() {
           {pending ? "Logging in…" : "Log in"}
         </button>
       </form>
+      <p>
+        <Link to="/forgot-password">Forgot your password?</Link>
+      </p>
       <p>
         No account? <Link to="/register">Sign up</Link>
       </p>

@@ -123,10 +123,31 @@ def test_sessions_listed_and_revocable(auth_api: APIClient, user: User) -> None:
 
 
 def test_email_change_is_immediate_when_email_disabled(auth_api: APIClient, user: User) -> None:
-    response = auth_api.post("/api/v1/user/email", {"new_email": "moved@test.io"}, format="json")
+    response = auth_api.post(
+        "/api/v1/user/email",
+        {"new_email": "moved@test.io", "current_password": "User12345"},
+        format="json",
+    )
     assert response.status_code == 200
     user.refresh_from_db()
     assert user.email == "moved@test.io"
+
+
+def test_email_change_requires_the_current_password(auth_api: APIClient, user: User) -> None:
+    original = user.email
+
+    missing = auth_api.post("/api/v1/user/email", {"new_email": "moved@test.io"}, format="json")
+    assert missing.status_code == 422
+
+    wrong = auth_api.post(
+        "/api/v1/user/email",
+        {"new_email": "moved@test.io", "current_password": "not-my-password"},
+        format="json",
+    )
+    assert wrong.status_code == 422
+
+    user.refresh_from_db()
+    assert user.email == original
 
 
 def test_verify_email_flow(api: APIClient, config: Any) -> None:

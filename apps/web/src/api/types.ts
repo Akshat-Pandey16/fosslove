@@ -13,6 +13,8 @@ export type ScriptRun = Schemas["ScriptRun"];
 export type User = Schemas["User"];
 export type Session = Schemas["Session"];
 export type ActivityLog = Schemas["ActivityLog"];
+export type DataExport = Schemas["DataExport"];
+export type CatalogExport = Schemas["CatalogExport"];
 export type SiteConfiguration = Schemas["SiteConfigurationRead"];
 export type PageMeta = Schemas["PageMeta"];
 

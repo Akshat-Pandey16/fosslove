@@ -6,14 +6,22 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { api, unwrap } from "@/api/client";
-import type { ActivityLog, App, AppDetail, Category, Paginated, Platform } from "@/api/types";
-import type { SiteConfiguration } from "@/api/types";
+import type {
+  ActivityLog,
+  App,
+  AppDetail,
+  CatalogExport,
+  Category,
+  Paginated,
+  Platform,
+  SiteConfiguration,
+} from "@/api/types";
 import { queryKeys, type AppListParams } from "@/query/keys";
 
 export interface CategoryInput {
   name: string;
   description?: string;
-  icon?: string;
+  icon_url?: string;
 }
 
 export interface AppInput {
@@ -182,5 +190,24 @@ export function useRecomputeCounts(): UseMutationResult<
 export function useCleanupTokens(): UseMutationResult<{ message: string }, Error, void> {
   return useMutation({
     mutationFn: async () => unwrap(await api.POST("/api/v1/admin/cleanup-tokens", {})),
+  });
+}
+
+export function useCatalogExport(): UseMutationResult<CatalogExport, Error, void> {
+  return useMutation({
+    mutationFn: async () => unwrap(await api.GET("/api/v1/admin/catalog/export")),
+  });
+}
+
+export function useImportApps(): UseMutationResult<AppDetail[], Error, AppInput[]> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (apps) =>
+      unwrap(await api.POST("/api/v1/admin/apps/import", { body: { apps } })),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin", "apps"] });
+      await queryClient.invalidateQueries({ queryKey: ["apps"] });
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
   });
 }

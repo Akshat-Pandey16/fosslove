@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { api, unwrap } from "@/api/client";
 import { setTokens } from "@/api/tokens";
-import type { Session, User } from "@/api/types";
+import type { DataExport, Session, User } from "@/api/types";
 import { queryKeys } from "@/query/keys";
 
 export function useUpdateProfile(): UseMutationResult<User, Error, { full_name?: string }> {
@@ -73,5 +73,11 @@ export function useDeleteAccount(): UseMutationResult<void, Error, void> {
       setTokens(null);
       queryClient.clear();
     },
+  });
+}
+
+export function useDataExport(): UseMutationResult<DataExport, Error, void> {
+  return useMutation({
+    mutationFn: async () => unwrap(await api.GET("/api/v1/user/export")),
   });
 }

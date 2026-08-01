@@ -122,6 +122,15 @@ class ChangePasswordSerializer(serializers.Serializer[Any]):
 
 class EmailChangeRequestSerializer(serializers.Serializer[Any]):
     new_email = serializers.EmailField()
+    current_password = serializers.CharField(trim_whitespace=False)
+
+    def validate_current_password(self, value: str) -> str:
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError(
+                "Current password is incorrect.", code="invalid_credentials"
+            )
+        return value
 
     def validate_new_email(self, value: str) -> str:
         normalized = value.strip().lower()
