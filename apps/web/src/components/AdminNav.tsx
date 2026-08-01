@@ -63,7 +63,7 @@ export function AdminNav({ className }: { className?: string | undefined }) {
 
 export function AdminShell({ children }: { children: ReactNode }) {
   return (
-    <div className="bg-sunken">
+    <div className="under-header bg-sunken">
       <Section>
         <AdminNav />
         {children}

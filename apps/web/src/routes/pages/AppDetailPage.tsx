@@ -8,9 +8,13 @@ import { useAppBySlug } from "@/features/catalog/hooks";
 import { useFavoriteIds } from "@/features/favorites/hooks";
 import { formatDate } from "@/lib/format";
 import { hueForCategory, platformHue, platformLabel, type Hue } from "@/lib/hues";
+import { useScriptBag } from "@/scriptbag/useScriptBag";
 import {
+  ArrowRightIcon,
   Badge,
+  Button,
   Card,
+  CheckIcon,
   ChevronLeftIcon,
   CopyButton,
   ExternalLinkIcon,
@@ -106,6 +110,8 @@ function AppDetailBody({
   isVerified: boolean;
   isFavorite: boolean;
 }) {
+  const bag = useScriptBag();
+  const inScript = bag.has(app.id);
   const hue = hueForCategory(app.category_slug);
   const PlatformIcon = PLATFORM_ICONS[app.platform];
   const letter = app.name.trim().charAt(0).toUpperCase() || "?";
@@ -172,17 +178,33 @@ function AppDetailBody({
         )}
       </div>
 
-      <aside className="lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
+      <aside className="lg:sticky lg:top-[calc(var(--header-h)+1.5rem)] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
         <Card className="flex flex-col gap-5">
-          <div className="flex items-center gap-3">
-            <LinkButton
-              to={`/scripts?app=${app.id}`}
-              icon={<TerminalIcon size={17} />}
-              className="flex-1"
-            >
-              Add to script
-            </LinkButton>
-            {isVerified && <FavoriteButton appId={app.id} isFavorite={isFavorite} />}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <Button
+                variant={inScript ? "secondary" : "primary"}
+                icon={inScript ? <CheckIcon size={17} /> : <TerminalIcon size={17} />}
+                className="flex-1"
+                aria-pressed={inScript}
+                onClick={() => {
+                  bag.toggle({
+                    id: app.id,
+                    name: app.name,
+                    slug: app.slug,
+                    platform: app.platform,
+                  });
+                }}
+              >
+                {inScript ? "In your script" : "Add to script"}
+              </Button>
+              {isVerified && <FavoriteButton appId={app.id} isFavorite={isFavorite} />}
+            </div>
+            {inScript && (
+              <LinkButton to="/scripts" variant="ghost" size="sm" iconEnd={<ArrowRightIcon size={15} />}>
+                Go to the script builder
+              </LinkButton>
+            )}
           </div>
 
           {homepage === "" ? null : (
